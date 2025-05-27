@@ -10,6 +10,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAI } from 'openai';
+import { Anthropic } from '@anthropic-ai/sdk';
 import * as yaml from 'js-yaml';
 import {
   AIDataFormat,
@@ -22,9 +23,9 @@ import {
   AIErrorType,
   handleAIResponseParsing,
   withRobustAICall,
-} from '../utils/aiErrorHandler';
-import templateManager from '../utils/aiTemplateManager';
-import { WORLD_BUILDER } from '../utils/systemPrompts';
+} from '../utils/aiErrorHandler.js';
+import templateManager from '../utils/aiTemplateManager.js';
+import { WORLD_BUILDER } from '../utils/systemPrompts.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // サポートされているモデル設定

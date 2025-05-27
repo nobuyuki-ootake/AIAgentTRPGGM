@@ -20,6 +20,11 @@
     "src/networks/**/*",
     "src/routes/aiAgent.ts",
     "src/utils/systemPrompts.ts",
+    "src/utils/aiTemplateManager.ts",
+    "src/utils/aiRequestStandard.ts",
+    "src/utils/aiErrorHandler.ts",
+    "src/utils/worldBuildingSchemas.ts",
+    "src/services/aiIntegration.ts",
     "src/index.ts"
   ],
   "exclude": [

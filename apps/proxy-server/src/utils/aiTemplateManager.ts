@@ -3,7 +3,14 @@
  * このファイルはAIとの通信で使用するテンプレートを一元管理します
  */
 
-import { buildStandardSystemPrompt } from './aiRequestStandard';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+import {
+  StandardAIRequest,
+  StandardAIResponse,
+} from '@novel-ai-assistant/types';
+import { buildStandardSystemPrompt } from './aiRequestStandard.js';
 
 // テンプレートタイプの定義
 export enum TemplateType {
