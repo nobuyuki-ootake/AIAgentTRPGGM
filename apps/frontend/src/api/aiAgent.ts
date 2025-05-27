@@ -10,7 +10,9 @@ import {
 } from "@novel-ai-assistant/types";
 
 // APIのベースURL
-const API_BASE_URL = "/api/ai-agent"; // 常に相対パス /api/ai-agent を使用する
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent`
+  : "/api/ai-agent"; // 開発環境では相対パス /api/ai-agent を使用する
 
 // APIエラーハンドリング共通関数
 const handleApiError = (error: AxiosError | Error, operationName: string) => {
@@ -119,6 +121,35 @@ export const aiAgentApi = {
     } catch (error) {
       if (error instanceof AxiosError || error instanceof Error) {
         return handleApiError(error, "プロットアドバイス取得");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * あらすじ生成を行う
+   * @param message ユーザーのメッセージ
+   * @param projectData プロジェクトデータ
+   * @param model 使用するAIモデル
+   * @param format 出力フォーマット
+   */
+  generateSynopsis: async (
+    message: string,
+    projectData: Record<string, unknown> = {},
+    model: string = "gpt-4o",
+    format: "text" | "json" | "yaml" = "text"
+  ) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/synopsis-generation`, {
+        userMessage: message,
+        projectData,
+        model,
+        format,
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "あらすじ生成");
       }
       throw error;
     }

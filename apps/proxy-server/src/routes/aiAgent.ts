@@ -809,4 +809,119 @@ ${lengthInstruction}
   }
 });
 
+/**
+ * あらすじ生成エンドポイント
+ * 小説のあらすじを生成します
+ */
+router.post('/synopsis-generation', async (req, res) => {
+  try {
+    const { userMessage, projectData, model } = req.body;
+    const format = req.body.format || 'text'; // あらすじはテキストがデフォルト
+
+    console.log('[API] あらすじ生成リクエスト');
+
+    // プロジェクトデータから文脈を構築
+    let contextInfo = '';
+    if (projectData) {
+      if (projectData.title) {
+        contextInfo += `作品タイトル: ${projectData.title}\n`;
+      }
+      if (projectData.genre) {
+        contextInfo += `ジャンル: ${projectData.genre}\n`;
+      }
+      if (projectData.theme) {
+        contextInfo += `テーマ: ${projectData.theme}\n`;
+      }
+      if (projectData.characters && projectData.characters.length > 0) {
+        contextInfo += `主要キャラクター: ${projectData.characters.map((c) => c.name).join(', ')}\n`;
+      }
+      if (projectData.worldBuilding && projectData.worldBuilding.length > 0) {
+        contextInfo += `世界観要素: ${projectData.worldBuilding.map((w) => w.name).join(', ')}\n`;
+      }
+    }
+
+    // システムプロンプトを構築
+    const systemPrompt = `あなたは優秀な小説のあらすじ作成専門家です。
+以下の要件に従って、魅力的で読者の興味を引くあらすじを作成してください：
+
+1. 読者が作品の魅力を理解できる内容
+2. 主要な登場人物と設定を含む
+3. 物語の核となる葛藤や謎を示唆
+4. ネタバレを避けつつ、興味を引く内容
+5. 適切な長さ（200-500文字程度）
+
+作品の雰囲気やジャンルに合った文体で執筆してください。`;
+
+    // ユーザープロンプトを構築
+    let userPrompt = '';
+    if (contextInfo) {
+      userPrompt += `以下の作品情報を参考にして、あらすじを作成してください：\n\n${contextInfo}\n`;
+    }
+    if (userMessage) {
+      userPrompt += `\n追加の指示：\n${userMessage}`;
+    }
+    if (!userPrompt) {
+      userPrompt = '魅力的な小説のあらすじを作成してください。';
+    }
+
+    // AIリクエストを作成
+    const aiRequest: StandardAIRequest = {
+      requestType: 'synopsis-generation',
+      model: model || 'gpt-4o',
+      systemPrompt,
+      userPrompt,
+      context: {
+        projectData,
+      },
+      options: {
+        temperature: 0.7,
+        maxTokens: 1000,
+        expectedFormat:
+          format === 'text' ? 'text' : format === 'json' ? 'json' : 'yaml',
+        responseFormat:
+          format === 'text' ? 'text' : format === 'json' ? 'json' : 'yaml',
+      },
+    };
+
+    // AIリクエストを実行
+    console.log(`[API] AIリクエスト実行: ${aiRequest.requestType}`);
+    const aiResponse = await processAIRequest(aiRequest);
+
+    // エラー処理
+    if (aiResponse.status === 'error') {
+      console.error('[API] AIリクエスト失敗:', {
+        errorCode: aiResponse.error?.code,
+        errorMessage: aiResponse.error?.message,
+        request: JSON.stringify(aiRequest, null, 2),
+      });
+
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    // 成功レスポンス
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+        format: format,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] あらすじ生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message:
+        error.message || 'あらすじ生成中に予期しないエラーが発生しました',
+    });
+  }
+});
+
 export default router;

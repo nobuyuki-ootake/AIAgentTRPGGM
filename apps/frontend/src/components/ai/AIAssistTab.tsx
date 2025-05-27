@@ -18,6 +18,14 @@ import { useRecoilValue, useRecoilState } from "recoil";
 import { aiChatContextState, currentProjectState } from "../../store/atoms";
 import { PlotElement } from "@novel-ai-assistant/types";
 import { HelpTooltip } from "../ui/HelpTooltip";
+import {
+  generateSynopsisContent,
+  generateCharacterContent,
+  generatePlotContent,
+  generateWorldBuildingContent,
+  generateTimelineContent,
+  generateGenericContent,
+} from "../../utils/aiGenerationHelpers";
 
 // エラーの種類を定義
 type ErrorType = "network" | "validation" | "ai_service" | "unknown";
@@ -138,13 +146,63 @@ export const AIAssistTab: React.FC = () => {
           batchGeneration,
         });
       } else if (assistConfig.onComplete) {
-        // 他の画面用の処理
-        // TODO: 実際のAI API呼び出しを実装
-        const result = {
-          content: "生成されたコンテンツ",
-          metadata: {},
-        };
-        assistConfig.onComplete(result);
+        // 他の画面用の処理 - 実際のAI API呼び出しを実装
+        let result;
+        const message = userInput || assistConfig.defaultMessage;
+
+        // ページコンテキストに応じてAPIを呼び出し
+        const projectDataAsRecord = context.projectData
+          ? (context.projectData as unknown as Record<string, unknown>)
+          : {};
+
+        switch (context.pageContext) {
+          case "synopsis":
+            // あらすじ生成の場合
+            result = await generateSynopsisContent(
+              message,
+              projectDataAsRecord
+            );
+            break;
+          case "characters":
+            // キャラクター生成の場合
+            result = await generateCharacterContent(
+              message,
+              projectDataAsRecord,
+              batchGeneration
+            );
+            break;
+          case "plot":
+            // プロット生成の場合
+            result = await generatePlotContent(message, projectDataAsRecord);
+            break;
+          case "worldbuilding":
+            // 世界観生成の場合
+            result = await generateWorldBuildingContent(
+              message,
+              projectDataAsRecord,
+              batchGeneration
+            );
+            break;
+          case "timeline":
+            // タイムライン生成の場合
+            result = await generateTimelineContent(
+              message,
+              projectDataAsRecord
+            );
+            break;
+          default:
+            // その他の場合は汎用的なAI応答
+            result = await generateGenericContent(message, projectDataAsRecord);
+            break;
+        }
+
+        assistConfig.onComplete({
+          content: result,
+          metadata: {
+            pageContext: context.pageContext,
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
 
       setProgress(100);
