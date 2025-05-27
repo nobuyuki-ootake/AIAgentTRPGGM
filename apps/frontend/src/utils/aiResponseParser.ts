@@ -105,10 +105,38 @@ export const parseAIResponseToPlotItems = (
     return [parsed];
   } catch {
     // JSON解析に失敗した場合、テキストから抽出
-    const lines = aiResponse.split("\n").filter((line) => line.trim());
-    return lines.map((line, index) => ({
-      title: `プロット${index + 1}`,
-      description: line.trim(),
-    }));
+    const plotItems: Partial<PlotElement>[] = [];
+
+    // プロットアイテムのパターンを検索
+    const plotItemPattern =
+      /プロットアイテム\d+\s*\n?タイトル[：:]\s*(.+?)\s*\n?詳細[：:]\s*(.+?)(?=\n\nプロットアイテム|\n\n[^プ]|$)/gs;
+
+    let match;
+    while ((match = plotItemPattern.exec(aiResponse)) !== null) {
+      const title = match[1]?.trim();
+      const description = match[2]?.trim();
+
+      if (title && description) {
+        plotItems.push({
+          id: uuidv4(),
+          title,
+          description,
+          status: "検討中" as const,
+        });
+      }
+    }
+
+    // パターンマッチングで見つからない場合、従来の方法を試行
+    if (plotItems.length === 0) {
+      const lines = aiResponse.split("\n").filter((line) => line.trim());
+      return lines.map((line, index) => ({
+        id: uuidv4(),
+        title: `プロット${index + 1}`,
+        description: line.trim(),
+        status: "検討中" as const,
+      }));
+    }
+
+    return plotItems;
   }
 };

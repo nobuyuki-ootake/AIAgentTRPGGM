@@ -42,7 +42,7 @@ interface PlotContextType {
   handleCloseSnackbar: () => void;
 
   // AIアシスト機能（削除予定）
-  applyAIPlotResponse: (aiResponse: string) => void;
+  applyAIPlotResponse: (aiResponse: string | PlotElement[]) => void;
 }
 
 // コンテキストの作成
@@ -83,24 +83,36 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
   } = usePlot();
 
   // AIの応答をプロットフォームに適用する関数（後方互換性のため残す）
-  const applyAIPlotResponse = (aiResponse: string) => {
+  const applyAIPlotResponse = (aiResponse: string | PlotElement[]) => {
     try {
-      // AIからの応答を解析してプロット配列として取得
-      const parsedPlotItems = parseAIResponseToPlotItems(aiResponse);
+      let newPlotItems: PlotElement[] = [];
 
-      // 有効なプロット配列が返ってきた場合
-      if (parsedPlotItems.length > 0) {
-        // すべてのプロットアイテムをプロット一覧に追加
-        const newPlotItems: PlotElement[] = parsedPlotItems.map(
+      // 構造化されたデータ（配列）の場合
+      if (Array.isArray(aiResponse)) {
+        newPlotItems = aiResponse.map(
+          (item): PlotElement => ({
+            id: item.id || uuidv4(),
+            title: item.title || "無題のプロット",
+            description: item.description || "",
+            order: item.order || 0,
+            status: item.status || ("検討中" as const),
+          })
+        );
+      } else {
+        // 従来の文字列レスポンスの場合（後方互換性）
+        const parsedPlotItems = parseAIResponseToPlotItems(aiResponse);
+        newPlotItems = parsedPlotItems.map(
           (item): PlotElement => ({
             id: uuidv4(),
-            title: item.title || "無題のプロット", // Ensure title is not undefined
+            title: item.title || "無題のプロット",
             description: item.description || "",
-            order: 0, // 後で順番を再設定
+            order: 0,
             status: "検討中" as const,
           })
         );
+      }
 
+      if (newPlotItems.length > 0) {
         // 既存のプロットアイテムと新しいプロットアイテムを結合
         setPlotItems((prevItems: PlotElement[]) => {
           const updatedItems = [...prevItems, ...newPlotItems];
@@ -119,6 +131,7 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
       }
     } catch (error) {
       console.error("AIレスポンスの解析エラー:", error);
+      toast.error("プロットアイテムの追加に失敗しました");
     }
   };
 

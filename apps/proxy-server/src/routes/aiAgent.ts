@@ -422,24 +422,65 @@ router.post('/character-detail-generation', async (req, res) => {
  */
 router.post('/plot-development', async (req, res) => {
   try {
-    const { userMessage, model } = req.body;
-    const format = req.body.format || 'text'; // プロットはテキストがデフォルト
+    const { userMessage, projectData, model } = req.body;
+    const format = req.body.format || 'text';
 
     console.log('[API] プロット開発リクエスト');
+
+    // プロット生成専用のシステムプロンプト
+    const plotGenerationSystemPrompt = `
+あなたは小説作成を支援するAIアシスタントで、プロット開発の専門家です。
+ユーザーの指示に従って、魅力的で一貫性のある物語の構造を作成します。
+
+【重要：出力形式について】
+プロットアイテムを生成する場合は、必ず以下の形式で応答してください：
+
+プロットアイテム1
+タイトル: [プロットのタイトル]
+詳細: [具体的な説明]
+
+プロットアイテム2
+タイトル: [プロットのタイトル]
+詳細: [具体的な説明]
+
+プロットアイテム3
+タイトル: [プロットのタイトル]
+詳細: [具体的な説明]
+
+※マークダウンの装飾（**太字**など）は使用しないでください
+※解説や分析は不要です。プロットアイテムのみを上記形式で提示してください
+※各プロットアイテムは空行で区切ってください
+
+起承転結を意識し、キャラクターの動機に基づいた説得力のある展開を提案してください。
+`;
+
+    // プロジェクトデータを含むコンテキストを構築
+    let contextualPrompt = userMessage;
+    if (projectData) {
+      const { title, synopsis, characters, plot } = projectData;
+
+      contextualPrompt += '\n\n【参考情報】';
+      if (title) contextualPrompt += `\nタイトル: ${title}`;
+      if (synopsis) contextualPrompt += `\nあらすじ: ${synopsis}`;
+      if (characters && Array.isArray(characters) && characters.length > 0) {
+        contextualPrompt += `\n登場キャラクター: ${characters.map((c) => c.name || '名前未設定').join(', ')}`;
+      }
+      if (plot && Array.isArray(plot) && plot.length > 0) {
+        contextualPrompt += `\n既存のプロット: ${plot.map((p) => p.title || '無題').join(', ')}`;
+      }
+    }
 
     // AIリクエストを作成
     const aiRequest: StandardAIRequest = {
       requestType: 'plot-development',
       model: model || 'gemini-1.5-pro',
-      systemPrompt: PLOT_DEVELOPER,
-      userPrompt: userMessage,
+      systemPrompt: plotGenerationSystemPrompt,
+      userPrompt: contextualPrompt,
       options: {
         temperature: 0.7,
         maxTokens: 2000,
-        expectedFormat:
-          format === 'text' ? 'text' : format === 'json' ? 'json' : 'yaml',
-        responseFormat:
-          format === 'text' ? 'text' : format === 'json' ? 'json' : 'yaml',
+        expectedFormat: 'text',
+        responseFormat: 'text',
       },
     };
 
@@ -449,7 +490,6 @@ router.post('/plot-development', async (req, res) => {
 
     // エラー処理
     if (aiResponse.status === 'error') {
-      // レスポンスのエラーコードとリクエスト内容をコンソールに出力
       console.error('[API] AIリクエスト失敗:', {
         errorCode: aiResponse.error?.code,
         errorMessage: aiResponse.error?.message,
@@ -463,16 +503,24 @@ router.post('/plot-development', async (req, res) => {
       });
     }
 
-    // 成功レスポンス
+    // AIレスポンスをパースしてプロットアイテムを抽出
+    const plotItems = parseAIResponseToPlotItems(aiResponse.rawContent || '');
+
+    console.log(
+      `[API] パース結果: ${plotItems.length}件のプロットアイテムを抽出`,
+    );
+
+    // 成功レスポンス（構造化されたデータで返す）
     return res.json({
       status: 'success',
-      data: aiResponse.content,
-      rawContent: aiResponse.rawContent,
+      data: plotItems, // 構造化されたプロットアイテム配列
+      rawContent: aiResponse.rawContent, // デバッグ用の生レスポンス
       metadata: {
         model: aiResponse.debug?.model,
         processingTime: aiResponse.debug?.processingTime,
         requestType: aiRequest.requestType,
         format: format,
+        itemCount: plotItems.length,
       },
     });
   } catch (error: any) {
@@ -483,6 +531,71 @@ router.post('/plot-development', async (req, res) => {
     });
   }
 });
+
+/**
+ * AIレスポンスからプロットアイテムを解析する関数
+ */
+function parseAIResponseToPlotItems(aiResponse: string): Array<{
+  id: string;
+  title: string;
+  description: string;
+  status: '検討中';
+  order: number;
+}> {
+  const plotItems: Array<{
+    id: string;
+    title: string;
+    description: string;
+    status: '検討中';
+    order: number;
+  }> = [];
+
+  // プロットアイテムのパターンを検索
+  const plotItemPattern =
+    /プロットアイテム\d+\s*\n?タイトル[：:]\s*(.+?)\s*\n?詳細[：:]\s*(.+?)(?=\n\nプロットアイテム|\n\n[^プ]|$)/gs;
+
+  let match;
+  let order = 0;
+  while ((match = plotItemPattern.exec(aiResponse)) !== null) {
+    const title = match[1]?.trim();
+    const description = match[2]?.trim();
+
+    if (title && description) {
+      plotItems.push({
+        id: generateId(), // UUIDを生成
+        title,
+        description,
+        status: '検討中' as const,
+        order: order++,
+      });
+    }
+  }
+
+  // パターンマッチングで見つからない場合、従来の方法を試行
+  if (plotItems.length === 0) {
+    const lines = aiResponse.split('\n').filter((line) => line.trim());
+    lines.forEach((line, index) => {
+      if (line.trim()) {
+        plotItems.push({
+          id: generateId(),
+          title: `プロット${index + 1}`,
+          description: line.trim(),
+          status: '検討中' as const,
+          order: index,
+        });
+      }
+    });
+  }
+
+  return plotItems;
+}
+
+/**
+ * 簡易ID生成関数
+ */
+function generateId(): string {
+  return 'plot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
 
 /**
  * YAMLとJSONの変換エンドポイント
