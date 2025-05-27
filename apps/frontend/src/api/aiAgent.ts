@@ -603,6 +603,35 @@ export const aiAgentApi = {
       throw error;
     }
   },
+
+  /**
+   * プロット生成を行う
+   * @param message ユーザーのメッセージ
+   * @param projectData プロジェクトデータ
+   * @param model 使用するAIモデル
+   * @param format 出力フォーマット
+   */
+  generatePlot: async (
+    message: string,
+    projectData: Record<string, unknown> = {},
+    model: string = "gemini-1.5-pro",
+    format: "text" | "json" | "yaml" = "text"
+  ) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/plot-development`, {
+        userMessage: message,
+        projectData,
+        model,
+        format,
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "プロット生成");
+      }
+      throw error;
+    }
+  },
 };
 
 /**

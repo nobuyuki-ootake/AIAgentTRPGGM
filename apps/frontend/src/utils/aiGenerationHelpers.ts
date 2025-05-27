@@ -49,9 +49,15 @@ export const generatePlotContent = async (
   projectData: Record<string, unknown>
 ): Promise<string> => {
   try {
-    // TODO: プロット生成APIの実装
-    console.log("プロット生成:", { message, projectData });
-    return "プロット生成機能は実装中です。";
+    const response = await aiAgentApi.generatePlot(message, projectData);
+
+    if (response.status === "success") {
+      return (
+        response.data || response.rawContent || "プロットが生成されました。"
+      );
+    } else {
+      throw new Error(response.message || "プロット生成に失敗しました");
+    }
   } catch (error) {
     console.error("プロット生成エラー:", error);
     throw error;
