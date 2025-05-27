@@ -1,11 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCategoryTabIndex = exports.getCategoryById = exports.getOrderedCategories = exports.worldBuildingCategories = exports.WorldBuildingElementType = void 0;
-exports.createTypedWorldBuildingElement = createTypedWorldBuildingElement;
 /**
  * 世界観構築要素のタイプのEnum（文字列リテラルユニオンの代替）
  */
-var WorldBuildingElementType;
+export var WorldBuildingElementType;
 (function (WorldBuildingElementType) {
     WorldBuildingElementType["WORLDMAP"] = "worldmap";
     WorldBuildingElementType["SETTING"] = "setting";
@@ -17,8 +13,8 @@ var WorldBuildingElementType;
     WorldBuildingElementType["MAGIC_TECHNOLOGY"] = "magic_technology";
     WorldBuildingElementType["STATE_DEFINITION"] = "state_definition";
     WorldBuildingElementType["FREE_FIELD"] = "free_field";
-})(WorldBuildingElementType || (exports.WorldBuildingElementType = WorldBuildingElementType = {}));
-exports.worldBuildingCategories = [
+})(WorldBuildingElementType || (WorldBuildingElementType = {}));
+export const worldBuildingCategories = [
     { id: "worldmap", label: "ワールドマップ", index: 0, iconName: "Map" },
     { id: "setting", label: "世界観設定", index: 1, iconName: "Public" },
     { id: "rule", label: "ルール", index: 2, iconName: "Gavel" },
@@ -56,21 +52,18 @@ exports.worldBuildingCategories = [
     },
 ];
 // カテゴリIDに基づいて順序付けされたカテゴリリストを取得するヘルパー関数
-const getOrderedCategories = () => {
-    return exports.worldBuildingCategories.sort((a, b) => a.index - b.index);
+export const getOrderedCategories = () => {
+    return worldBuildingCategories.sort((a, b) => a.index - b.index);
 };
-exports.getOrderedCategories = getOrderedCategories;
 // カテゴリIDからカテゴリ情報を取得するヘルパー関数
-const getCategoryById = (id) => {
-    return exports.worldBuildingCategories.find((category) => category.id === id);
+export const getCategoryById = (id) => {
+    return worldBuildingCategories.find((category) => category.id === id);
 };
-exports.getCategoryById = getCategoryById;
 // カテゴリIDからタブのインデックスを取得するヘルパー関数
-const getCategoryTabIndex = (categoryId) => {
-    const category = (0, exports.getCategoryById)(categoryId);
+export const getCategoryTabIndex = (categoryId) => {
+    const category = getCategoryById(categoryId);
     return category ? category.index : -1; // 見つからない場合は -1 を返す
 };
-exports.getCategoryTabIndex = getCategoryTabIndex;
 /**
  * 指定されたタイプの型付き世界観構築要素オブジェクトを作成します。
  * AIからのレスポンスなど、型が曖昧なデータを安全に型付けするために使用できます。
@@ -79,7 +72,7 @@ exports.getCategoryTabIndex = getCategoryTabIndex;
  * @returns 型付けされた世界観構築要素オブジェクト
  * @throws 無効なタイプが指定された場合にエラーをスロー
  */
-function createTypedWorldBuildingElement(type, // ここは WorldBuildingElementType の方がより厳密ですが、呼び出し元での柔軟性を考慮
+export function createTypedWorldBuildingElement(type, // ここは WorldBuildingElementType の方がより厳密ですが、呼び出し元での柔軟性を考慮
 data) {
     const baseElement = {
         name: data.name || "名称未設定",

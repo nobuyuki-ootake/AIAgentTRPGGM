@@ -19,4 +19,12 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/, /packages\/types/],
+    },
+  },
+  optimizeDeps: {
+    include: ["@novel-ai-assistant/types"],
+  },
 });
