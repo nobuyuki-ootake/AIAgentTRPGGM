@@ -1,0 +1,121 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# ノベル作成エージェント開発ルール
+
+## プロジェクト概要
+
+このプロジェクトは、AI を活用した小説作成支援ツールの開発です。以下の技術スタックを使用します：
+
+- **フロントエンド**: Next.js 15 (App Router), React 19, TypeScript
+- **UI/UX**: Shadcn UI, Radix UI, Tailwind CSS
+- **バックエンド**: Express.js, TypeScript
+- **AI 統合**: OpenAI, Claude, Gemini API
+- **データ管理**: Redis
+
+## 開発プロセス
+
+### 1. 要件分析
+
+- タスクの種類を特定（コード作成、デバッグ、アーキテクチャ設計など）
+- 使用する言語とフレームワークを確認
+- 明示的・暗黙的な要件を整理
+- コアとなる問題と期待される成果を定義
+- プロジェクトの文脈と制約を考慮
+
+### 2. ソリューション設計
+
+- 論理的なステップに分解
+- モジュール性と再利用性を考慮
+- 必要なファイルと依存関係を特定
+- 代替アプローチの評価
+- テストと検証の計画
+
+### 3. 実装戦略
+
+- 適切なデザインパターンの選択
+- パフォーマンスへの影響を考慮
+- エラーハンドリングとエッジケースの計画
+- アクセシビリティの遵守
+- ベストプラクティスとの整合性確認
+
+## コードスタイルと構造
+
+### 基本原則
+
+- 簡潔で読みやすい TypeScript コードを書く
+- 関数型プログラミングと宣言的プログラミングパターンを使用
+- DRY（Don't Repeat Yourself）原則に従う
+- 可読性向上のため早期リターンを実装
+- 論理的な構造: exports, サブコンポーネント, ヘルパー, 型
+
+### 命名規則
+
+- 補助動詞を使用した説明的な名前（isLoading, hasError）
+- イベントハンドラは"handle"で始める（handleClick, handleSubmit）
+- ディレクトリは小文字とハイフンを使用（components/auth-wizard）
+- コンポーネントは名前付きエクスポートを優先
+
+### TypeScript 使用
+
+- すべてのコードで TypeScript を使用
+- 型よりインターフェースを優先
+- enum の代わりに const マップを使用
+- 適切な型安全性と推論を実装
+- 型検証に`satisfies`演算子を使用
+
+## React 19 と Next.js 15 のベストプラクティス
+
+### コンポーネントアーキテクチャ
+
+- 可能な限り React Server Components（RSC）を使用
+- 'use client'ディレクティブを最小限に
+- 適切なエラーバウンダリを実装
+- 非同期操作に Suspense を使用
+- パフォーマンスと Web Vitals の最適化
+
+### 状態管理
+
+- 非推奨の`useFormState`の代わりに`useActionState`を使用
+- 新しいプロパティ（data, method, action）を持つ拡張版`useFormStatus`を活用
+- URL 状態管理に'nuqs'を使用
+- クライアントサイドの状態を最小限に
+
+### 非同期リクエスト API
+
+```typescript
+// ランタイムAPIの非同期バージョンを常に使用
+const cookieStore = await cookies();
+const headersList = await headers();
+const { isEnabled } = await draftMode();
+
+// レイアウト/ページでの非同期パラメータ処理
+const params = await props.params;
+const searchParams = await props.searchParams;
+```
+
+## プロキシサーバー実装ガイドライン
+
+### セキュリティ
+
+- すべての API エンドポイントに認証ミドルウェアを適用
+- レート制限の実装
+- CORS 設定の適切な構成
+- 環境変数の安全な管理
+- エラーハンドリングの徹底
+
+### パフォーマンス
+
+- Redis キャッシュの活用
+- レスポンスの圧縮
+- リクエストのバリデーション
+- エラーログの適切な管理
+
+### モニタリング
+
+- パフォーマンスメトリクスの収集
+- エラーログの集約
+- アラート設定の最適化
+- ヘルスチェックの実装

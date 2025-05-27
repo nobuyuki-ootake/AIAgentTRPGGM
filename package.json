@@ -2,24 +2,29 @@
   "name": "novel-creation-agent",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "concurrently \"pnpm run dev:frontend\" \"pnpm run dev:proxy\"",
-    "dev:frontend": "cd frontend && pnpm run dev",
-    "dev:proxy": "cd proxy-server && pnpm run dev",
-    "build": "pnpm run build:frontend && pnpm run build:proxy",
-    "build:frontend": "cd frontend && pnpm run build",
-    "build:proxy": "cd proxy-server && pnpm run build",
+    "dev": "turbo dev",
+    "dev:frontend": "cd apps/frontend && pnpm run dev",
+    "dev:proxy": "cd apps/proxy-server && pnpm run dev",
+    "build": "turbo build",
+    "build:frontend": "cd apps/frontend && pnpm run build",
+    "build:proxy": "cd apps/proxy-server && pnpm run build",
     "start": "pnpm run start:frontend",
-    "start:frontend": "cd frontend && pnpm run preview",
-    "start:proxy": "cd proxy-server && pnpm run start",
-    "lint": "concurrently \"pnpm run lint:frontend\" \"pnpm run dev\"",
-    "lint:frontend": "cd frontend && pnpm run lint",
-    "lint:proxy": "cd proxy-server && pnpm run lint",
-    "storybook": "cd frontend && pnpm run storybook",
-    "build-storybook": "cd frontend && pnpm run build-storybook"
+    "start:frontend": "cd apps/frontend && pnpm run preview",
+    "start:proxy": "cd apps/proxy-server && pnpm run start",
+    "lint": "turbo lint",
+    "lint:frontend": "cd apps/frontend && pnpm run lint",
+    "lint:proxy": "cd apps/proxy-server && pnpm run lint",
+    "storybook": "cd apps/frontend && pnpm run storybook",
+    "build-storybook": "cd apps/frontend && pnpm run build-storybook"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "turbo": "^1.0.0"
   }
 }

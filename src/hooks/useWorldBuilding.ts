@@ -3,10 +3,11 @@ import { useRecoilState } from "recoil";
 import { currentProjectState } from "../store/atoms";
 import {
   WorldBuilding,
-  Place,
-  Culture,
-  WorldBuildingFreeField,
+  PlaceElement,
+  CultureElement,
+  FreeFieldElement,
   NovelProject,
+  RuleElement,
 } from "../types/index";
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,26 +21,39 @@ export function useWorldBuilding() {
   const [mapImageUrl, setMapImageUrl] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [history, setHistory] = useState<string>("");
-  const [rules, setRules] = useState<string[]>([]);
-  const [newRule, setNewRule] = useState<string>("");
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [cultures, setCultures] = useState<Culture[]>([]);
-  const [freeFields, setFreeFields] = useState<WorldBuildingFreeField[]>([]);
-  const [newFreeField, setNewFreeField] = useState<WorldBuildingFreeField>({
+  const [rules, setRules] = useState<RuleElement[]>([]);
+  const [newRule, setNewRule] = useState<RuleElement | null>(null);
+  const [places, setPlaces] = useState<PlaceElement[]>([]);
+  const [cultures, setCultures] = useState<CultureElement[]>([]);
+  const [freeFields, setFreeFields] = useState<FreeFieldElement[]>([]);
+  const [newFreeField, setNewFreeField] = useState<FreeFieldElement>({
     id: "",
     title: "",
+    description: "",
     content: "",
+    type: "free_field",
+    originalType: "free_field",
+    features: "",
+    importance: "不明",
+    relations: "",
   });
   const [isEditingFreeField, setIsEditingFreeField] = useState<boolean>(false);
   const [currentFreeFieldId, setCurrentFreeFieldId] = useState<string>("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [newPlace, setNewPlace] = useState<Place>({
-    id: "",
+  const [newPlace, setNewPlace] = useState<PlaceElement>({
+    id: uuidv4(),
     name: "",
+    type: "place",
+    originalType: "place",
     description: "",
-    significance: "",
+    features: "",
+    importance: "不明",
+    relations: "",
+    location: "",
+    population: "",
+    culturalFeatures: "",
   });
   const [isEditingPlace, setIsEditingPlace] = useState<boolean>(false);
   const [currentPlaceId, setCurrentPlaceId] = useState<string>("");
