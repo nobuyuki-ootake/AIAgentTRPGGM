@@ -357,7 +357,7 @@ router.post('/character-detail-generation', async (req, res) => {
     // AIリクエストを作成
     const aiRequest: StandardAIRequest = {
       requestType: 'character-detail',
-      model: model || 'gpt-4o',
+      model: model || 'gemini-1.5-pro',
       systemPrompt: templateManager.buildCharacterSystemPrompt(
         characterName,
         characterRole || '主要キャラクター',
@@ -430,7 +430,7 @@ router.post('/plot-development', async (req, res) => {
     // AIリクエストを作成
     const aiRequest: StandardAIRequest = {
       requestType: 'plot-development',
-      model: model || 'gpt-4o',
+      model: model || 'gemini-1.5-pro',
       systemPrompt: PLOT_DEVELOPER,
       userPrompt: userMessage,
       options: {
@@ -763,7 +763,7 @@ ${lengthInstruction}
 
     const aiRequest: StandardAIRequest = {
       requestType: 'chapter-generation',
-      model: model || 'gpt-4o',
+      model: model || 'gemini-1.5-pro',
       systemPrompt:
         'あなたは熟練した小説の執筆アシスタントです。与えられた情報から、読者を引き込む物語の章を創作します。',
       userPrompt: userPrompt,
@@ -867,7 +867,7 @@ router.post('/synopsis-generation', async (req, res) => {
     // AIリクエストを作成
     const aiRequest: StandardAIRequest = {
       requestType: 'synopsis-generation',
-      model: model || 'gpt-4o',
+      model: model || 'gemini-1.5-pro',
       systemPrompt,
       userPrompt,
       context: {
@@ -920,6 +920,93 @@ router.post('/synopsis-generation', async (req, res) => {
       status: 'error',
       message:
         error.message || 'あらすじ生成中に予期しないエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * API設定取得エンドポイント
+ */
+router.get('/settings', async (req, res) => {
+  try {
+    console.log('[API] API設定取得リクエスト');
+
+    // デフォルト設定を返す（実際の実装では環境変数やデータベースから取得）
+    const defaultSettings = {
+      provider: 'gemini',
+      modelName: 'gemini-1.5-pro',
+      parameters: {
+        temperature: 0.7,
+        maxTokens: 2000,
+      },
+      isConfigured: !!process.env.GEMINI_API_KEY, // Gemini APIキーが設定されているかチェック
+    };
+
+    res.json({
+      status: 'success',
+      data: defaultSettings,
+    });
+  } catch (error) {
+    console.error('[API] API設定取得エラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'API設定の取得中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * API設定保存エンドポイント
+ */
+router.post('/settings', async (req, res) => {
+  try {
+    const { provider, apiKey, modelName, parameters } = req.body;
+    console.log(`[API] API設定保存リクエスト: ${provider} - ${modelName}`);
+
+    // 実際の実装では、設定をデータベースや環境変数に保存
+    // ここではダミーレスポンスを返す
+    res.json({
+      status: 'success',
+      message: 'API設定が保存されました',
+      data: {
+        provider,
+        modelName,
+        parameters,
+      },
+    });
+  } catch (error) {
+    console.error('[API] API設定保存エラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'API設定の保存中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * APIキーテストエンドポイント
+ */
+router.post('/test-key', async (req, res) => {
+  try {
+    const { provider, apiKey, modelName } = req.body;
+    console.log(`[API] APIキーテストリクエスト: ${provider} - ${modelName}`);
+
+    // 実際の実装では、提供されたAPIキーでテストリクエストを送信
+    // ここではダミーレスポンスを返す
+    res.json({
+      status: 'success',
+      message: 'APIキーのテストが成功しました',
+      data: {
+        provider,
+        modelName,
+        isValid: true,
+      },
+    });
+  } catch (error) {
+    console.error('[API] APIキーテストエラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'APIキーのテスト中にエラーが発生しました',
     });
   }
 });

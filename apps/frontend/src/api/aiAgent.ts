@@ -156,7 +156,7 @@ export const aiAgentApi = {
   generateSynopsis: async (
     message: string,
     projectData: Record<string, unknown> = {},
-    model: string = "gpt-4o",
+    model: string = "gemini-1.5-pro",
     format: "text" | "json" | "yaml" = "text"
   ) => {
     try {
