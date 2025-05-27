@@ -1,0 +1,18 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - npm install -g pnpm
+      - pnpm install --frozen-lockfile
+      - pnpm run build --filter=@novel-ai-assistant/types
+      - cd apps/proxy-server && pnpm run build
+run:
+  runtime-version: 18
+  command: cd apps/proxy-server && pnpm start
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
