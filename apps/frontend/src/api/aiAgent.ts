@@ -10,9 +10,29 @@ import {
 } from "@novel-ai-assistant/types";
 
 // APIのベースURL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent`
-  : "/api/ai-agent"; // 開発環境では相対パス /api/ai-agent を使用する
+const buildApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (!envUrl) {
+    // 開発環境では相対パス
+    return "/api/ai-agent";
+  }
+
+  // 環境変数が既に /api/ai-agent を含んでいるかチェック
+  if (envUrl.endsWith("/api/ai-agent")) {
+    return envUrl;
+  }
+
+  // 末尾のスラッシュを正規化
+  const baseUrl = envUrl.endsWith("/") ? envUrl.slice(0, -1) : envUrl;
+  return `${baseUrl}/api/ai-agent`;
+};
+
+const API_BASE_URL = buildApiBaseUrl();
+
+// デバッグ用ログ
+console.log("環境変数 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+console.log("構築されたAPI_BASE_URL:", API_BASE_URL);
 
 // APIエラーハンドリング共通関数
 const handleApiError = (error: AxiosError | Error, operationName: string) => {
