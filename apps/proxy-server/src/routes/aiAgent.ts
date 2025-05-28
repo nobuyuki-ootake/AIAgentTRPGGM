@@ -1125,6 +1125,172 @@ router.post('/test-key', async (req, res) => {
 });
 
 /**
+ * キャラクター生成エンドポイント（単発生成用）
+ * 単一のキャラクターまたは複数キャラクターを一括で生成します
+ */
+router.post('/character-generation', async (req, res) => {
+  try {
+    const { message, plotElements, existingCharacters, model } = req.body;
+
+    console.log('=== [API] キャラクター生成リクエスト受信 ===');
+    console.log('メッセージ:', message);
+    console.log('プロット要素数:', plotElements?.length || 0);
+    console.log('既存キャラクター数:', existingCharacters?.length || 0);
+    console.log('モデル:', model);
+
+    // プロット情報を整理
+    let plotContext = '';
+    if (
+      plotElements &&
+      Array.isArray(plotElements) &&
+      plotElements.length > 0
+    ) {
+      plotContext = plotElements
+        .map((plot: any) => `- ${plot.title}: ${plot.description}`)
+        .join('\n');
+      console.log('プロットコンテキスト:', plotContext);
+    } else {
+      console.log('プロット要素が空です');
+    }
+
+    // 既存キャラクター情報を整理
+    let existingCharacterContext = '';
+    if (
+      existingCharacters &&
+      Array.isArray(existingCharacters) &&
+      existingCharacters.length > 0
+    ) {
+      existingCharacterContext = existingCharacters
+        .map(
+          (char: any) =>
+            `- ${char.name}: ${char.description || char.summary || ''}`,
+        )
+        .join('\n');
+    }
+
+    // システムプロンプト
+    const systemPrompt = `あなたは小説作成のプロフェッショナルです。
+ユーザーのリクエストに基づいて、魅力的なキャラクターを生成してください。
+
+${
+  plotContext
+    ? `プロット情報:
+${plotContext}
+
+`
+    : ''
+}${
+      existingCharacterContext
+        ? `既存キャラクター:
+${existingCharacterContext}
+
+`
+        : ''
+    }キャラクターの詳細情報を以下の形式で提供してください：
+
+【キャラクター名】
+名前: [キャラクター名]
+年齢: [年齢]
+性別: [性別]
+職業・役割: [職業や物語での役割]
+
+【外見】
+[身長、体型、髪色、目の色、特徴的な外見など]
+
+【性格】
+[基本的な性格、特徴的な行動パターン、価値観など]
+
+【背景・経歴】
+[生い立ち、重要な過去の出来事、現在の状況など]
+
+【能力・特技】
+[特別な能力、得意なこと、武器や道具など]
+
+【人間関係】
+[家族、友人、敵対者、恋愛関係など]
+
+【物語での役割】
+[主人公、敵役、脇役としての具体的な役割と重要性]
+
+【動機・目標】
+[キャラクターの行動原理、達成したい目標、内面的な葛藤など]
+
+- 物語の世界観に合致したキャラクター設定
+- 既存キャラクターとの差別化
+- 読者が感情移入できる魅力的な人物像
+- プロットに対して意味のある役割を持つ`;
+
+    // ユーザープロンプトを構築
+    let userPrompt =
+      message ||
+      'プロットに基づいて、物語に適したキャラクターを生成してください。';
+
+    if (plotContext) {
+      userPrompt += `\n\n【プロット情報】\n${plotContext}`;
+    }
+
+    if (existingCharacterContext) {
+      userPrompt += `\n\n【既存キャラクター】\n${existingCharacterContext}\n※これらのキャラクターと重複しないようにしてください`;
+    }
+
+    // AIからの応答を取得
+    const aiResponse = await processAIRequest({
+      requestType: 'character-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: systemPrompt,
+      userPrompt,
+      context: {
+        plotElements,
+        existingCharacters,
+      },
+      options: {
+        temperature: 0.7,
+        maxTokens: 3000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    });
+
+    console.log('[API] AI応答受信:', aiResponse);
+
+    // エラー処理
+    if (aiResponse.status === 'error') {
+      console.error('[API] AIリクエスト失敗:', {
+        errorCode: aiResponse.error?.code,
+        errorMessage: aiResponse.error?.message,
+      });
+
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    console.log('[API] キャラクター生成完了');
+
+    // 成功レスポンス（テキストとしてそのまま返す）
+    return res.json({
+      status: 'success',
+      data: aiResponse.rawContent || aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: 'character-generation',
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] キャラクター生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message:
+        error.message || 'キャラクター生成中に予期しないエラーが発生しました',
+    });
+  }
+});
+
+/**
  * キャラクターリスト生成エンドポイント
  * 全プロットを参照してキャラクター名リストを生成します（バッチ処理の第1段階）
  */
@@ -1186,22 +1352,24 @@ ${existingCharacterContext}
 
 `
         : ''
-    }以下のJSON形式で、3-5人のキャラクターを提案してください：
+    }以下のYAML形式で、3-5人のキャラクターを提案してください：
 
-[
-  {
-    "name": "キャラクター名",
-    "role": "protagonist|antagonist|supporting",
-    "importance": "主要|重要|補助",
-    "description": "キャラクターの簡潔な説明（1-2文）"
-  }
-]
+---
+- name: "キャラクター名"
+  role: "protagonist|antagonist|supporting"
+  importance: "主要|重要|補助"
+  description: "キャラクターの簡潔な説明（1-2文）"
+- name: "キャラクター名2"
+  role: "protagonist|antagonist|supporting"
+  importance: "主要|重要|補助"
+  description: "キャラクターの簡潔な説明（1-2文）"
+...
 
 - 物語に必要な役割を考慮してバランス良く配置
 - 主人公、敵役、重要な脇役を含める
 - 既存キャラクターとの重複を避ける
 - 各キャラクターは物語において明確な役割を持つ
-- JSON形式以外の文章は含めない`;
+- YAML形式以外の文章は含めない`;
 
     // ユーザープロンプトを構築
     let userPrompt =
@@ -1244,35 +1412,35 @@ ${existingCharacterContext}
       });
     }
 
-    // JSONレスポンスをパース
+    // YAMLレスポンスをパース
     let characterList;
     try {
-      // レスポンスからJSONを抽出
-      const responseContent =
-        typeof aiResponse.content === 'string' ? aiResponse.content : '';
-      let jsonText = responseContent.trim();
-
-      // マークダウンのコードブロックを除去
-      if (jsonText.startsWith('```json')) {
-        jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (jsonText.startsWith('```')) {
-        jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-
-      // 配列形式の場合とオブジェクト形式の場合の両方に対応
-      const parsed = JSON.parse(jsonText);
-
-      if (Array.isArray(parsed)) {
-        characterList = parsed;
-      } else if (parsed.characters && Array.isArray(parsed.characters)) {
-        characterList = parsed.characters;
+      // aiResponse.contentが既にパース済みの配列の場合はそのまま使用
+      if (Array.isArray(aiResponse.content)) {
+        characterList = aiResponse.content;
+        console.log('[API] 既にパース済みのキャラクターリスト:', characterList);
       } else {
-        throw new Error('Invalid JSON structure');
-      }
+        // 文字列の場合はYAMLとしてパース
+        const responseContent =
+          typeof aiResponse.content === 'string' ? aiResponse.content : '';
 
-      console.log('[API] パース済みキャラクターリスト:', characterList);
+        // YAMLパースを試行
+        const parsed = yaml.load(responseContent) as any;
+
+        if (Array.isArray(parsed)) {
+          characterList = parsed;
+        } else if (parsed && Array.isArray(parsed.characters)) {
+          characterList = parsed.characters;
+        } else {
+          throw new Error(
+            'Invalid YAML structure: expected array of characters',
+          );
+        }
+
+        console.log('[API] YAMLパース済みキャラクターリスト:', characterList);
+      }
     } catch (parseError) {
-      console.error('[API] JSONパースエラー:', parseError);
+      console.error('[API] YAMLパースエラー:', parseError);
       console.error('[API] 元のレスポンス:', aiResponse.content);
 
       return res.status(500).json({

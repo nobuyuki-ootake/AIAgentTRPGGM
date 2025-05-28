@@ -54,18 +54,11 @@ export const AIAssistTab: React.FC = () => {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [batchGeneration, setBatchGeneration] = useState(false);
+  const [batchGeneration, setBatchGeneration] = useState(true);
   const [error, setError] = useState<AIError | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { assistConfig } = context;
-
-  // supportsBatchGenerationがtrueの場合、初期値をtrueに設定
-  React.useEffect(() => {
-    if (assistConfig?.supportsBatchGeneration) {
-      setBatchGeneration(true);
-    }
-  }, [assistConfig?.supportsBatchGeneration]);
 
   // エラーメッセージの生成
   const getErrorMessage = (error: AIError): string => {
@@ -177,11 +170,12 @@ export const AIAssistTab: React.FC = () => {
             console.log("バッチ生成設定:", batchGeneration);
             console.log("プロジェクトデータ:", projectDataAsRecord);
 
-            // キャラクター生成では常にバッチ処理を使用
+            // バッチ生成設定に応じて処理
             result = await generateCharacterContent(
               message,
               projectDataAsRecord,
-              true // キャラクター生成では常にバッチ処理を有効
+              batchGeneration, // ユーザーの設定値を使用
+              assistConfig.onProgress // プログレスコールバックを渡す
             );
             console.log("=== AIAssistTab: キャラクター生成完了 ===");
             console.log("結果:", result);
@@ -419,9 +413,9 @@ export const AIAssistTab: React.FC = () => {
           }
           label={
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              1つずつ詳細に生成（より詳細な情報を取得）
+              まとめて生成（複数要素を一括生成）
               <HelpTooltip
-                title="チェックON: 各要素を個別に詳細生成（時間がかかるが高品質）&#10;チェックOFF: 複数要素を一括生成（高速だが簡潔）&#10;&#10;例：キャラクター3人の場合&#10;ON → 1人ずつ詳細な背景・性格・関係性を生成&#10;OFF → 3人を一度に基本情報のみ生成"
+                title="チェックON: 複数要素を一括生成（高速、基本情報中心）&#10;チェックOFF: 1つずつ詳細に生成（時間がかかるが高品質）&#10;&#10;例：キャラクター生成の場合&#10;ON → 複数キャラクターを一度に基本情報で生成&#10;OFF → 1人ずつ詳細な背景・性格・関係性を生成"
                 placement="top"
                 maxWidth={350}
                 inline

@@ -17,6 +17,7 @@ import {
   useCharactersContext,
 } from "../contexts/CharactersContext";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
+import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { Character } from "@novel-ai-assistant/types";
 
@@ -56,6 +57,14 @@ const CharactersPageContent: React.FC = () => {
     string | null
   >(null);
 
+  // プログレスバーの状態
+  const [showProgressSnackbar, setShowProgressSnackbar] = React.useState(false);
+  const [progressMessage, setProgressMessage] = React.useState("");
+  const [progressValue, setProgressValue] = React.useState<number | undefined>(
+    undefined
+  );
+  const [isAIProcessing, setIsAIProcessing] = React.useState(false);
+
   // AIアシスト機能の統合
   const handleOpenAIAssist = async (): Promise<void> => {
     try {
@@ -67,6 +76,8 @@ const CharactersPageContent: React.FC = () => {
         currentProject?.characters?.length || 0
       );
 
+      // プログレスバーの初期化は削除（実際の生成開始時に設定）
+
       await openAIAssist(
         "characters",
         {
@@ -76,26 +87,76 @@ const CharactersPageContent: React.FC = () => {
           defaultMessage:
             "プロットに基づいて、この物語にふさわしいキャラクターを考えてください。全てのプロット要素を考慮して、物語に必要なキャラクターを提案してください。",
           supportsBatchGeneration: true,
+          onProgress: (
+            current: number,
+            total: number,
+            currentCharacterName?: string
+          ) => {
+            // 初回のプログレス更新時にプログレスバーを表示開始
+            if (!showProgressSnackbar) {
+              setIsAIProcessing(true);
+              setShowProgressSnackbar(true);
+            }
+
+            // プログレス更新
+            const progress =
+              total > 0 ? Math.round((current / total) * 100) : undefined;
+            setProgressValue(progress);
+
+            if (currentCharacterName) {
+              setProgressMessage(
+                `AIが「${currentCharacterName}」を生成中です... (${current}/${total})`
+              );
+            } else {
+              setProgressMessage(
+                `AIがキャラクターを生成中です... (${current}/${total})`
+              );
+            }
+          },
           onComplete: (result) => {
             // バッチ処理の結果を処理
             console.log("=== CharactersPage: キャラクター生成完了 ===");
             console.log("結果:", result);
-            if (result.content) {
-              // バッチ処理の結果は既にフォーマットされた文字列として返される
-              // parseAIResponseToCharactersで個別のキャラクターに分割
-              const characters = parseAIResponseToCharacters(result.content);
-              console.log(`生成されたキャラクター数: ${characters.length}`);
 
-              characters.forEach((character: Character) => {
-                addCharacter(character);
-              });
+            try {
+              if (result.content) {
+                // バッチ処理の結果は既にフォーマットされた文字列として返される
+                // parseAIResponseToCharactersで個別のキャラクターに分割
+                const characters = parseAIResponseToCharacters(result.content);
+                console.log(`生成されたキャラクター数: ${characters.length}`);
 
-              // 成功メッセージを表示
-              if (characters.length > 0) {
-                console.log(
-                  `${characters.length}件のキャラクターを追加しました`
-                );
+                characters.forEach((character: Character) => {
+                  addCharacter(character);
+                });
+
+                // 成功メッセージを表示
+                if (characters.length > 0) {
+                  console.log(
+                    `${characters.length}件のキャラクターを追加しました`
+                  );
+                  setProgressMessage(
+                    `${characters.length}件のキャラクターを追加しました`
+                  );
+                  setProgressValue(100);
+                } else {
+                  setProgressMessage("キャラクターの生成が完了しました");
+                  setProgressValue(100);
+                }
+              } else {
+                setProgressMessage("キャラクターの生成が完了しました");
+                setProgressValue(100);
               }
+            } catch (error) {
+              console.error("キャラクター処理エラー:", error);
+              setProgressMessage("キャラクターの処理中にエラーが発生しました");
+              setProgressValue(undefined);
+            } finally {
+              // プログレスバー終了
+              setIsAIProcessing(false);
+              setTimeout(() => {
+                setShowProgressSnackbar(false);
+                setProgressValue(undefined);
+              }, 2000); // 2秒後に非表示
             }
           },
         },
@@ -104,6 +165,14 @@ const CharactersPageContent: React.FC = () => {
       );
     } catch (error) {
       console.error("AIアシスト処理中にエラーが発生しました:", error);
+
+      // エラー時のプログレスバー処理
+      setIsAIProcessing(false);
+      setProgressMessage("AIアシスト処理中にエラーが発生しました");
+      setProgressValue(undefined);
+      setTimeout(() => {
+        setShowProgressSnackbar(false);
+      }, 3000); // 3秒後に非表示
     }
   };
 
@@ -246,6 +315,24 @@ const CharactersPageContent: React.FC = () => {
           </Button>
         </Box>
       </Dialog>
+
+      {/* プログレスバー */}
+      <ProgressSnackbar
+        open={showProgressSnackbar}
+        message={progressMessage}
+        severity={
+          isAIProcessing ? "info" : progressValue === 100 ? "success" : "error"
+        }
+        progress={progressValue}
+        loading={isAIProcessing}
+        onClose={() => {
+          if (!isAIProcessing) {
+            setShowProgressSnackbar(false);
+            setProgressValue(undefined);
+          }
+        }}
+        position="bottom-right"
+      />
     </Box>
   );
 };

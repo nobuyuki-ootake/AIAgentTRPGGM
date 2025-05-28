@@ -125,6 +125,21 @@ export const parseAIResponseToCharacters = (
     }
   }
 
+  // 【キャラクター】形式が見つからない場合、直接パターンマッチング
+  if (characters.length === 0) {
+    const characterMatches = aiResponse.matchAll(
+      /【キャラクター\d+】\s*([\s\S]*?)(?=【キャラクター\d+】|={50,}|$)/g
+    );
+    for (const match of characterMatches) {
+      if (match[1]) {
+        const character = parseCharacterFromFormattedText(match[1]);
+        if (character) {
+          characters.push(character);
+        }
+      }
+    }
+  }
+
   // キャラクターが見つからない場合、従来の方法を試行
   if (characters.length === 0) {
     const lines = aiResponse.split("\n").filter((line) => line.trim());
@@ -136,6 +151,9 @@ export const parseAIResponseToCharacters = (
     }
   }
 
+  console.log(
+    `parseAIResponseToCharacters: ${characters.length}件のキャラクターを解析しました`
+  );
   return characters;
 };
 
@@ -150,6 +168,11 @@ function parseCharacterFromFormattedText(text: string): Character | null {
     customFields: [],
     relationships: [],
   };
+
+  console.log(
+    "parseCharacterFromFormattedText: 解析対象テキスト:",
+    text.substring(0, 200) + "..."
+  );
 
   // 基本情報の抽出
   const nameMatch = text.match(/名前[：:]\s*(.+?)($|\n)/);
@@ -189,20 +212,25 @@ function parseCharacterFromFormattedText(text: string): Character | null {
     const detailsText = detailsMatch[1].trim();
 
     // 詳細から追加情報を抽出
-    const genderMatch = detailsText.match(/性別[：:]\s*(.+?)($|\n)/);
+    const genderMatch = detailsText.match(/gender[：:]\s*(.+?)($|\n)/);
     if (genderMatch && genderMatch[1]) {
       character.gender = genderMatch[1].trim();
     }
 
+    const ageMatch = detailsText.match(/age[：:]\s*(.+?)($|\n)/);
+    if (ageMatch && ageMatch[1]) {
+      character.age = ageMatch[1].trim();
+    }
+
     const backgroundMatch = detailsText.match(
-      /背景[：:]\s*(.+?)(\n\n|\n[^:]|$)/s
+      /background[：:]\s*(.+?)(\n\n|\n[a-zA-Z]+[：:]|$)/s
     );
     if (backgroundMatch && backgroundMatch[1]) {
       character.background = backgroundMatch[1].trim();
     }
 
     const motivationMatch = detailsText.match(
-      /動機[：:]\s*(.+?)(\n\n|\n[^:]|$)/s
+      /motivation[：:]\s*(.+?)(\n\n|\n[a-zA-Z]+[：:]|$)/s
     );
     if (motivationMatch && motivationMatch[1]) {
       character.motivation = motivationMatch[1].trim();
@@ -222,6 +250,29 @@ function parseCharacterFromFormattedText(text: string): Character | null {
       character.personality = personalityMatch[1].trim();
     }
 
+    // traitsの抽出
+    const traitsMatch = detailsText.match(
+      /traits[：:]\s*([\s\S]*?)(\n\n|\n[a-zA-Z]+[：:]|$)/
+    );
+    if (traitsMatch && traitsMatch[1]) {
+      const traitsText = traitsMatch[1].trim();
+      // リスト形式の特性を抽出
+      const traitItems = traitsText.match(/- (.+)/g);
+      if (traitItems) {
+        character.traits = character.traits || [];
+        traitItems.forEach((item) => {
+          const traitValue = item.replace(/^- /, "").trim();
+          if (traitValue) {
+            character.traits!.push({
+              id: uuidv4(),
+              name: traitValue,
+              value: traitValue,
+            });
+          }
+        });
+      }
+    }
+
     // 詳細全体をdescriptionに追加（既存のdescriptionがない場合）
     if (!character.description) {
       character.description = detailsText;
@@ -230,9 +281,11 @@ function parseCharacterFromFormattedText(text: string): Character | null {
 
   // 名前が必須
   if (!character.name) {
+    console.warn("parseCharacterFromFormattedText: 名前が見つかりませんでした");
     return null;
   }
 
+  console.log("parseCharacterFromFormattedText: 解析完了:", character.name);
   return character as Character;
 }
 

@@ -147,6 +147,11 @@ export interface AssistConfig {
     plotSelection?: boolean;
   };
   onComplete?: (result: ResponseData) => void;
+  onProgress?: (
+    current: number,
+    total: number,
+    currentCharacterName?: string
+  ) => void;
   onGenerate?: (params: Record<string, unknown>) => Promise<void>;
 }
 
