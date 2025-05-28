@@ -10,7 +10,7 @@ import Redis from 'ioredis';
 import winston from 'winston';
 
 // ルーターのインポート
-import aiAgentRoutes from './routes/aiAgent';
+import aiAgentRoutes from './routes/aiAgent.js';
 
 // 環境変数の読み込み
 dotenv.config();

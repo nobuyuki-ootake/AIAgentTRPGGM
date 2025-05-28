@@ -1,5 +1,5 @@
-import { mastra } from '../mastra/index';
-import { SystemRoles } from '../utils/systemPrompts';
+import { mastra } from '../mastra/index.js';
+import { SystemRoles } from '../utils/systemPrompts.js';
 
 /**
  * 小説アシスタントエージェントの定義

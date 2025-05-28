@@ -23,9 +23,9 @@ import {
   AIErrorType,
   handleAIResponseParsing,
   withRobustAICall,
-} from '../utils/aiErrorHandler';
-import templateManager from '../utils/aiTemplateManager';
-import { WORLD_BUILDER } from '../utils/systemPrompts';
+} from '../utils/aiErrorHandler.js';
+import templateManager from '../utils/aiTemplateManager.js';
+import { WORLD_BUILDER } from '../utils/systemPrompts.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // サポートされているモデル設定
