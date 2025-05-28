@@ -10,7 +10,7 @@ import {
   StandardAIRequest,
   StandardAIResponse,
 } from '@novel-ai-assistant/types';
-import { buildStandardSystemPrompt } from './aiRequestStandard';
+import { buildStandardSystemPrompt } from './aiRequestStandard.js';
 
 // テンプレートタイプの定義
 export enum TemplateType {
