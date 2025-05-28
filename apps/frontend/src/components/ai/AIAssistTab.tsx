@@ -60,6 +60,13 @@ export const AIAssistTab: React.FC = () => {
 
   const { assistConfig } = context;
 
+  // supportsBatchGenerationがtrueの場合、初期値をtrueに設定
+  React.useEffect(() => {
+    if (assistConfig?.supportsBatchGeneration) {
+      setBatchGeneration(true);
+    }
+  }, [assistConfig?.supportsBatchGeneration]);
+
   // エラーメッセージの生成
   const getErrorMessage = (error: AIError): string => {
     switch (error.type) {
@@ -165,11 +172,19 @@ export const AIAssistTab: React.FC = () => {
             break;
           case "characters":
             // キャラクター生成の場合
+            console.log("=== AIAssistTab: キャラクター生成開始 ===");
+            console.log("メッセージ:", message);
+            console.log("バッチ生成設定:", batchGeneration);
+            console.log("プロジェクトデータ:", projectDataAsRecord);
+
+            // キャラクター生成では常にバッチ処理を使用
             result = await generateCharacterContent(
               message,
               projectDataAsRecord,
-              batchGeneration
+              true // キャラクター生成では常にバッチ処理を有効
             );
+            console.log("=== AIAssistTab: キャラクター生成完了 ===");
+            console.log("結果:", result);
             break;
           case "plot":
             // プロット生成の場合
@@ -203,6 +218,8 @@ export const AIAssistTab: React.FC = () => {
             timestamp: new Date().toISOString(),
           },
         });
+
+        console.log("=== AIAssistTab: onCompleteコールバック実行完了 ===");
       }
 
       setProgress(100);

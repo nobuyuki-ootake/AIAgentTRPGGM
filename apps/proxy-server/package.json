@@ -1,7 +1,6 @@
 {
   "name": "novel-creation-agent-proxy",
   "version": "0.1.0",
-  "type": "module",
   "description": "AI APIプロキシサーバー for 小説作成エージェント",
   "main": "dist/index.js",
   "scripts": {

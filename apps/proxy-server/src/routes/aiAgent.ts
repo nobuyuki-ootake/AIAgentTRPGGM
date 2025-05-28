@@ -1,8 +1,8 @@
 import express from 'express';
-import { processAIRequest } from '../services/aiIntegration.js';
+import { processAIRequest } from '../services/aiIntegration';
 import { StandardAIRequest } from '@novel-ai-assistant/types';
-import templateManager from '../utils/aiTemplateManager.js';
-import { PLOT_DEVELOPER, WORLD_BUILDER } from '../utils/systemPrompts.js';
+import templateManager from '../utils/aiTemplateManager';
+import { PLOT_DEVELOPER, WORLD_BUILDER } from '../utils/systemPrompts';
 import * as yaml from 'js-yaml';
 import {
   WorldBuildingElementType,
@@ -11,7 +11,7 @@ import {
   TimelineEvent,
   Character,
 } from '@novel-ai-assistant/types';
-import { generateElementPrompt } from '../utils/worldBuildingSchemas.js';
+import { generateElementPrompt } from '../utils/worldBuildingSchemas';
 
 const router = express.Router();
 
@@ -1132,7 +1132,11 @@ router.post('/character-list-generation', async (req, res) => {
   try {
     const { message, plotElements, existingCharacters, model } = req.body;
 
-    console.log('[API] キャラクターリスト生成リクエスト');
+    console.log('=== [API] キャラクターリスト生成リクエスト受信 ===');
+    console.log('メッセージ:', message);
+    console.log('プロット要素数:', plotElements?.length || 0);
+    console.log('既存キャラクター数:', existingCharacters?.length || 0);
+    console.log('モデル:', model);
 
     // プロット情報を整理
     let plotContext = '';
@@ -1144,47 +1148,60 @@ router.post('/character-list-generation', async (req, res) => {
       plotContext = plotElements
         .map((plot: any) => `- ${plot.title}: ${plot.description}`)
         .join('\n');
+      console.log('プロットコンテキスト:', plotContext);
+    } else {
+      console.log('プロット要素が空です');
     }
 
     // 既存キャラクター情報を整理
-    let existingContext = '';
+    let existingCharacterContext = '';
     if (
       existingCharacters &&
       Array.isArray(existingCharacters) &&
       existingCharacters.length > 0
     ) {
-      existingContext = existingCharacters
+      existingCharacterContext = existingCharacters
         .map(
           (char: any) =>
-            `- ${char.name} (${char.role === 'protagonist' ? '主人公' : char.role === 'antagonist' ? '敵役' : '脇役'})`,
+            `- ${char.name}: ${char.description || char.summary || ''}`,
         )
         .join('\n');
     }
 
-    // キャラクターリスト生成専用のシステムプロンプト
-    const characterListSystemPrompt = `
-あなたは小説作成を支援するAIアシスタントで、キャラクター構築の専門家です。
-プロット情報を分析して、物語に必要なキャラクターのリストを作成します。
+    // システムプロンプト
+    const systemPrompt = `あなたは小説作成のプロフェッショナルです。
+ユーザーのリクエストに基づいて、物語に必要なキャラクターのリストを生成してください。
 
-【重要：出力形式について】
-必ず以下のJSON形式で応答してください：
+${
+  plotContext
+    ? `プロット情報:
+${plotContext}
 
-{
-  "characters": [
-    {
-      "name": "キャラクター名",
-      "role": "protagonist|antagonist|supporting",
-      "importance": "high|medium|low",
-      "description": "簡潔な説明（1-2行）"
-    }
-  ]
-}
+`
+    : ''
+}${
+      existingCharacterContext
+        ? `既存キャラクター:
+${existingCharacterContext}
 
-※マークダウンの装飾（**太字**など）は使用しないでください
-※解説や分析は不要です。JSONのみを返してください
-※既存のキャラクターと重複しないようにしてください
-※プロットの展開に必要なキャラクターを優先してください
-`;
+`
+        : ''
+    }以下のJSON形式で、3-5人のキャラクターを提案してください：
+
+[
+  {
+    "name": "キャラクター名",
+    "role": "protagonist|antagonist|supporting",
+    "importance": "主要|重要|補助",
+    "description": "キャラクターの簡潔な説明（1-2文）"
+  }
+]
+
+- 物語に必要な役割を考慮してバランス良く配置
+- 主人公、敵役、重要な脇役を含める
+- 既存キャラクターとの重複を避ける
+- 各キャラクターは物語において明確な役割を持つ
+- JSON形式以外の文章は含めない`;
 
     // ユーザープロンプトを構築
     let userPrompt =
@@ -1195,38 +1212,29 @@ router.post('/character-list-generation', async (req, res) => {
       userPrompt += `\n\n【プロット情報】\n${plotContext}`;
     }
 
-    if (existingContext) {
-      userPrompt += `\n\n【既存キャラクター】\n${existingContext}\n※これらのキャラクターと重複しないようにしてください`;
+    if (existingCharacterContext) {
+      userPrompt += `\n\n【既存キャラクター】\n${existingCharacterContext}\n※これらのキャラクターと重複しないようにしてください`;
     }
 
-    // AIリクエストを作成
-    const aiRequest: StandardAIRequest = {
+    // AIからの応答を取得
+    const aiResponse = await processAIRequest({
       requestType: 'character-list-generation',
       model: model || 'gemini-1.5-pro',
-      systemPrompt: characterListSystemPrompt,
+      systemPrompt: systemPrompt,
       userPrompt,
       context: {
         plotElements,
         existingCharacters,
       },
-      options: {
-        temperature: 0.7,
-        maxTokens: 1500,
-        expectedFormat: 'json',
-        responseFormat: 'json',
-      },
-    };
+    });
 
-    // AIリクエストを実行
-    console.log(`[API] AIリクエスト実行: ${aiRequest.requestType}`);
-    const aiResponse = await processAIRequest(aiRequest);
+    console.log('[API] AI応答受信:', aiResponse);
 
     // エラー処理
     if (aiResponse.status === 'error') {
       console.error('[API] AIリクエスト失敗:', {
         errorCode: aiResponse.error?.code,
         errorMessage: aiResponse.error?.message,
-        request: JSON.stringify(aiRequest, null, 2),
       });
 
       return res.status(500).json({
@@ -1236,32 +1244,42 @@ router.post('/character-list-generation', async (req, res) => {
       });
     }
 
-    // レスポンスをパースして構造化されたデータで返す
-    let characterList = [];
+    // JSONレスポンスをパース
+    let characterList;
     try {
-      const parsedData =
-        typeof aiResponse.content === 'string'
-          ? JSON.parse(aiResponse.content)
-          : aiResponse.content;
+      // レスポンスからJSONを抽出
+      const responseContent =
+        typeof aiResponse.content === 'string' ? aiResponse.content : '';
+      let jsonText = responseContent.trim();
 
-      if (
-        parsedData &&
-        parsedData.characters &&
-        Array.isArray(parsedData.characters)
-      ) {
-        characterList = parsedData.characters;
+      // マークダウンのコードブロックを除去
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-    } catch (error) {
-      console.error('[API] キャラクターリストのパースエラー:', error);
-      // パースに失敗した場合はダミーデータを返す
-      characterList = [
-        {
-          name: '主人公',
-          role: 'protagonist',
-          importance: 'high',
-          description: '物語の中心となるキャラクター',
-        },
-      ];
+
+      // 配列形式の場合とオブジェクト形式の場合の両方に対応
+      const parsed = JSON.parse(jsonText);
+
+      if (Array.isArray(parsed)) {
+        characterList = parsed;
+      } else if (parsed.characters && Array.isArray(parsed.characters)) {
+        characterList = parsed.characters;
+      } else {
+        throw new Error('Invalid JSON structure');
+      }
+
+      console.log('[API] パース済みキャラクターリスト:', characterList);
+    } catch (parseError) {
+      console.error('[API] JSONパースエラー:', parseError);
+      console.error('[API] 元のレスポンス:', aiResponse.content);
+
+      return res.status(500).json({
+        status: 'error',
+        message: 'AIからの応答をパースできませんでした',
+        details: `Parse error: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+      });
     }
 
     console.log(`[API] キャラクターリスト生成完了: ${characterList.length}件`);
@@ -1274,7 +1292,7 @@ router.post('/character-list-generation', async (req, res) => {
       metadata: {
         model: aiResponse.debug?.model,
         processingTime: aiResponse.debug?.processingTime,
-        requestType: aiRequest.requestType,
+        requestType: 'character-list-generation',
         characterCount: characterList.length,
       },
     });

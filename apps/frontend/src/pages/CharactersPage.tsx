@@ -59,6 +59,14 @@ const CharactersPageContent: React.FC = () => {
   // AIアシスト機能の統合
   const handleOpenAIAssist = async (): Promise<void> => {
     try {
+      console.log("=== CharactersPage: AIアシスト開始 ===");
+      console.log("currentProject:", currentProject);
+      console.log("プロット数:", currentProject?.plot?.length || 0);
+      console.log(
+        "既存キャラクター数:",
+        currentProject?.characters?.length || 0
+      );
+
       await openAIAssist(
         "characters",
         {
@@ -70,7 +78,8 @@ const CharactersPageContent: React.FC = () => {
           supportsBatchGeneration: true,
           onComplete: (result) => {
             // バッチ処理の結果を処理
-            console.log("キャラクター生成完了:", result);
+            console.log("=== CharactersPage: キャラクター生成完了 ===");
+            console.log("結果:", result);
             if (result.content) {
               // バッチ処理の結果は既にフォーマットされた文字列として返される
               // parseAIResponseToCharactersで個別のキャラクターに分割

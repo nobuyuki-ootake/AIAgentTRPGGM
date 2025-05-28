@@ -1,4 +1,4 @@
-import { mastra } from '../mastra/index.js';
+import { mastra } from '../mastra/index';
 import { OpenAI } from 'openai';
 
 // OpenAIクライアント
