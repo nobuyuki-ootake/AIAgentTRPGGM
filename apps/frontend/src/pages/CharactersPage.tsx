@@ -66,22 +66,32 @@ const CharactersPageContent: React.FC = () => {
           description:
             "あらすじとプロットを参照して、物語に必要なキャラクターのリストを生成します。",
           defaultMessage:
-            "あらすじとプロットに基づいて、この物語にふさわしいキャラクターを考えてください。",
+            "プロットに基づいて、この物語にふさわしいキャラクターを考えてください。全てのプロット要素を考慮して、物語に必要なキャラクターを提案してください。",
           supportsBatchGeneration: true,
-          customControls: {
-            plotSelection: true,
-          },
           onComplete: (result) => {
-            // AI応答の処理
+            // バッチ処理の結果を処理
+            console.log("キャラクター生成完了:", result);
             if (result.content) {
+              // バッチ処理の結果は既にフォーマットされた文字列として返される
+              // parseAIResponseToCharactersで個別のキャラクターに分割
               const characters = parseAIResponseToCharacters(result.content);
+              console.log(`生成されたキャラクター数: ${characters.length}`);
+
               characters.forEach((character: Character) => {
                 addCharacter(character);
               });
+
+              // 成功メッセージを表示
+              if (characters.length > 0) {
+                console.log(
+                  `${characters.length}件のキャラクターを追加しました`
+                );
+              }
             }
           },
         },
-        currentProject
+        currentProject,
+        [] // プロット選択は不要（全プロットを自動的に送信）
       );
     } catch (error) {
       console.error("AIアシスト処理中にエラーが発生しました:", error);

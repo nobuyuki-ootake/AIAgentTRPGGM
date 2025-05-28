@@ -1,4 +1,5 @@
 import { aiAgentApi } from "../api/aiAgent";
+import { PlotElement, Character } from "@novel-ai-assistant/types";
 
 /**
  * あらすじ生成
@@ -9,10 +10,11 @@ export const generateSynopsisContent = async (
 ): Promise<string> => {
   try {
     const response = await aiAgentApi.generateSynopsis(message, projectData);
-
     if (response.status === "success") {
       return (
-        response.data || response.rawContent || "あらすじが生成されました。"
+        response.data ||
+        response.rawContent ||
+        "あらすじを生成できませんでした。"
       );
     } else {
       throw new Error(response.message || "あらすじ生成に失敗しました");
@@ -24,17 +26,156 @@ export const generateSynopsisContent = async (
 };
 
 /**
- * キャラクター生成
+ * キャラクター生成（バッチ処理フロー）
  */
 export const generateCharacterContent = async (
   message: string,
   projectData: Record<string, unknown>,
-  batchGeneration: boolean
+  batchGeneration: boolean = true
 ): Promise<string> => {
   try {
-    // TODO: キャラクター生成APIの実装
-    console.log("キャラクター生成:", { message, projectData, batchGeneration });
-    return "キャラクター生成機能は実装中です。";
+    const plotElements = Array.isArray(projectData.plot)
+      ? (projectData.plot as PlotElement[])
+      : [];
+    const existingCharacters = Array.isArray(projectData.characters)
+      ? (projectData.characters as Character[])
+      : [];
+
+    if (!batchGeneration) {
+      // 従来の単一キャラクター生成（後方互換性）
+      const response = await aiAgentApi.generateCharacter(
+        message,
+        plotElements,
+        existingCharacters
+      );
+      if (response.status === "success") {
+        return (
+          response.data ||
+          response.rawContent ||
+          "キャラクターを生成できませんでした。"
+        );
+      } else {
+        throw new Error(response.message || "キャラクター生成に失敗しました");
+      }
+    }
+
+    // バッチ処理フロー
+    console.log("キャラクターバッチ生成開始");
+
+    // 第1段階: キャラクターリストを生成
+    const listResponse = await aiAgentApi.generateCharacterList(
+      message,
+      plotElements,
+      existingCharacters
+    );
+
+    if (
+      listResponse.status !== "success" ||
+      !Array.isArray(listResponse.data)
+    ) {
+      throw new Error("キャラクターリストの生成に失敗しました");
+    }
+
+    const characterList = listResponse.data;
+    console.log(`生成されたキャラクターリスト: ${characterList.length}件`);
+
+    // 第2段階: 各キャラクターの詳細をバッチ処理で生成
+    const detailPromises = characterList.map(
+      async (charInfo: {
+        name: string;
+        role: string;
+        importance: string;
+        description: string;
+      }) => {
+        try {
+          const detailMessage = `以下のキャラクターの詳細情報を生成してください：
+
+名前: ${charInfo.name}
+役割: ${
+            charInfo.role === "protagonist"
+              ? "主人公"
+              : charInfo.role === "antagonist"
+              ? "敵役"
+              : "脇役"
+          }
+重要度: ${charInfo.importance}
+概要: ${charInfo.description}
+
+詳細な背景、性格、外見、動機などを含めて、魅力的なキャラクター設定を作成してください。`;
+
+          const detailResponse = await aiAgentApi.generateCharacterDetail(
+            charInfo.name,
+            charInfo.role === "protagonist"
+              ? "主人公"
+              : charInfo.role === "antagonist"
+              ? "敵役"
+              : "脇役",
+            detailMessage
+          );
+
+          if (detailResponse.status === "success") {
+            return {
+              name: charInfo.name,
+              role: charInfo.role,
+              importance: charInfo.importance,
+              summary: charInfo.description,
+              details:
+                detailResponse.data ||
+                detailResponse.rawContent ||
+                "詳細を生成できませんでした",
+            };
+          } else {
+            console.warn(
+              `${charInfo.name}の詳細生成に失敗:`,
+              detailResponse.message
+            );
+            return {
+              name: charInfo.name,
+              role: charInfo.role,
+              importance: charInfo.importance,
+              summary: charInfo.description,
+              details: "詳細の生成に失敗しました",
+            };
+          }
+        } catch (error) {
+          console.error(`${charInfo.name}の詳細生成エラー:`, error);
+          return {
+            name: charInfo.name,
+            role: charInfo.role,
+            importance: charInfo.importance,
+            summary: charInfo.description,
+            details: "詳細の生成中にエラーが発生しました",
+          };
+        }
+      }
+    );
+
+    // 全ての詳細生成を並行実行
+    const characterDetails = await Promise.all(detailPromises);
+
+    console.log(`キャラクター詳細生成完了: ${characterDetails.length}件`);
+
+    // 結果をフォーマットして返す
+    const formattedResult = characterDetails
+      .map((char, index) => {
+        return `【キャラクター${index + 1}】
+名前: ${char.name}
+役割: ${
+          char.role === "protagonist"
+            ? "主人公"
+            : char.role === "antagonist"
+            ? "敵役"
+            : "脇役"
+        }
+重要度: ${char.importance}
+概要: ${char.summary}
+
+詳細:
+${char.details}`;
+      })
+      .join("\n\n" + "=".repeat(50) + "\n\n");
+
+    return formattedResult;
   } catch (error) {
     console.error("キャラクター生成エラー:", error);
     throw error;
@@ -50,10 +191,11 @@ export const generatePlotContent = async (
 ): Promise<string> => {
   try {
     const response = await aiAgentApi.generatePlot(message, projectData);
-
     if (response.status === "success") {
       return (
-        response.data || response.rawContent || "プロットが生成されました。"
+        response.data ||
+        response.rawContent ||
+        "プロットを生成できませんでした。"
       );
     } else {
       throw new Error(response.message || "プロット生成に失敗しました");

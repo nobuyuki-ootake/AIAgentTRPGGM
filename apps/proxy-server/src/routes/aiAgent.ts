@@ -1124,4 +1124,169 @@ router.post('/test-key', async (req, res) => {
   }
 });
 
+/**
+ * キャラクターリスト生成エンドポイント
+ * 全プロットを参照してキャラクター名リストを生成します（バッチ処理の第1段階）
+ */
+router.post('/character-list-generation', async (req, res) => {
+  try {
+    const { message, plotElements, existingCharacters, model } = req.body;
+
+    console.log('[API] キャラクターリスト生成リクエスト');
+
+    // プロット情報を整理
+    let plotContext = '';
+    if (
+      plotElements &&
+      Array.isArray(plotElements) &&
+      plotElements.length > 0
+    ) {
+      plotContext = plotElements
+        .map((plot: any) => `- ${plot.title}: ${plot.description}`)
+        .join('\n');
+    }
+
+    // 既存キャラクター情報を整理
+    let existingContext = '';
+    if (
+      existingCharacters &&
+      Array.isArray(existingCharacters) &&
+      existingCharacters.length > 0
+    ) {
+      existingContext = existingCharacters
+        .map(
+          (char: any) =>
+            `- ${char.name} (${char.role === 'protagonist' ? '主人公' : char.role === 'antagonist' ? '敵役' : '脇役'})`,
+        )
+        .join('\n');
+    }
+
+    // キャラクターリスト生成専用のシステムプロンプト
+    const characterListSystemPrompt = `
+あなたは小説作成を支援するAIアシスタントで、キャラクター構築の専門家です。
+プロット情報を分析して、物語に必要なキャラクターのリストを作成します。
+
+【重要：出力形式について】
+必ず以下のJSON形式で応答してください：
+
+{
+  "characters": [
+    {
+      "name": "キャラクター名",
+      "role": "protagonist|antagonist|supporting",
+      "importance": "high|medium|low",
+      "description": "簡潔な説明（1-2行）"
+    }
+  ]
+}
+
+※マークダウンの装飾（**太字**など）は使用しないでください
+※解説や分析は不要です。JSONのみを返してください
+※既存のキャラクターと重複しないようにしてください
+※プロットの展開に必要なキャラクターを優先してください
+`;
+
+    // ユーザープロンプトを構築
+    let userPrompt =
+      message ||
+      'プロットに基づいて、物語に必要なキャラクターのリストを作成してください。';
+
+    if (plotContext) {
+      userPrompt += `\n\n【プロット情報】\n${plotContext}`;
+    }
+
+    if (existingContext) {
+      userPrompt += `\n\n【既存キャラクター】\n${existingContext}\n※これらのキャラクターと重複しないようにしてください`;
+    }
+
+    // AIリクエストを作成
+    const aiRequest: StandardAIRequest = {
+      requestType: 'character-list-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: characterListSystemPrompt,
+      userPrompt,
+      context: {
+        plotElements,
+        existingCharacters,
+      },
+      options: {
+        temperature: 0.7,
+        maxTokens: 1500,
+        expectedFormat: 'json',
+        responseFormat: 'json',
+      },
+    };
+
+    // AIリクエストを実行
+    console.log(`[API] AIリクエスト実行: ${aiRequest.requestType}`);
+    const aiResponse = await processAIRequest(aiRequest);
+
+    // エラー処理
+    if (aiResponse.status === 'error') {
+      console.error('[API] AIリクエスト失敗:', {
+        errorCode: aiResponse.error?.code,
+        errorMessage: aiResponse.error?.message,
+        request: JSON.stringify(aiRequest, null, 2),
+      });
+
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    // レスポンスをパースして構造化されたデータで返す
+    let characterList = [];
+    try {
+      const parsedData =
+        typeof aiResponse.content === 'string'
+          ? JSON.parse(aiResponse.content)
+          : aiResponse.content;
+
+      if (
+        parsedData &&
+        parsedData.characters &&
+        Array.isArray(parsedData.characters)
+      ) {
+        characterList = parsedData.characters;
+      }
+    } catch (error) {
+      console.error('[API] キャラクターリストのパースエラー:', error);
+      // パースに失敗した場合はダミーデータを返す
+      characterList = [
+        {
+          name: '主人公',
+          role: 'protagonist',
+          importance: 'high',
+          description: '物語の中心となるキャラクター',
+        },
+      ];
+    }
+
+    console.log(`[API] キャラクターリスト生成完了: ${characterList.length}件`);
+
+    // 成功レスポンス
+    return res.json({
+      status: 'success',
+      data: characterList, // 構造化されたキャラクターリスト
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+        characterCount: characterList.length,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] キャラクターリスト生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message:
+        error.message ||
+        'キャラクターリスト生成中に予期しないエラーが発生しました',
+    });
+  }
+});
+
 export default router;
