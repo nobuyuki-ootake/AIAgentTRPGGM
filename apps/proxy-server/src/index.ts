@@ -8,9 +8,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import Redis from 'ioredis';
 import winston from 'winston';
-
-// ルーターのインポート
 import aiAgentRoutes from './routes/aiAgent.js';
+import { mastra } from './mastra/index.js';
 
 // 環境変数の読み込み
 dotenv.config();
@@ -294,8 +293,43 @@ app.post('/api/gemini', authMiddleware, async (req, res) => {
 });
 
 // ヘルスチェックエンドポイント
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    const healthStatus = {
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      port: Number(PORT),
+      services: {
+        redis: redisClient ? 'connected' : 'disconnected',
+        gemini: !!process.env.GEMINI_API_KEY ? 'configured' : 'not configured',
+        openai: !!process.env.OPENAI_API_KEY ? 'configured' : 'not configured',
+        anthropic: !!process.env.ANTHROPIC_API_KEY
+          ? 'configured'
+          : 'not configured',
+      },
+    };
+
+    // Redisの接続状態をテスト
+    if (redisClient) {
+      try {
+        await redisClient.ping();
+        healthStatus.services.redis = 'healthy';
+      } catch (error) {
+        healthStatus.services.redis = 'error';
+      }
+    }
+
+    res.status(200).json(healthStatus);
+  } catch (error) {
+    logger.error('ヘルスチェックエラー:', error);
+    res.status(503).json({
+      status: 'ERROR',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
 
 // AI作成支援エンドポイント
@@ -308,7 +342,6 @@ app.post('/api/ai/assist', async (req, res) => {
     }
 
     // mastraのnovelCreationNetworkを使用
-    const { mastra } = require('./mastra');
     const result = await mastra.networks['novel-creation']?.run(message, {
       context: { selectedElements },
       maxSteps: 5,
@@ -329,9 +362,55 @@ app.post('/api/ai/assist', async (req, res) => {
 });
 
 // サーバー起動
-app.listen(PORT, () => {
-  logger.info(`プロキシサーバーがポート${PORT}で起動しました`);
-});
+const port = Number(PORT);
+
+// 起動前の基本チェック
+const startupChecks = async () => {
+  logger.info('起動前チェックを実行中...');
+
+  // 必要な環境変数のチェック
+  const requiredEnvVars = ['GEMINI_API_KEY'];
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName],
+  );
+
+  if (missingVars.length > 0) {
+    logger.warn(
+      `警告: 以下の環境変数が設定されていません: ${missingVars.join(', ')}`,
+    );
+  }
+
+  // Redisの接続テスト
+  if (redisClient) {
+    try {
+      await redisClient.ping();
+      logger.info('Redis接続: OK');
+    } catch (error) {
+      logger.warn('Redis接続: エラー', error);
+    }
+  } else {
+    logger.info('Redis: 未設定（キャッシュなしで動作）');
+  }
+
+  logger.info('起動前チェック完了');
+};
+
+// サーバー起動
+const startServer = async () => {
+  try {
+    await startupChecks();
+
+    app.listen(port, '0.0.0.0', () => {
+      logger.info(`プロキシサーバーがポート${port}で起動しました`);
+      logger.info(`ヘルスチェック: http://localhost:${port}/health`);
+    });
+  } catch (error) {
+    logger.error('サーバー起動エラー:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // グレースフルシャットダウン
 process.on('SIGTERM', async () => {
