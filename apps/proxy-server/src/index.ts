@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import { OpenAI } from 'openai';
 import { Anthropic } from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -9,6 +10,16 @@ import dotenv from 'dotenv';
 import Redis from 'ioredis';
 import winston from 'winston';
 import aiAgentRoutes from './routes/aiAgent.js';
+import authRoutes from './routes/auth.js';
+import campaignsRoutes from './routes/campaigns.js';
+import charactersRoutes from './routes/characters.js';
+import sessionsRoutes from './routes/sessions.js';
+import enemiesRoutes from './routes/enemies.js';
+import npcsRoutes from './routes/npcs.js';
+import imageUploadRoutes from './routes/image-upload.js';
+import googleCloudRoutes from './routes/google-cloud.js';
+import { authenticateToken, authenticateApiKey } from './middleware/auth.middleware.js';
+import SocketService from './services/socket.service.js';
 import { mastra } from './mastra/index.js';
 
 // 環境変数の読み込み
@@ -48,8 +59,9 @@ if (process.env.REDIS_URL) {
   }
 }
 
-// Expressアプリケーションの作成
+// ExpressアプリケーションとHTTPサーバーの作成
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 4001;
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:3000',
@@ -95,18 +107,6 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// 認証ミドルウェア
-const authMiddleware = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction,
-) => {
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.API_KEY) {
-    return res.status(401).json({ error: '認証が必要です' });
-  }
-  next();
-};
 
 // APIクライアントの初期化
 const getOpenAI = () => {
@@ -164,11 +164,24 @@ const setToCache = async (
   }
 };
 
+// Socket.IOサービスの初期化
+const socketService = new SocketService(server);
+
 // ルーターのマウント
 app.use('/api/ai-agent', aiAgentRoutes);
+app.use('/api/auth', authRoutes);
+
+// 認証が必要なTRPG関連API
+app.use('/api/campaigns', authenticateToken, campaignsRoutes);
+app.use('/api/characters', authenticateToken, charactersRoutes);
+app.use('/api/sessions', authenticateToken, sessionsRoutes);
+app.use('/api/enemies', authenticateToken, enemiesRoutes);
+app.use('/api/npcs', authenticateToken, npcsRoutes);
+app.use('/api/images', authenticateToken, imageUploadRoutes);
+app.use('/api/google-cloud', authenticateToken, googleCloudRoutes);
 
 // OpenAI APIプロキシ
-app.post('/api/openai', authMiddleware, async (req, res) => {
+app.post('/api/openai', authenticateApiKey, async (req, res) => {
   try {
     const requestBody = req.body;
     const cacheKey = `openai:${JSON.stringify(requestBody)}`;
@@ -196,7 +209,7 @@ app.post('/api/openai', authMiddleware, async (req, res) => {
 });
 
 // Claude APIプロキシ
-app.post('/api/claude', authMiddleware, async (req, res) => {
+app.post('/api/claude', authenticateApiKey, async (req, res) => {
   try {
     const requestBody = req.body;
     const cacheKey = `claude:${JSON.stringify(requestBody)}`;
@@ -261,7 +274,7 @@ app.post('/api/claude', authMiddleware, async (req, res) => {
 });
 
 // Gemini APIプロキシ
-app.post('/api/gemini', authMiddleware, async (req, res) => {
+app.post('/api/gemini', authenticateApiKey, async (req, res) => {
   try {
     const requestBody = req.body;
     const cacheKey = `gemini:${JSON.stringify(requestBody)}`;
@@ -308,6 +321,11 @@ app.get('/health', async (req, res) => {
         anthropic: !!process.env.ANTHROPIC_API_KEY
           ? 'configured'
           : 'not configured',
+        socketio: 'active',
+      },
+      realtime: {
+        activeSessions: socketService.getActiveSessionsCount(),
+        connectedUsers: socketService.getConnectedUsersCount(),
       },
     };
 
@@ -400,9 +418,10 @@ const startServer = async () => {
   try {
     await startupChecks();
 
-    app.listen(port, '0.0.0.0', () => {
-      logger.info(`プロキシサーバーがポート${port}で起動しました`);
+    server.listen(port, '0.0.0.0', () => {
+      logger.info(`TRPGサーバーがポート${port}で起動しました`);
       logger.info(`ヘルスチェック: http://localhost:${port}/health`);
+      logger.info(`Socket.IO: 有効`);
     });
   } catch (error) {
     logger.error('サーバー起動エラー:', error);
