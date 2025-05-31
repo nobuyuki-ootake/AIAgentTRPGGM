@@ -1,0 +1,83 @@
+# バックエンド用Cloud Build設定
+steps:
+  # Dockerイメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/trpg-backend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/trpg-backend:latest'
+      - '-f'
+      - 'apps/proxy-server/Dockerfile'
+      - '.'
+    id: 'build-image'
+
+  # Container Registryにpush
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/trpg-backend:$COMMIT_SHA'
+    id: 'push-image'
+    waitFor: ['build-image']
+
+  # latestタグもpush
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/trpg-backend:latest'
+    id: 'push-latest'
+    waitFor: ['build-image']
+
+  # Cloud Runにデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'trpg-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/trpg-backend:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--max-instances'
+      - '20'
+      - '--concurrency'
+      - '50'
+      - '--timeout'
+      - '900'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,LITESTREAM_GCS_BUCKET=${_LITESTREAM_BUCKET},LITESTREAM_GCS_PATH=${_LITESTREAM_PATH}'
+      - '--service-account'
+      - '${_SERVICE_ACCOUNT}'
+    id: 'deploy-backend'
+    waitFor: ['push-image']
+
+# 置換変数
+substitutions:
+  _REGION: us-central1
+  _LITESTREAM_BUCKET: trpg-database-backup
+  _LITESTREAM_PATH: db
+  _SERVICE_ACCOUNT: trpg-backend@${PROJECT_ID}.iam.gserviceaccount.com
+
+# ビルドのタイムアウト設定
+timeout: '1800s'
+
+# イメージをContainer Registryに保存
+images:
+  - 'gcr.io/$PROJECT_ID/trpg-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/trpg-backend:latest'
+
+# オプション
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'

@@ -3,7 +3,8 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "build/**"]
+      "outputs": ["dist/**", ".next/**", "build/**"],
+      "env": ["NODE_ENV", "TURBO_TEAM", "TURBO_TOKEN"]
     },
     "lint": {
       "outputs": []
@@ -13,10 +14,22 @@
       "persistent": true
     },
     "test": {
-      "outputs": []
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "outputs": ["test-results/**", "playwright-report/**"]
     },
     "clean": {
       "cache": false
     }
+  },
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "TURBO_TEAM",
+    "TURBO_TOKEN"
+  ],
+  "remoteCache": {
+    "enabled": true
   }
 }

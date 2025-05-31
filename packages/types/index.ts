@@ -1,19 +1,27 @@
 import type { Descendant } from "slate";
 
-export interface NovelProject {
+// TRPGキャンペーンの基本型定義
+export interface TRPGCampaign {
   id: string;
   title: string;
   createdAt: Date;
   updatedAt: Date;
-  synopsis: string;
-  plot: PlotElement[];
-  characters: Character[];
+  gameSystem: string; // D&D 5e, Pathfinder, オリジナルなど
+  gamemaster: string;
+  players: Player[];
+  synopsis: string; // キャンペーンの背景・あらすじ
+  plot: QuestElement[]; // プロット → クエストに変更
+  characters: TRPGCharacter[];
   worldBuilding: WorldBuilding;
-  timeline: TimelineEvent[];
-  chapters: Chapter[];
+  timeline: SessionEvent[]; // タイムライン → セッションイベントに変更
+  sessions: GameSession[]; // 章 → セッションに変更
+  enemies: EnemyCharacter[];
+  npcs: NPCCharacter[];
+  rules: CampaignRule[];
+  handouts: Handout[];
   feedback: Feedback[];
   definedCharacterStatuses?: CharacterStatus[];
-  metadata?: ProjectMetadata;
+  metadata?: CampaignMetadata;
   notes?: {
     id: string;
     title: string;
@@ -24,7 +32,38 @@ export interface NovelProject {
   }[];
 }
 
-// プロット要素の型定義
+// 後方互換性のためのエイリアス
+export interface NovelProject extends TRPGCampaign {
+  chapters: Chapter[]; // 後方互換性のため維持
+}
+
+// プレイヤーの型定義
+export interface Player {
+  id: string;
+  name: string;
+  email?: string;
+  characterIds: string[]; // 操作するキャラクターのID
+  isOnline?: boolean;
+  lastSeen?: Date;
+}
+
+// クエスト要素の型定義（プロット要素から拡張）
+export interface QuestElement {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  status: "未開始" | "進行中" | "完了" | "失敗" | "保留";
+  questType: "メイン" | "サブ" | "個人" | "隠し";
+  difficulty: 1 | 2 | 3 | 4 | 5; // 1=簡単, 5=非常に困難
+  rewards?: string[]; // 報酬の説明
+  prerequisites?: string[]; // 前提条件
+  sessionId?: string; // 関連するセッションID
+  relatedCharacterIds?: string[]; // 関連キャラクター
+  relatedPlaceIds?: string[]; // 関連場所
+}
+
+// プロット要素の型定義（後方互換性のため維持）
 export interface PlotElement {
   id: string;
   title: string;
@@ -57,7 +96,132 @@ export interface CharacterStatus {
   description?: string;
 }
 
-// キャラクターの型定義
+// TRPGキャラクター基本ステータス
+export interface CharacterStats {
+  // 基本能力値
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  // HP/MP関連
+  hitPoints: { current: number; max: number; temp: number };
+  manaPoints?: { current: number; max: number };
+  // その他ステータス
+  armorClass: number;
+  speed: number;
+  level: number;
+  experience: number;
+  proficiencyBonus?: number;
+}
+
+// 装備アイテム
+export interface Equipment {
+  id: string;
+  name: string;
+  type: "weapon" | "armor" | "accessory" | "consumable" | "tool" | "misc";
+  description?: string;
+  quantity: number;
+  weight?: number;
+  value?: number;
+  equipped?: boolean;
+  enchantments?: string[];
+}
+
+// スキル・呪文
+export interface Skill {
+  id: string;
+  name: string;
+  type: "skill" | "spell" | "ability";
+  description: string;
+  level?: number;
+  cost?: string; // MP消費、材料など
+  damage?: string;
+  range?: string;
+  duration?: string;
+  cooldown?: number; // ターン数
+}
+
+// キャラクター進歩記録
+export interface CharacterProgression {
+  id: string;
+  sessionId: string;
+  date: Date;
+  description: string;
+  experienceGained: number;
+  levelUp?: boolean;
+  newSkills?: string[];
+  statChanges?: Partial<CharacterStats>;
+}
+
+// TRPGキャラクター（PC・NPC共通基盤）
+export interface TRPGCharacter {
+  id: string;
+  name: string;
+  characterType: "PC" | "NPC" | "Enemy";
+  playerName?: string; // PCの場合のプレイヤー名
+  
+  // 基本情報
+  race?: string;
+  class?: string;
+  background?: string;
+  alignment?: string;
+  gender?: string;
+  age?: string;
+  appearance?: string;
+  personality?: string;
+  motivation?: string;
+  
+  // ゲーム情報
+  stats: CharacterStats;
+  skills: Skill[];
+  equipment: Equipment[];
+  progression: CharacterProgression[];
+  
+  // その他
+  traits: CharacterTrait[];
+  relationships: Relationship[];
+  imageUrl?: string;
+  customFields?: CustomField[];
+  statuses?: CharacterStatus[];
+  notes?: string;
+}
+
+// PC専用追加情報
+export interface PlayerCharacter extends TRPGCharacter {
+  characterType: "PC";
+  playerName: string;
+  backstory: string;
+  goals: string[];
+  bonds: string[];
+  flaws: string[];
+  ideals: string[];
+}
+
+// NPC専用情報
+export interface NPCCharacter extends TRPGCharacter {
+  characterType: "NPC";
+  location?: string; // 主な居場所
+  occupation?: string;
+  attitude: "friendly" | "neutral" | "hostile" | "unknown";
+  knowledge?: string[]; // 知っている情報
+  services?: string[]; // 提供できるサービス
+  questIds?: string[]; // 関連クエスト
+}
+
+// 敵キャラクター専用情報
+export interface EnemyCharacter extends TRPGCharacter {
+  characterType: "Enemy";
+  enemyType: "mob" | "elite" | "boss";
+  challengeRating: number;
+  tactics?: string; // 戦闘戦術
+  loot?: Equipment[]; // ドロップアイテム
+  spawnLocations?: string[]; // 出現場所
+  behaviorPattern?: string; // 行動パターン
+}
+
+// キャラクターの型定義（後方互換性のため維持）
 export interface Character {
   id: string;
   name: string;
@@ -115,7 +279,90 @@ export interface WorldBuilding {
 
 // ルール、文化、場所の型定義は worldBuilding 内の型を使用
 
-// タイムラインイベントの型定義
+// ゲームセッション
+export interface GameSession {
+  id: string;
+  sessionNumber: number;
+  title: string;
+  date: Date;
+  duration: number; // 分
+  attendees: string[]; // プレイヤーID
+  gamemaster: string;
+  synopsis?: string;
+  content: Descendant[]; // セッションログ・ノート
+  events: SessionEvent[];
+  combats: CombatEncounter[];
+  questsAdvanced: string[]; // 進行したクエストID
+  questsCompleted: string[]; // 完了したクエストID
+  experienceAwarded: number;
+  status: "planned" | "inProgress" | "completed" | "cancelled";
+  notes?: string;
+}
+
+// セッションイベント（旧タイムラインイベント）
+export interface SessionEvent {
+  id: string;
+  title: string;
+  description: string;
+  sessionDay: number; // セッション内の日数
+  sessionTime?: string; // セッション内の時刻
+  relatedCharacters: string[];
+  relatedPlaces: string[];
+  order: number;
+  eventType: "combat" | "roleplay" | "exploration" | "puzzle" | "social" | "discovery" | "rest";
+  outcome?: "success" | "failure" | "partial" | "ongoing";
+  postEventCharacterStatuses?: {
+    [characterId: string]: CharacterStatus[];
+  };
+  relatedQuestIds?: string[]; // 関連するクエストのID配列
+  placeId?: string; // 主要な場所ID
+  experienceAwarded?: number;
+  lootGained?: Equipment[];
+}
+
+// 戦闘エンカウンター
+export interface CombatEncounter {
+  id: string;
+  name: string;
+  sessionId: string;
+  participants: CombatParticipant[];
+  round: number;
+  status: "planning" | "active" | "completed";
+  initiative: InitiativeOrder[];
+  battlemap?: string; // 画像URL
+  conditions?: CombatCondition[];
+  summary?: string;
+  experienceAwarded?: number;
+  lootDropped?: Equipment[];
+}
+
+// 戦闘参加者
+export interface CombatParticipant {
+  characterId: string;
+  characterType: "PC" | "NPC" | "Enemy";
+  initiative: number;
+  currentHP: number;
+  maxHP: number;
+  conditions: string[]; // 状態異常など
+  position?: { x: number; y: number }; // バトルマップ上の位置
+}
+
+// イニシアチブ順
+export interface InitiativeOrder {
+  characterId: string;
+  initiative: number;
+  hasActed: boolean;
+}
+
+// 戦闘状況
+export interface CombatCondition {
+  name: string;
+  description: string;
+  duration: number; // 残りターン数
+  effects: string[];
+}
+
+// タイムラインイベントの型定義（後方互換性のため維持）
 export interface TimelineEvent {
   id: string;
   title: string;
@@ -205,8 +452,48 @@ export interface TimelineSettings {
  */
 export type ProjectStatus = "active" | "archived" | "template";
 
+// キャンペーンルール
+export interface CampaignRule {
+  id: string;
+  name: string;
+  category: "house_rule" | "variant" | "custom" | "clarification";
+  description: string;
+  details: string;
+  appliesTo?: string[]; // 適用対象（キャラクター、スキル、戦闘など）
+  isActive: boolean;
+}
+
+// ハンドアウト
+export interface Handout {
+  id: string;
+  title: string;
+  content: string;
+  type: "info" | "map" | "image" | "rules" | "quest" | "letter" | "other";
+  isPublic: boolean; // プレイヤーに公開済みか
+  recipientIds?: string[]; // 特定プレイヤーのみの場合
+  imageUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// キャンペーンメタデータ
+export interface CampaignMetadata {
+  version: string;
+  tags?: string[];
+  genre?: string[];
+  difficulty: "beginner" | "intermediate" | "advanced" | "expert";
+  estimatedSessions?: number;
+  targetPlayers: { min: number; max: number };
+  status: CampaignStatus;
+  lastBackupDate?: string;
+  totalPlayTime?: number; // 分
+}
+
+// キャンペーンステータス
+export type CampaignStatus = "planning" | "active" | "paused" | "completed" | "archived";
+
 /**
- * プロジェクトのメタデータ
+ * プロジェクトのメタデータ（後方互換性のため維持）
  */
 export interface ProjectMetadata {
   version: string;

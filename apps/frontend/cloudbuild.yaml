@@ -1,0 +1,76 @@
+# フロントエンド用Cloud Build設定
+steps:
+  # Dockerイメージをビルド
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/trpg-frontend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/trpg-frontend:latest'
+      - '-f'
+      - 'apps/frontend/Dockerfile'
+      - '.'
+    id: 'build-image'
+
+  # Container Registryにpush
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/trpg-frontend:$COMMIT_SHA'
+    id: 'push-image'
+    waitFor: ['build-image']
+
+  # latestタグもpush
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/trpg-frontend:latest'
+    id: 'push-latest'
+    waitFor: ['build-image']
+
+  # Cloud Runにデプロイ
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'trpg-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/trpg-frontend:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--concurrency'
+      - '80'
+      - '--timeout'
+      - '300'
+    id: 'deploy-frontend'
+    waitFor: ['push-image']
+
+# 置換変数
+substitutions:
+  _REGION: us-central1
+
+# ビルドのタイムアウト設定
+timeout: '1200s'
+
+# イメージをContainer Registryに保存
+images:
+  - 'gcr.io/$PROJECT_ID/trpg-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/trpg-frontend:latest'
+
+# オプション
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'

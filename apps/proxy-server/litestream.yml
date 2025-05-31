@@ -1,0 +1,19 @@
+# Litestream設定ファイル - Google Cloud Storage対応
+dbs:
+  - path: /app/data/trpg.db
+    replicas:
+      - type: gcs
+        bucket: ${LITESTREAM_GCS_BUCKET}
+        path: ${LITESTREAM_GCS_PATH:-db}
+        retention: 72h
+        retention-check-interval: 1h
+        sync-interval: 1s
+        snapshot-interval: 1h
+        validation-interval: 6h
+
+# ログ設定
+log:
+  level: info
+
+# メトリクス設定
+addr: ":9090"
