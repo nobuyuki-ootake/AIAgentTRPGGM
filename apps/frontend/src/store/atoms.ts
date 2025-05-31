@@ -132,7 +132,7 @@ export type PageContext =
   | "plot-item";
 
 export interface ResponseData {
-  content: string;
+  content: string | unknown;
   metadata?: Record<string, unknown>;
 }
 

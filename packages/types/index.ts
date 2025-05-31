@@ -96,9 +96,8 @@ export interface BatchProcessResult {
 // 世界観設定の型定義
 export interface WorldBuilding {
   id: string;
-  setting: string;
+  setting: SettingElement[];
   worldmaps: WorldmapElement[];
-  settings: SettingElement[];
   rules: RuleElement[];
   places: PlaceElement[];
   cultures: CultureElement[];
@@ -111,7 +110,7 @@ export interface WorldBuilding {
     startDate: string;
   };
   worldMapImageUrl?: string;
-  description?: string;
+  description?: string; // 後方互換性のため残すが、setting配列を優先
 }
 
 // ルール、文化、場所の型定義は worldBuilding 内の型を使用
@@ -263,9 +262,11 @@ export interface WorldmapElement extends BaseWorldBuildingElement {
 /**
  * 世界観設定の型定義
  */
-export interface SettingElement extends BaseWorldBuildingElement {
-  img: string;
-  category?: string;
+export interface SettingElement {
+  id: string;
+  name: string;
+  description: string;
+  history: string;
 }
 
 /**
@@ -604,10 +605,10 @@ export function createTypedWorldBuildingElement(
       } as WorldmapElement;
     case WorldBuildingElementType.SETTING:
       return {
-        ...baseElement,
         id,
-        type: WorldBuildingElementType.SETTING,
-        img: data.img || "",
+        name: data.name || "設定名未設定",
+        description: data.description || "",
+        history: data.history || "",
       } as SettingElement;
     case WorldBuildingElementType.RULE:
       return {

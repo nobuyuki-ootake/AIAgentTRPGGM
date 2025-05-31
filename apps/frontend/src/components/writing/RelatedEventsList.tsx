@@ -36,7 +36,7 @@ const RelatedEventsList: React.FC<RelatedEventsListProps> = ({
   );
 
   return (
-    <Paper sx={{ p: 2, height: "100%" }}>
+    <Paper sx={{ p: 2 }}>
       <Box
         sx={{
           display: "flex",
@@ -71,16 +71,19 @@ const RelatedEventsList: React.FC<RelatedEventsListProps> = ({
           </Button>
         </Box>
       ) : (
-        <List sx={{ maxHeight: "300px", overflow: "auto" }}>
+        <List sx={{ maxHeight: "400px", overflow: "auto" }}>
           {relatedEvents.map((event) => (
             <ListItem key={event.id} disablePadding>
               <ListItemButton
                 onClick={() => onViewEvent(event.id)}
                 sx={{
                   borderRadius: 1,
-                  mb: 0.5,
-                  border: 1,
-                  borderColor: "divider",
+                  mb: 1,
+                  backgroundColor: "background.default",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                  transition: "background-color 0.2s ease",
                 }}
               >
                 <ListItemText

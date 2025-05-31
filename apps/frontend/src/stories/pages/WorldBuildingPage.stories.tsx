@@ -15,7 +15,7 @@ const mockProject: NovelProject = {
   characters: [],
   worldBuilding: {
     id: uuidv4(),
-    setting: "魔法とドラゴンが存在する中世ファンタジー世界",
+    setting: [],
     rules: [
       {
         id: "rule1",
@@ -76,7 +76,6 @@ const mockProject: NovelProject = {
     cultures: [],
     historyLegend: [],
     worldmaps: [],
-    settings: [],
     geographyEnvironment: [],
     magicTechnology: [],
     stateDefinition: [],

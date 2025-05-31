@@ -24,8 +24,8 @@ export interface ApiResponse<T> {
 // 世界観要素のAPIレスポンス型
 export interface WorldBuildingApiResponse {
   status: string;
-  data: WorldBuildingElement; // 汎用型でWorldBuildingElementDataを表現
-  rawContent: string;
+  data: WorldBuildingElement; // Record<string, unknown>からWorldBuildingElementに変更
+  rawContent?: string; // オプショナルに変更
   response?: string;
   agentUsed?: Record<string, unknown>;
   steps?: Record<string, unknown>;
@@ -33,7 +33,7 @@ export interface WorldBuildingApiResponse {
     model: string;
     processingTime: number;
     requestType: string;
-    format: string;
+    format?: string; // オプショナルに変更
   };
 }
 

@@ -166,6 +166,24 @@ const PlacesTab: React.FC = () => {
     });
   };
 
+  // 値を安全に文字列として表示するヘルパー関数
+  const safeStringDisplay = (value: unknown): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return "[オブジェクト]";
+      }
+    }
+    return String(value);
+  };
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -219,7 +237,7 @@ const PlacesTab: React.FC = () => {
                     component="div"
                     sx={{ mb: 1 }}
                   >
-                    {place.name || "名称未設定の場所"}
+                    {safeStringDisplay(place.name) || "名称未設定の場所"}
                   </Typography>
 
                   <Typography
@@ -227,7 +245,8 @@ const PlacesTab: React.FC = () => {
                     variant="body2"
                     sx={{ color: "text.secondary", mb: 0.5 }}
                   >
-                    <strong>種類:</strong> {place.type || "未指定"}
+                    <strong>種類:</strong>{" "}
+                    {safeStringDisplay(place.type) || "未指定"}
                   </Typography>
 
                   <Typography
@@ -235,15 +254,17 @@ const PlacesTab: React.FC = () => {
                     variant="body2"
                     sx={{ whiteSpace: "pre-wrap", mb: 0.5 }}
                   >
-                    {place.description || "説明がありません"}
+                    {safeStringDisplay(place.description) || "説明がありません"}
                   </Typography>
 
                   <Typography component="div" variant="body2" sx={{ mb: 0.5 }}>
-                    <strong>重要度:</strong> {place.importance || "未指定"}
+                    <strong>重要度:</strong>{" "}
+                    {safeStringDisplay(place.importance) || "未指定"}
                   </Typography>
 
                   <Typography component="div" variant="body2" sx={{ mb: 0.5 }}>
-                    <strong>関連:</strong> {place.relations || "未指定"}
+                    <strong>関連:</strong>{" "}
+                    {safeStringDisplay(place.relations) || "未指定"}
                   </Typography>
 
                   {place.location && (
@@ -252,7 +273,7 @@ const PlacesTab: React.FC = () => {
                       variant="body2"
                       sx={{ mb: 0.5 }}
                     >
-                      <strong>位置:</strong> {place.location}
+                      <strong>位置:</strong> {safeStringDisplay(place.location)}
                     </Typography>
                   )}
 
@@ -262,7 +283,8 @@ const PlacesTab: React.FC = () => {
                       variant="body2"
                       sx={{ mb: 0.5 }}
                     >
-                      <strong>人口:</strong> {place.population}
+                      <strong>人口:</strong>{" "}
+                      {safeStringDisplay(place.population)}
                     </Typography>
                   )}
 
@@ -272,13 +294,15 @@ const PlacesTab: React.FC = () => {
                       variant="body2"
                       sx={{ mb: 0.5 }}
                     >
-                      <strong>文化的特徴:</strong> {place.culturalFeatures}
+                      <strong>文化的特徴:</strong>{" "}
+                      {safeStringDisplay(place.culturalFeatures)}
                     </Typography>
                   )}
 
                   {place.features && (
                     <Typography component="div" variant="body2">
-                      <strong>地理的特徴:</strong> {place.features}
+                      <strong>地理的特徴:</strong>{" "}
+                      {safeStringDisplay(place.features)}
                     </Typography>
                   )}
                 </Box>
@@ -326,7 +350,7 @@ const PlacesTab: React.FC = () => {
               label="場所の名前"
               type="text"
               variant="outlined"
-              value={currentPlace?.name || ""}
+              value={safeStringDisplay(currentPlace?.name) || ""}
               onChange={handleInputChange}
             />
 
@@ -336,7 +360,7 @@ const PlacesTab: React.FC = () => {
                 labelId="place-type-label"
                 id="type"
                 name="type"
-                value={currentPlace?.type || "place"}
+                value={safeStringDisplay(currentPlace?.type) || "place"}
                 label="場所の種類"
                 onChange={handleSelectChange}
               >
@@ -356,7 +380,7 @@ const PlacesTab: React.FC = () => {
               variant="outlined"
               multiline
               rows={4}
-              value={currentPlace?.description || ""}
+              value={safeStringDisplay(currentPlace?.description) || ""}
               onChange={handleInputChange}
             />
 
@@ -366,7 +390,7 @@ const PlacesTab: React.FC = () => {
               type="text"
               fullWidth
               variant="outlined"
-              value={currentPlace?.importance || ""}
+              value={safeStringDisplay(currentPlace?.importance) || ""}
               onChange={handleInputChange}
             />
 
@@ -376,7 +400,7 @@ const PlacesTab: React.FC = () => {
               type="text"
               fullWidth
               variant="outlined"
-              value={currentPlace?.location || ""}
+              value={safeStringDisplay(currentPlace?.location) || ""}
               onChange={handleInputChange}
             />
 
@@ -386,7 +410,7 @@ const PlacesTab: React.FC = () => {
               type="text"
               fullWidth
               variant="outlined"
-              value={currentPlace?.population || ""}
+              value={safeStringDisplay(currentPlace?.population) || ""}
               onChange={handleInputChange}
             />
 
@@ -398,7 +422,7 @@ const PlacesTab: React.FC = () => {
               variant="outlined"
               multiline
               rows={2}
-              value={currentPlace?.features || ""}
+              value={safeStringDisplay(currentPlace?.features) || ""}
               onChange={handleInputChange}
             />
 
@@ -410,7 +434,7 @@ const PlacesTab: React.FC = () => {
               variant="outlined"
               multiline
               rows={2}
-              value={currentPlace?.culturalFeatures || ""}
+              value={safeStringDisplay(currentPlace?.culturalFeatures) || ""}
               onChange={handleInputChange}
             />
 
@@ -422,7 +446,7 @@ const PlacesTab: React.FC = () => {
               variant="outlined"
               multiline
               rows={2}
-              value={currentPlace?.relations || ""}
+              value={safeStringDisplay(currentPlace?.relations) || ""}
               onChange={handleInputChange}
             />
           </Box>

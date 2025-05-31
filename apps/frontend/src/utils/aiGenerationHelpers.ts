@@ -1,5 +1,12 @@
 import { aiAgentApi } from "../api/aiAgent";
-import { PlotElement, Character } from "@novel-ai-assistant/types";
+import {
+  PlotElement,
+  Character,
+  TimelineEventSeed,
+  StandardAIRequest,
+  StandardAIResponse,
+} from "@novel-ai-assistant/types";
+import axios from "axios";
 
 /**
  * あらすじ生成
@@ -276,9 +283,44 @@ export const generateWorldBuildingContent = async (
   batchGeneration: boolean
 ): Promise<string> => {
   try {
-    // TODO: 世界観生成APIの実装
-    console.log("世界観生成:", { message, projectData, batchGeneration });
-    return "世界観生成機能は実装中です。";
+    console.log("世界観生成開始:", { message, projectData, batchGeneration });
+
+    if (batchGeneration) {
+      // バッチ生成の場合：useWorldBuildingAIのgenerateWorldBuildingBatchに処理を委譲
+      // 重複実行を防ぐため、ここでは処理を行わずメッセージのみ返す
+      console.log("バッチ生成はuseWorldBuildingAIで処理されます");
+      return "世界観の生成を開始しました。進捗は画面上部で確認できます。";
+    } else {
+      // 単発生成の場合：AIアシスタントAPIを使用
+      const { aiAgentApi } = await import("../api/aiAgent");
+
+      // プロジェクト情報を含めたメッセージを構築
+      const projectTitle =
+        (projectData.title as string) || "未設定のプロジェクト";
+      const projectSynopsis =
+        (projectData.synopsis as string) || "あらすじが設定されていません";
+
+      const contextualMessage = `プロジェクト「${projectTitle}」の世界観について、以下の要素を考えてください。
+
+**プロジェクトのあらすじ:**
+${projectSynopsis}
+
+**ユーザーの指示:**
+${message}
+
+プロジェクトの文脈に合った世界観要素を生成してください。`;
+
+      const response = await aiAgentApi.getWorldBuildingAdvice(
+        contextualMessage,
+        [] // 既存の世界観要素
+      );
+
+      if (response.status === "success") {
+        return response.response || "世界観のアドバイスを生成しました。";
+      } else {
+        throw new Error(response.error || "世界観生成に失敗しました");
+      }
+    }
   } catch (error) {
     console.error("世界観生成エラー:", error);
     throw error;
@@ -291,13 +333,62 @@ export const generateWorldBuildingContent = async (
 export const generateTimelineContent = async (
   message: string,
   projectData: Record<string, unknown>
-): Promise<string> => {
+): Promise<TimelineEventSeed[]> => {
   try {
-    // TODO: タイムライン生成APIの実装
-    console.log("タイムライン生成:", { message, projectData });
-    return "タイムライン生成機能は実装中です。";
+    console.log("タイムライン生成開始:", { message, projectData });
+
+    const worldBuilding = projectData.worldBuilding as
+      | { places?: unknown[] }
+      | undefined;
+
+    const requestPayload: StandardAIRequest = {
+      requestType: "timeline-event-generation",
+      userPrompt: message,
+      context: {
+        allPlots: projectData.plot || [],
+        characters: projectData.characters || [],
+        places: worldBuilding?.places || [],
+      },
+      options: {
+        responseFormat: "json",
+      },
+    };
+
+    const response = await axios.post<StandardAIResponse>(
+      "/api/ai-agent/timeline-event-generation",
+      requestPayload
+    );
+
+    if (response.data.status === "success" && response.data.content) {
+      const eventSeeds = response.data.content as TimelineEventSeed[];
+      console.log("タイムライン生成完了:", eventSeeds);
+      return eventSeeds;
+    } else if (response.data.status === "error") {
+      console.error(
+        "タイムライン生成エラー (APIレスポンス):",
+        response.data.error
+      );
+      throw new Error(
+        response.data.error?.message ||
+          "タイムライン生成中にAPIからエラーが返されました。"
+      );
+    } else {
+      console.error(
+        "タイムライン生成の予期しないレスポンス形式:",
+        response.data
+      );
+      throw new Error("タイムライン生成のレスポンス形式が不正です。");
+    }
   } catch (error) {
     console.error("タイムライン生成エラー:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error("Axiosエラー詳細:", error.response.data);
+      throw new Error(
+        `タイムライン生成に失敗しました: ${
+          error.response.data?.error?.message || "詳細不明"
+        }`
+      );
+    }
     throw error;
   }
 };

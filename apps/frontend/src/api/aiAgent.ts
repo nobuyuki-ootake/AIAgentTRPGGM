@@ -651,17 +651,25 @@ function isWorldBuildingApiResponse(
   if (typeof data !== "object" || data === null) {
     return false;
   }
-  const d = data as Record<string, unknown>; // より安全な型アサーション
-  return (
-    typeof d.status === "string" &&
-    typeof d.data === "object" && // data が object であることだけを確認 (中身は WorldBuildingApiResponse 型定義に依存)
-    d.rawContent !== undefined && // undefined チェックのみ (stringであるかは WorldBuildingApiResponse 型定義に依存)
-    typeof d.metadata === "object" &&
-    d.metadata !== null &&
-    typeof (d.metadata as Record<string, unknown>).model === "string" &&
-    typeof (d.metadata as Record<string, unknown>).processingTime ===
-      "number" &&
-    typeof (d.metadata as Record<string, unknown>).requestType === "string" &&
-    typeof (d.metadata as Record<string, unknown>).format === "string"
-  );
+
+  const d = data as Record<string, unknown>;
+
+  // 基本的な構造をチェック
+  const hasValidStatus = typeof d.status === "string";
+  const hasData = d.data !== undefined; // dataの存在のみチェック（型は問わない）
+  const hasMetadata = typeof d.metadata === "object" && d.metadata !== null;
+
+  if (!hasValidStatus || !hasData || !hasMetadata) {
+    return false;
+  }
+
+  // metadataの詳細チェック
+  const metadata = d.metadata as Record<string, unknown>;
+  const hasValidMetadata =
+    typeof metadata.model === "string" &&
+    typeof metadata.processingTime === "number" &&
+    typeof metadata.requestType === "string";
+  // formatは必須ではないため削除
+
+  return hasValidMetadata;
 }

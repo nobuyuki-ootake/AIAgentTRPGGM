@@ -240,6 +240,24 @@ export function useTimeline() {
     setSnackbarOpen(true);
   }, [newEvent, isEditing, currentEventId, timelineEvents.length]);
 
+  // イベント削除ハンドラー
+  const handleDeleteEvent = useCallback((eventId: string) => {
+    setTimelineEvents((prevEvents) =>
+      prevEvents.filter((event) => event.id !== eventId)
+    );
+    setHasUnsavedChanges(true);
+    setSnackbarMessage("イベントが削除されました。");
+    setSnackbarOpen(true);
+  }, []);
+
+  // タイムラインリセットハンドラー
+  const handleResetTimeline = useCallback(() => {
+    setTimelineEvents([]);
+    setHasUnsavedChanges(true);
+    setSnackbarMessage("タイムラインがリセットされました。");
+    setSnackbarOpen(true);
+  }, []);
+
   // スナックバー閉じるハンドラー
   const handleCloseSnackbar = useCallback(() => {
     setSnackbarOpen(false);
@@ -641,6 +659,8 @@ export function useTimeline() {
     handleCharactersChange,
     handlePostEventStatusChange,
     handleSaveEvent,
+    handleDeleteEvent,
+    handleResetTimeline,
     handleEventClick,
     handleSave,
     handleCloseSnackbar,

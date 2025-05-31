@@ -93,10 +93,10 @@ data) {
             };
         case WorldBuildingElementType.SETTING:
             return {
-                ...baseElement,
                 id,
-                type: WorldBuildingElementType.SETTING,
-                img: data.img || "",
+                name: data.name || "設定名未設定",
+                description: data.description || "",
+                history: data.history || "",
             };
         case WorldBuildingElementType.RULE:
             return {

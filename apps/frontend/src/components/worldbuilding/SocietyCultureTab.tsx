@@ -1,257 +1,440 @@
-import React from "react";
-import { Box, TextField, Typography, Divider } from "@mui/material";
-import { useWorldBuildingContext } from "../../contexts/WorldBuildingContext";
+import React, { useState } from "react";
 import {
-  getCategoryTabIndex,
-  WorldBuildingElementType,
-  NovelProject,
-  CultureElement,
-} from "@novel-ai-assistant/types";
+  Box,
+  Typography,
+  TextField,
+  Button,
+  IconButton,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRecoilState } from "recoil";
+import { currentProjectState } from "../../store/atoms";
+import { v4 as uuidv4 } from "uuid";
+import { CultureElement, NovelProject } from "@novel-ai-assistant/types";
 
 const SocietyCultureTab: React.FC = () => {
-  const { getCurrentProjectState, updateProjectState, markTabAsUpdated } =
-    useWorldBuildingContext();
+  // Recoilからデータを取得
+  const [currentProject, setCurrentProject] =
+    useRecoilState(currentProjectState);
 
-  const currentProject = getCurrentProjectState();
+  // 文化データを取得
+  const cultures = currentProject?.worldBuilding?.cultures || [];
 
-  // cultures 配列の最初の要素を編集対象とする (存在しない場合は undefined)
-  const targetCultureElement = currentProject?.worldBuilding?.cultures?.[0] as
-    | CultureElement
-    | undefined;
+  // 状態管理
+  const [currentCulture, setCurrentCulture] = useState<CultureElement | null>(
+    null
+  );
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleFieldChange =
-    (
-      fieldName: keyof Omit<
-        CultureElement,
-        "id" | "type" | "originalType" | "values" | "customs"
-      >
-    ) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const currentPrj = getCurrentProjectState();
-      if (
-        !currentPrj ||
-        !currentPrj.worldBuilding ||
-        !currentPrj.worldBuilding.cultures || // cultures を確認
-        !currentPrj.worldBuilding.cultures[0] // cultures[0] が存在するか確認
-      )
-        return;
+  // 新規文化作成ダイアログを開く
+  const handleOpenNewDialog = () => {
+    setCurrentCulture({
+      id: uuidv4(),
+      name: "",
+      type: "culture",
+      originalType: "culture",
+      description: "",
+      features: "",
+      importance: "",
+      relations: "",
+      customText: "",
+      beliefs: "",
+      history: "",
+      socialStructure: "",
+      values: [],
+      customs: [],
+      government: "",
+      religion: "",
+      language: "",
+      art: "",
+      technology: "",
+      notes: "",
+      traditions: "",
+      education: "",
+    } as CultureElement);
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
 
-      // 更新対象の CultureElement を取得
-      const baseCultureElement = currentPrj.worldBuilding.cultures[0];
+  // 文化編集ダイアログを開く
+  const handleEdit = (culture: CultureElement) => {
+    setCurrentCulture({ ...culture });
+    setIsEditing(true);
+    setDialogOpen(true);
+  };
 
-      const updatedCultureElement: CultureElement = {
-        ...baseCultureElement,
-        [fieldName]: e.target.value,
-      };
+  // 文化を削除
+  const handleDelete = (id: string) => {
+    if (!currentProject) return;
 
-      // cultures 配列を更新
-      const updatedCultures = [
-        updatedCultureElement,
-        ...(currentPrj.worldBuilding.cultures.slice(1) || []),
-      ];
+    const updatedCultures = cultures.filter(
+      (culture: CultureElement) => culture.id !== id
+    );
 
-      const updatedWorldBuilding: NovelProject["worldBuilding"] = {
-        ...currentPrj.worldBuilding,
-        cultures: updatedCultures, // societyCulture の代わりに cultures を更新
-      };
+    setCurrentProject((prevProject: NovelProject | null) => {
+      if (!prevProject) return null;
+      return {
+        ...prevProject,
+        worldBuilding: {
+          ...prevProject.worldBuilding,
+          cultures: updatedCultures,
+        },
+      } as NovelProject;
+    });
+  };
 
-      const updatedProject: NovelProject = {
-        ...currentPrj,
-        worldBuilding: updatedWorldBuilding,
-      };
+  // ダイアログを閉じる
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setCurrentCulture(null);
+  };
 
-      updateProjectState(updatedProject);
+  // 文化の保存
+  const handleSaveCulture = () => {
+    if (!currentCulture || !currentProject) return;
 
-      markTabAsUpdated(getCategoryTabIndex(WorldBuildingElementType.CULTURE));
-    };
+    if (isEditing) {
+      const updatedCultures = cultures.map((culture: CultureElement) =>
+        culture.id === currentCulture.id ? currentCulture : culture
+      );
+      setCurrentProject((prevProject: NovelProject | null) => {
+        if (!prevProject) return null;
+        return {
+          ...prevProject,
+          worldBuilding: {
+            ...prevProject.worldBuilding,
+            cultures: updatedCultures,
+          },
+        } as NovelProject;
+      });
+    } else {
+      setCurrentProject((prevProject: NovelProject | null) => {
+        if (!prevProject) return null;
+        return {
+          ...prevProject,
+          worldBuilding: {
+            ...prevProject.worldBuilding,
+            cultures: [
+              ...(prevProject.worldBuilding?.cultures || []),
+              currentCulture,
+            ],
+          },
+        } as NovelProject;
+      });
+    }
+    handleCloseDialog();
+  };
+
+  // 入力フィールドの変更を処理
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (!currentCulture) return;
+    setCurrentCulture({
+      ...currentCulture,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // 値を安全に文字列として表示するヘルパー関数
+  const safeStringDisplay = (value: unknown): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return "[オブジェクト]";
+      }
+    }
+    return String(value);
+  };
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        社会と文化 (CultureElement ベース)
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+        <Typography variant="h5">社会と文化</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleOpenNewDialog}
+        >
+          新しい文化を追加
+        </Button>
+      </Box>
+
+      <Typography variant="body1" sx={{ mb: 3 }}>
+        物語世界の社会構造、文化、習慣、信仰体系などを定義します。異なる地域や民族の文化的特徴を詳細に記述できます。
       </Typography>
 
-      <TextField
-        fullWidth
-        label="名前 (Name)"
-        value={targetCultureElement?.name || ""}
-        onChange={handleFieldChange("name")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="説明 (Description)"
-        value={targetCultureElement?.description || ""}
-        onChange={handleFieldChange("description")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="特徴 (Features)"
-        value={targetCultureElement?.features || ""}
-        onChange={handleFieldChange("features")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="重要性 (Importance)"
-        value={targetCultureElement?.importance || ""}
-        onChange={handleFieldChange("importance")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="関連 (Relations)"
-        value={targetCultureElement?.relations || ""}
-        onChange={handleFieldChange("relations")}
-        variant="outlined"
-        margin="normal"
-      />
+      {cultures.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: "center" }}>
+          <Typography color="text.secondary">
+            まだ文化が追加されていません。「新しい文化を追加」ボタンから追加できます。
+          </Typography>
+        </Paper>
+      ) : (
+        <List sx={{ width: "100%" }}>
+          {cultures.map((culture: CultureElement, index: number) => (
+            <Paper
+              key={culture.id || index}
+              elevation={1}
+              sx={{
+                mb: 2,
+                p: 2,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <ListItem
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  p: 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" gutterBottom>
+                      {safeStringDisplay(culture.name) || "名称未設定"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      重要性:{" "}
+                      {safeStringDisplay(culture.importance) || "未設定"}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <IconButton
+                      onClick={() => handleEdit(culture)}
+                      color="primary"
+                      size="small"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDelete(culture.id)}
+                      color="error"
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </Box>
 
-      <Divider sx={{ my: 2 }} />
+                {culture.description && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      説明
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {safeStringDisplay(culture.description)}
+                    </Typography>
+                  </Box>
+                )}
 
-      <TextField
+                {culture.socialStructure && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      社会構造
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {safeStringDisplay(culture.socialStructure)}
+                    </Typography>
+                  </Box>
+                )}
+
+                {culture.religion && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      宗教・信仰
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {safeStringDisplay(culture.religion)}
+                    </Typography>
+                  </Box>
+                )}
+
+                {culture.relations && (
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>
+                      関連要素
+                    </Typography>
+                    <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                      {safeStringDisplay(culture.relations)}
+                    </Typography>
+                  </Box>
+                )}
+              </ListItem>
+            </Paper>
+          ))}
+        </List>
+      )}
+
+      {/* 編集・新規作成ダイアログ */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="md"
         fullWidth
-        multiline
-        rows={3}
-        label="社会構造 (Social Structure)"
-        placeholder="階級制度、家族構成、コミュニティの組織など、社会の構造について記述してください"
-        value={targetCultureElement?.socialStructure || ""}
-        onChange={handleFieldChange("socialStructure")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="政治と統治 (Government)"
-        placeholder="統治形態、権力構造、法律、政治組織について記述してください"
-        value={targetCultureElement?.government || ""}
-        onChange={handleFieldChange("government")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="宗教と信仰 (Religion)"
-        placeholder="信仰体系、神話、儀式、宗教組織について記述してください"
-        value={targetCultureElement?.religion || ""}
-        onChange={handleFieldChange("religion")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="言語 (Language)"
-        placeholder="話されている言語、方言、特殊な言語的特徴について記述してください"
-        value={targetCultureElement?.language || ""}
-        onChange={handleFieldChange("language")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="芸術と娯楽 (Art)"
-        placeholder="芸術形式、音楽、文学、娯楽活動について記述してください"
-        value={targetCultureElement?.art || ""}
-        onChange={handleFieldChange("art")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="技術と発明 (Technology)"
-        placeholder="技術レベル、重要な発明、科学的理解について記述してください"
-        value={targetCultureElement?.technology || ""}
-        onChange={handleFieldChange("technology")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="カスタムテキスト (Custom Text)"
-        value={targetCultureElement?.customText || ""}
-        onChange={handleFieldChange("customText")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="信仰・信念 (Beliefs)"
-        value={targetCultureElement?.beliefs || ""}
-        onChange={handleFieldChange("beliefs")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="歴史 (History)"
-        value={targetCultureElement?.history || ""}
-        onChange={handleFieldChange("history")}
-        variant="outlined"
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="メモ (Notes)"
-        value={targetCultureElement?.notes || ""}
-        onChange={handleFieldChange("notes")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 2, textAlign: "center" }}
       >
-        社会と文化は登場人物の世界観、価値観、行動の動機を形成する重要な要素です。
-      </Typography>
+        <DialogTitle>
+          {isEditing ? "文化を編集" : "新しい文化を追加"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="名前"
+            name="name"
+            value={safeStringDisplay(currentCulture?.name) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="説明"
+            name="description"
+            value={safeStringDisplay(currentCulture?.description) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="特徴"
+            name="features"
+            value={safeStringDisplay(currentCulture?.features) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="重要性"
+            name="importance"
+            value={safeStringDisplay(currentCulture?.importance) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="社会構造"
+            name="socialStructure"
+            placeholder="階級制度、家族構成、コミュニティの組織など"
+            value={safeStringDisplay(currentCulture?.socialStructure) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="政治と統治"
+            name="government"
+            placeholder="統治形態、権力構造、法律、政治組織について"
+            value={safeStringDisplay(currentCulture?.government) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="宗教と信仰"
+            name="religion"
+            placeholder="信仰体系、神話、儀式、宗教組織について"
+            value={safeStringDisplay(currentCulture?.religion) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="言語"
+            name="language"
+            placeholder="話されている言語、方言、特殊な言語的特徴について"
+            value={safeStringDisplay(currentCulture?.language) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="芸術と娯楽"
+            name="art"
+            placeholder="芸術形式、音楽、文学、娯楽活動について"
+            value={safeStringDisplay(currentCulture?.art) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="技術"
+            name="technology"
+            placeholder="技術レベル、重要な発明、科学的理解について"
+            value={safeStringDisplay(currentCulture?.technology) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="関連要素"
+            name="relations"
+            value={safeStringDisplay(currentCulture?.relations) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>キャンセル</Button>
+          <Button onClick={handleSaveCulture} variant="contained">
+            {isEditing ? "更新" : "追加"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

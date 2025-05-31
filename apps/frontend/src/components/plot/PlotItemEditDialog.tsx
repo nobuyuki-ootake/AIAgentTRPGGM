@@ -91,7 +91,7 @@ const PlotItemEditDialog: React.FC<PlotItemEditDialogProps> = ({
           "あらすじを参照して、物語のプロットアイテム（イベント、転換点など）を作成します。",
         defaultMessage,
         onComplete: (result) => {
-          if (result && result.content) {
+          if (result && result.content && typeof result.content === "string") {
             applyAIResponse(result.content);
           }
         },

@@ -138,6 +138,24 @@ const RulesTab: React.FC = () => {
     });
   };
 
+  // 値を安全に文字列として表示するヘルパー関数
+  const safeStringDisplay = (value: unknown): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return "[オブジェクト]";
+      }
+    }
+    return String(value);
+  };
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
@@ -195,7 +213,7 @@ const RulesTab: React.FC = () => {
                 <ListItemText
                   primary={
                     <Typography variant="subtitle1" fontWeight="medium">
-                      {rule.name || "名称未設定のルール"}
+                      {safeStringDisplay(rule.name) || "名称未設定のルール"}
                     </Typography>
                   }
                   secondary={
@@ -205,35 +223,35 @@ const RulesTab: React.FC = () => {
                         component="span"
                         display="block"
                       >
-                        概要: {rule.description || "-"}
+                        概要: {safeStringDisplay(rule.description) || "-"}
                       </Typography>
                       <Typography
                         variant="body2"
                         component="span"
                         display="block"
                       >
-                        例外: {rule.exceptions || "-"}
+                        例外: {safeStringDisplay(rule.exceptions) || "-"}
                       </Typography>
                       <Typography
                         variant="body2"
                         component="span"
                         display="block"
                       >
-                        起源: {rule.origin || "-"}
+                        起源: {safeStringDisplay(rule.origin) || "-"}
                       </Typography>
                       <Typography
                         variant="body2"
                         component="span"
                         display="block"
                       >
-                        影響: {rule.impact || "-"}
+                        影響: {safeStringDisplay(rule.impact) || "-"}
                       </Typography>
                       <Typography
                         variant="body2"
                         component="span"
                         display="block"
                       >
-                        制限: {rule.limitations || "-"}
+                        制限: {safeStringDisplay(rule.limitations) || "-"}
                       </Typography>
                     </Box>
                   }
@@ -273,7 +291,7 @@ const RulesTab: React.FC = () => {
             type="text"
             fullWidth
             variant="outlined"
-            value={currentRule?.name || ""}
+            value={safeStringDisplay(currentRule?.name) || ""}
             onChange={handleInputChange}
             sx={{ mb: 2 }}
           />
@@ -286,7 +304,7 @@ const RulesTab: React.FC = () => {
             multiline
             rows={3}
             variant="outlined"
-            value={currentRule?.description || ""}
+            value={safeStringDisplay(currentRule?.description) || ""}
             onChange={handleInputChange}
             sx={{ mb: 2 }}
           />
@@ -299,7 +317,7 @@ const RulesTab: React.FC = () => {
             multiline
             rows={2}
             variant="outlined"
-            value={currentRule?.exceptions || ""}
+            value={safeStringDisplay(currentRule?.exceptions) || ""}
             onChange={handleInputChange}
             sx={{ mb: 2 }}
           />
@@ -312,7 +330,7 @@ const RulesTab: React.FC = () => {
             multiline
             rows={2}
             variant="outlined"
-            value={currentRule?.origin || ""}
+            value={safeStringDisplay(currentRule?.origin) || ""}
             onChange={handleInputChange}
             sx={{ mb: 2 }}
           />
@@ -325,7 +343,7 @@ const RulesTab: React.FC = () => {
             multiline
             rows={2}
             variant="outlined"
-            value={currentRule?.impact || ""}
+            value={safeStringDisplay(currentRule?.impact) || ""}
             onChange={handleInputChange}
             sx={{ mb: 2 }}
           />
@@ -338,7 +356,7 @@ const RulesTab: React.FC = () => {
             multiline
             rows={2}
             variant="outlined"
-            value={currentRule?.limitations || ""}
+            value={safeStringDisplay(currentRule?.limitations) || ""}
             onChange={handleInputChange}
           />
         </DialogContent>

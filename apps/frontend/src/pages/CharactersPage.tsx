@@ -119,7 +119,7 @@ const CharactersPageContent: React.FC = () => {
             console.log("結果:", result);
 
             try {
-              if (result.content) {
+              if (result.content && typeof result.content === "string") {
                 // バッチ処理の結果は既にフォーマットされた文字列として返される
                 // parseAIResponseToCharactersで個別のキャラクターに分割
                 const characters = parseAIResponseToCharacters(result.content);

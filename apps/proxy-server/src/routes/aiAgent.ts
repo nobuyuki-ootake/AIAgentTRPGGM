@@ -80,7 +80,35 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
     console.log(
       `[API] AIリクエスト実行: ${aiRequest.requestType}, フォーマット: ${format}, モデル: ${model}`,
     );
+    console.log(
+      `[API] システムプロンプト: ${aiRequest.systemPrompt.slice(0, 200)}...`,
+    );
+    console.log(
+      `[API] ユーザープロンプト: ${aiRequest.userPrompt.slice(0, 300)}...`,
+    );
+
     const aiResponse = await processAIRequest(aiRequest);
+
+    console.log(`[API] AIレスポンス受信: status=${aiResponse.status}`);
+    console.log(
+      `[API] レスポンスコンテンツタイプ: ${typeof aiResponse.content}`,
+    );
+    console.log(
+      `[API] レスポンスコンテンツ長: ${aiResponse.content ? JSON.stringify(aiResponse.content).length : 0}`,
+    );
+    console.log(
+      `[API] 生レスポンス長: ${aiResponse.rawContent ? aiResponse.rawContent.length : 0}`,
+    );
+
+    if (aiResponse.status === 'error') {
+      console.error(`[API] AIエラー詳細:`, aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        error:
+          aiResponse.error?.message ||
+          '世界観要素詳細の生成中にエラーが発生しました',
+      });
+    }
 
     let responseData: WorldBuildingElementData;
 
@@ -105,24 +133,38 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
         );
       } catch (error) {
         console.error(`[API] エラー: 世界観要素データのパースに失敗`, error);
+        console.error(`[API] パース対象データ:`, aiResponse.content);
+        console.error(`[API] 生のレスポンス:`, aiResponse.rawContent);
+
+        // パースに失敗した場合は、生のレスポンスから可能な限り情報を抽出
+        const fallbackDescription =
+          aiResponse.rawContent ||
+          aiResponse.content?.toString() ||
+          `${elementName}の詳細情報を生成中にエラーが発生しました。`;
+
         responseData = {
           name: elementName,
           type: normalizedElementType,
-          description:
-            aiResponse.rawContent || '世界観要素の説明を取得できませんでした',
-          features: '特徴',
-          importance: '重要性',
+          description: fallbackDescription,
+          features: `${elementName}の特徴的な要素`,
+          importance: `物語における${elementName}の重要性`,
+          originalType: elementType || normalizedElementType,
         };
       }
     } else {
-      // YAMLまたはテキスト形式の場合
+      // YAMLまたはテキスト形式の場合、またはcontentがない場合
+      const fallbackDescription =
+        aiResponse.rawContent ||
+        (aiResponse.content as string) ||
+        `${elementName}の詳細情報`;
+
       responseData = {
         name: elementName,
         type: normalizedElementType,
-        description:
-          aiResponse.rawContent || (aiResponse.content as string) || '',
-        features: '特徴',
-        importance: '重要性',
+        description: fallbackDescription,
+        features: `${elementName}の特徴的な要素`,
+        importance: `物語における${elementName}の重要性`,
+        originalType: elementType || normalizedElementType,
       };
     }
 
@@ -222,7 +264,25 @@ router.post('/worldbuilding-list-generation', async (req, res) => {
     console.log(
       `[API] AIリクエスト実行: ${aiRequest.requestType}, フォーマット: ${format}, モデル: ${aiRequest.model}`,
     );
+    console.log(
+      `[API] システムプロンプト: ${aiRequest.systemPrompt.slice(0, 200)}...`,
+    );
+    console.log(
+      `[API] ユーザープロンプト: ${aiRequest.userPrompt.slice(0, 300)}...`,
+    );
+
     const aiResponse = await processAIRequest(aiRequest);
+
+    console.log(`[API] AIレスポンス受信: status=${aiResponse.status}`);
+    console.log(
+      `[API] レスポンスコンテンツタイプ: ${typeof aiResponse.content}`,
+    );
+    console.log(
+      `[API] レスポンスコンテンツ長: ${aiResponse.content ? JSON.stringify(aiResponse.content).length : 0}`,
+    );
+    console.log(
+      `[API] 生レスポンス長: ${aiResponse.rawContent ? aiResponse.rawContent.length : 0}`,
+    );
 
     // 詳細なデバッグ情報
     console.log(`[API] AIレスポンスステータス: ${aiResponse.status}`);
@@ -237,17 +297,10 @@ router.post('/worldbuilding-list-generation', async (req, res) => {
 
     // エラー処理
     if (aiResponse.status === 'error') {
-      // レスポンスのエラーコードとリクエスト内容をコンソールに出力
-      console.error('[API] AIリクエスト失敗:', {
-        errorCode: aiResponse.error?.code,
-        errorMessage: aiResponse.error?.message,
-        request: JSON.stringify(aiRequest, null, 2),
-      });
-
+      console.error(`[API] AIエラー詳細:`, aiResponse.error);
       return res.status(500).json({
         status: 'error',
-        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
-        error: aiResponse.error,
+        error: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
       });
     }
 

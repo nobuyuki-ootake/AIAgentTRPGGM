@@ -16,6 +16,7 @@ interface PlaceColumnProps {
   plots: PlotElement[]; // plots プロパティを追加
   events: TimelineEvent[];
   onEventClick: (id: string) => void;
+  onDeleteEvent?: (id: string) => void;
   droppableId: string; // DND Kit 用のID
   // dateArray: Array<{ date: number; label: string }>; // 未使用のためコメントアウト
   calculateYPositionPercent: (dateValue: number | string) => number; // Y軸計算ヘルパー
@@ -27,6 +28,7 @@ const PlaceColumn: React.FC<PlaceColumnProps> = ({
   plots, // plots を追加
   events,
   onEventClick,
+  onDeleteEvent,
   droppableId,
   // dateArray,
   calculateYPositionPercent,
@@ -98,7 +100,7 @@ const PlaceColumn: React.FC<PlaceColumnProps> = ({
               placeName={place.name}
               plotName={plotName} // plotName を渡す
               onEdit={() => onEventClick(event.id)}
-              // onDelete が必要であれば、useTimeline から渡す必要がある
+              onDelete={onDeleteEvent}
               dndContextType="chart" // dndContextType を "chart" として渡す
             />
           </Box>

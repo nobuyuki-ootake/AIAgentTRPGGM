@@ -519,5 +519,6 @@ export const useWriting = () => {
     updateCurrentPageFromSelection,
     editorRef,
     editorKey,
+    setEditorKey,
   };
 };

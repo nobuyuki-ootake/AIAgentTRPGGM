@@ -193,7 +193,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           description,
           defaultMessage,
           onComplete: (result: ResponseData) => {
-            if (result.content) {
+            if (result.content && typeof result.content === "string") {
               applyAIResponse(result.content, target);
             }
           },

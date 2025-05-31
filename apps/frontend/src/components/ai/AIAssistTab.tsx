@@ -131,6 +131,7 @@ export const AIAssistTab: React.FC = () => {
     setProgress(0);
 
     let progressInterval: NodeJS.Timeout | null = null;
+    let isWorldBuildingBatch = false; // バッチ生成フラグ
 
     try {
       // プログレス更新のシミュレーション
@@ -186,11 +187,39 @@ export const AIAssistTab: React.FC = () => {
             break;
           case "worldbuilding":
             // 世界観生成の場合
-            result = await generateWorldBuildingContent(
-              message,
-              projectDataAsRecord,
-              batchGeneration
-            );
+            if (batchGeneration) {
+              // バッチ生成の場合は、実際の処理はuseWorldBuildingAIで行われるため
+              // ここでは開始メッセージのみ表示し、成功通知は表示しない
+              isWorldBuildingBatch = true;
+              result = await generateWorldBuildingContent(
+                message,
+                projectDataAsRecord,
+                batchGeneration
+              );
+
+              // onCompleteコールバックを実行（チャット履歴に追加するため）
+              assistConfig.onComplete({
+                content: result,
+                metadata: {
+                  pageContext: context.pageContext,
+                  timestamp: new Date().toISOString(),
+                },
+              });
+
+              // バッチ生成の場合は成功通知をスキップし、チャットタブに切り替え
+              setProgress(100);
+              setTimeout(() => {
+                setContext((prev) => ({ ...prev, mode: "chat" }));
+              }, 1000);
+              return; // 早期リターンで成功通知をスキップ
+            } else {
+              // 単発生成の場合は通常の処理
+              result = await generateWorldBuildingContent(
+                message,
+                projectDataAsRecord,
+                batchGeneration
+              );
+            }
             break;
           case "timeline":
             // タイムライン生成の場合
@@ -257,8 +286,11 @@ export const AIAssistTab: React.FC = () => {
       if (progressInterval) {
         clearInterval(progressInterval);
       }
-      setIsLoading(false);
-      setProgress(0);
+      // バッチ生成の場合はローディング状態を維持（実際の処理はuseWorldBuildingAIで管理）
+      if (!isWorldBuildingBatch) {
+        setIsLoading(false);
+        setProgress(0);
+      }
     }
   };
 

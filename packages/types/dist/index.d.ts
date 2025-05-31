@@ -79,9 +79,8 @@ export interface BatchProcessResult {
 }
 export interface WorldBuilding {
     id: string;
-    setting: string;
+    setting: SettingElement[];
     worldmaps: WorldmapElement[];
-    settings: SettingElement[];
     rules: RuleElement[];
     places: PlaceElement[];
     cultures: CultureElement[];
@@ -220,9 +219,11 @@ export interface WorldmapElement extends BaseWorldBuildingElement {
 /**
  * 世界観設定の型定義
  */
-export interface SettingElement extends BaseWorldBuildingElement {
-    img: string;
-    category?: string;
+export interface SettingElement {
+    id: string;
+    name: string;
+    description: string;
+    history: string;
 }
 /**
  * ルール要素の型定義

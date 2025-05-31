@@ -59,11 +59,27 @@ export const useWorldBuilding = () => {
           cultures: [createDefaultCultureElement()],
         };
       }
+      // 古い形式のsettingを新しい形式に変換
+      if (
+        typeof (initialWB as unknown as { setting: string }).setting ===
+        "string"
+      ) {
+        initialWB = {
+          ...initialWB,
+          setting: {
+            description: (initialWB as unknown as { setting: string }).setting,
+            history: "",
+          },
+        } as unknown as WorldBuilding;
+      }
       return initialWB;
     }
     return {
       id: uuidv4(),
-      setting: "",
+      setting: {
+        description: "",
+        history: "",
+      },
       worldmaps: [],
       settings: [],
       rules: [],
@@ -74,7 +90,7 @@ export const useWorldBuilding = () => {
       magicTechnology: [],
       stateDefinition: [],
       freeFields: [],
-    };
+    } as unknown as WorldBuilding;
   });
 
   useEffect(() => {
@@ -86,11 +102,27 @@ export const useWorldBuilding = () => {
           cultures: [createDefaultCultureElement()],
         };
       }
+      // 古い形式のsettingを新しい形式に変換
+      if (
+        typeof (currentWB as unknown as { setting: string }).setting ===
+        "string"
+      ) {
+        currentWB = {
+          ...currentWB,
+          setting: {
+            description: (currentWB as unknown as { setting: string }).setting,
+            history: "",
+          },
+        } as unknown as WorldBuilding;
+      }
       setWorldBuildingState(currentWB);
     } else {
       setWorldBuildingState({
         id: uuidv4(),
-        setting: "",
+        setting: {
+          description: "",
+          history: "",
+        },
         worldmaps: [],
         settings: [],
         rules: [],
@@ -101,7 +133,7 @@ export const useWorldBuilding = () => {
         magicTechnology: [],
         stateDefinition: [],
         freeFields: [],
-      });
+      } as unknown as WorldBuilding);
     }
   }, [project]);
 
@@ -132,21 +164,34 @@ export const useWorldBuilding = () => {
 
   const handleSettingChange = useCallback(
     (description: string) => {
+      const currentSetting = worldBuilding.setting as unknown as {
+        description: string;
+        history: string;
+      };
       updateWorldBuilding({
         ...worldBuilding,
-        description: description,
-      });
+        setting: {
+          ...currentSetting,
+          description: description,
+        },
+      } as unknown as WorldBuilding);
     },
     [worldBuilding, updateWorldBuilding]
   );
 
   const handleHistoryChange = useCallback(
     (historyValue: string) => {
+      const currentSetting = worldBuilding.setting as unknown as {
+        description: string;
+        history: string;
+      };
       updateWorldBuilding({
         ...worldBuilding,
-        description:
-          (worldBuilding.description || "") + " History: " + historyValue,
-      });
+        setting: {
+          ...currentSetting,
+          history: historyValue,
+        },
+      } as unknown as WorldBuilding);
     },
     [worldBuilding, updateWorldBuilding]
   );

@@ -116,6 +116,9 @@ export interface WritingContextType {
 
   // 新しいプロパティを追加
   updateCurrentPageFromSelection: () => void;
+
+  // エディタの強制再レンダリング用
+  setEditorKey: React.Dispatch<React.SetStateAction<number>>;
 }
 
 // コンテキストの作成
@@ -163,6 +166,7 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
     handlePreviousPageInEditor,
     handleNextPageInEditor,
     updateCurrentPageFromSelection,
+    setEditorKey,
   } = useWriting();
 
   // AI関連のstate
@@ -228,6 +232,10 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
           // React stateのみを更新（Slateエディタの直接操作は避ける）
           handleEditorChange(newEditorValue);
           console.log("React state (editorValue) 更新完了");
+
+          // エディタを強制的に再レンダリング
+          setEditorKey((prev: number) => prev + 1);
+          console.log("エディタキー更新によるエディタ再作成完了");
 
           console.log("エディタ更新完了");
         } else {
@@ -359,6 +367,9 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
 
     // 新しいプロパティを追加
     updateCurrentPageFromSelection,
+
+    // エディタの強制再レンダリング用
+    setEditorKey,
   };
 
   return (

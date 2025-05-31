@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -19,13 +19,14 @@ import {
   DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
+import { useRecoilValue } from "recoil";
+import { currentProjectState } from "../store/atoms";
 import { useTimeline } from "../hooks/useTimeline";
 import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
 import TimelineSettingsDialog from "../components/timeline/TimelineSettingsDialog";
 import TimelineEventList from "../components/timeline/TimelineEventList";
 import TimelineChart from "../components/timeline/TimelineChart";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { useTimelineAI } from "../hooks/useTimelineAI";
 import EventSeedReviewDialog from "../components/timeline/EventSeedReviewDialog";
 import {
   TimelineEventSeed,
@@ -70,6 +71,8 @@ const convertSeedToTimelineEvent = (
 };
 
 const TimelinePage: React.FC = () => {
+  const currentProject = useRecoilValue(currentProjectState);
+
   const {
     timelineItems, // これは TimelineItem[] であり、TimelineChart など表示系で使われる
     timelineEvents, // ★追加: useTimeline から TimelineEvent[] を取得 (状態そのもの)
@@ -92,6 +95,8 @@ const TimelinePage: React.FC = () => {
     handleEventChange,
     handleCharactersChange,
     handleSaveEvent,
+    handleDeleteEvent,
+    handleResetTimeline,
     handleOpenSettingsDialog,
     handleCloseSettingsDialog,
     handleSaveSettings,
@@ -108,12 +113,8 @@ const TimelinePage: React.FC = () => {
     handleUpdateEventLocationAndDate,
   } = useTimeline();
 
-  const { eventSeeds, error: aiError, generateEventSeeds } = useTimelineAI();
+  const { openAIAssist, closeAIAssist } = useAIChatIntegration();
 
-  const { openAIAssist } = useAIChatIntegration();
-
-  const [aiErrorSnackbarOpen, setAiErrorSnackbarOpen] = useState(false);
-  const [aiErrorMessage, setAiErrorMessage] = useState("");
   const [reviewableEventSeeds, setReviewableEventSeeds] = useState<
     TimelineEventSeed[]
   >([]);
@@ -423,53 +424,32 @@ const TimelinePage: React.FC = () => {
         customControls: {
           plotSelection: true,
         },
-        onComplete: async (result) => {
-          // イベント生成完了時の処理
-          console.log("イベント生成完了:", result);
-          // 実際のAI生成処理を実行
-          await generateEventSeeds({
-            prompt: result.content,
-            plotId: null, // プロット選択機能は後で実装
-            allPlots: allPlots,
-            characters: characters,
-            places: places,
-          });
+        onComplete: (result) => {
+          // AIAssistTabで生成されたTimelineEventSeedを受け取る
+          console.log("タイムラインイベント生成完了:", result);
+          if (result.content && Array.isArray(result.content)) {
+            const eventSeeds = result.content as TimelineEventSeed[];
+            setReviewableEventSeeds(eventSeeds);
+            setEventSeedReviewDialogOpen(true);
+          }
         },
       },
-      null // currentProjectは不要
+      currentProject // プロジェクトデータを渡す
     );
-  };
-
-  useEffect(() => {
-    if (eventSeeds && eventSeeds.length > 0) {
-      console.log("AIによって生成されたイベントの種:", eventSeeds);
-      setReviewableEventSeeds(eventSeeds);
-      setEventSeedReviewDialogOpen(true);
-    }
-  }, [eventSeeds]);
-
-  useEffect(() => {
-    if (aiError) {
-      console.error("AI処理エラー:", aiError);
-      setAiErrorMessage(aiError.message || "AI処理中にエラーが発生しました。");
-      setAiErrorSnackbarOpen(true);
-    }
-  }, [aiError]);
-
-  const handleCloseAiErrorSnackbar = () => {
-    setAiErrorSnackbarOpen(false);
-    setAiErrorMessage("");
   };
 
   const handleConfirmEventSeeds = (selectedSeeds: TimelineEventSeed[]) => {
     console.log("ユーザーが選択したイベントの種:", selectedSeeds);
-    const newEvents: TimelineEvent[] = selectedSeeds.map(
-      (seed, index) => convertSeedToTimelineEvent(seed, timelineEvents, index) // ★ timelineItems の代わりに timelineEvents を使用
+    const newEvents: TimelineEvent[] = selectedSeeds.map((seed, index) =>
+      convertSeedToTimelineEvent(seed, timelineEvents, index)
     );
     if (newEvents.length > 0) {
       addTimelineEventsBatch(newEvents);
     }
     setEventSeedReviewDialogOpen(false);
+
+    // イベントシード登録後にAIアシストパネルを閉じる
+    closeAIAssist();
   };
 
   console.log(
@@ -517,6 +497,8 @@ const TimelinePage: React.FC = () => {
               onEditEvent={handleEventClick}
               hasUnsavedChanges={hasUnsavedChanges}
               onSave={handleSave}
+              onDeleteEvent={handleDeleteEvent}
+              onResetTimeline={handleResetTimeline}
               getCharacterNameById={getCharacterName}
               getPlaceNameById={getPlaceName}
             />
@@ -567,6 +549,7 @@ const TimelinePage: React.FC = () => {
               safeMinY={safeMinY}
               safeMaxY={safeMaxY}
               onEventClick={handleEventClick}
+              onDeleteEvent={handleDeleteEvent}
             />
           )}
 
@@ -581,19 +564,6 @@ const TimelinePage: React.FC = () => {
               sx={{ width: "100%" }}
             >
               {snackbarMessage}
-            </Alert>
-          </Snackbar>
-          <Snackbar
-            open={aiErrorSnackbarOpen}
-            autoHideDuration={6000}
-            onClose={handleCloseAiErrorSnackbar}
-          >
-            <Alert
-              onClose={handleCloseAiErrorSnackbar}
-              severity="error"
-              sx={{ width: "100%" }}
-            >
-              {aiErrorMessage}
             </Alert>
           </Snackbar>
         </Paper>

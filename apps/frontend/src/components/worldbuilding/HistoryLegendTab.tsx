@@ -1,183 +1,411 @@
-import React from "react";
-import { Box, TextField, Typography, Divider } from "@mui/material";
-import { useWorldBuildingContext } from "../../contexts/WorldBuildingContext";
+import React, { useState } from "react";
 import {
-  getCategoryTabIndex,
-  WorldBuildingElementType,
-  NovelProject,
-  HistoryLegendElement,
-} from "@novel-ai-assistant/types";
+  Box,
+  Typography,
+  TextField,
+  Button,
+  IconButton,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRecoilState } from "recoil";
+import { currentProjectState } from "../../store/atoms";
+import { v4 as uuidv4 } from "uuid";
+import { HistoryLegendElement, NovelProject } from "@novel-ai-assistant/types";
 
 const HistoryLegendTab: React.FC = () => {
-  const { getCurrentProjectState, updateProjectState, markTabAsUpdated } =
-    useWorldBuildingContext();
+  // Recoilからデータを取得
+  const [currentProject, setCurrentProject] =
+    useRecoilState(currentProjectState);
 
-  const currentProject = getCurrentProjectState();
+  // 歴史・伝説データを取得
+  const historyLegends = currentProject?.worldBuilding?.historyLegend || [];
 
-  // historyLegend 配列の最初の要素を編集対象とする (存在しない場合は undefined)
-  const targetHistoryElement = currentProject?.worldBuilding
-    ?.historyLegend?.[0] as HistoryLegendElement | undefined;
+  // 状態管理
+  const [currentHistory, setCurrentHistory] =
+    useState<HistoryLegendElement | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleFieldChange =
-    (
-      fieldName: keyof Omit<
-        HistoryLegendElement,
-        "id" | "type" | "originalType"
-      >
-    ) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const currentPrj = getCurrentProjectState();
-      if (!currentPrj || !currentPrj.worldBuilding) return;
+  // 新規歴史・伝説作成ダイアログを開く
+  const handleOpenNewDialog = () => {
+    setCurrentHistory({
+      id: uuidv4(),
+      name: "",
+      type: "history_legend",
+      originalType: "history_legend",
+      description: "",
+      features: "",
+      importance: "",
+      relations: "",
+      period: "",
+      significantEvents: "",
+      consequences: "",
+    } as HistoryLegendElement);
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
 
-      // 既存の要素を取得、または新しい要素を作成
-      const baseHistoryElement = currentPrj.worldBuilding
-        .historyLegend?.[0] || {
-        id: `history_${Date.now()}`,
-        name: "",
-        type: WorldBuildingElementType.HISTORY_LEGEND,
-        originalType: WorldBuildingElementType.HISTORY_LEGEND,
-        description: "",
-        features: "",
-        importance: "",
-        period: "",
-        significantEvents: "",
-        consequences: "",
-        relations: "",
-      };
+  // 歴史・伝説編集ダイアログを開く
+  const handleEdit = (history: HistoryLegendElement) => {
+    setCurrentHistory({ ...history });
+    setIsEditing(true);
+    setDialogOpen(true);
+  };
 
-      const updatedHistoryElement: HistoryLegendElement = {
-        ...baseHistoryElement,
-        [fieldName]: e.target.value,
-      };
+  // 歴史・伝説を削除
+  const handleDelete = (id: string) => {
+    if (!currentProject) return;
 
-      // historyLegend 配列を更新
-      const updatedHistoryLegend = [
-        updatedHistoryElement,
-        ...(currentPrj.worldBuilding.historyLegend?.slice(1) || []),
-      ];
+    const updatedHistoryLegends = historyLegends.filter(
+      (history: HistoryLegendElement) => history.id !== id
+    );
 
-      const updatedWorldBuilding: NovelProject["worldBuilding"] = {
-        ...currentPrj.worldBuilding,
-        historyLegend: updatedHistoryLegend,
-      };
+    setCurrentProject((prevProject: NovelProject | null) => {
+      if (!prevProject) return null;
+      return {
+        ...prevProject,
+        worldBuilding: {
+          ...prevProject.worldBuilding,
+          historyLegend: updatedHistoryLegends,
+        },
+      } as NovelProject;
+    });
+  };
 
-      const updatedProject: NovelProject = {
-        ...currentPrj,
-        worldBuilding: updatedWorldBuilding,
-      };
+  // ダイアログを閉じる
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setCurrentHistory(null);
+  };
 
-      updateProjectState(updatedProject);
+  // 歴史・伝説の保存
+  const handleSaveHistory = () => {
+    if (!currentHistory || !currentProject) return;
 
-      markTabAsUpdated(
-        getCategoryTabIndex(WorldBuildingElementType.HISTORY_LEGEND)
+    if (isEditing) {
+      const updatedHistoryLegends = historyLegends.map(
+        (history: HistoryLegendElement) =>
+          history.id === currentHistory.id ? currentHistory : history
       );
-    };
+      setCurrentProject((prevProject: NovelProject | null) => {
+        if (!prevProject) return null;
+        return {
+          ...prevProject,
+          worldBuilding: {
+            ...prevProject.worldBuilding,
+            historyLegend: updatedHistoryLegends,
+          },
+        } as NovelProject;
+      });
+    } else {
+      setCurrentProject((prevProject: NovelProject | null) => {
+        if (!prevProject) return null;
+        return {
+          ...prevProject,
+          worldBuilding: {
+            ...prevProject.worldBuilding,
+            historyLegend: [
+              ...(prevProject.worldBuilding?.historyLegend || []),
+              currentHistory,
+            ],
+          },
+        } as NovelProject;
+      });
+    }
+    handleCloseDialog();
+  };
+
+  // 入力フィールドの変更を処理
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (!currentHistory) return;
+    setCurrentHistory({
+      ...currentHistory,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // 値を安全に文字列として表示するヘルパー関数
+  const safeStringDisplay = (value: unknown): string => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+    if (typeof value === "string") {
+      return value;
+    }
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return "[オブジェクト]";
+      }
+    }
+    return String(value);
+  };
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        歴史と伝説 (HistoryLegendElement ベース)
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+        <Typography variant="h5">歴史と伝説</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleOpenNewDialog}
+        >
+          新しい歴史・伝説を追加
+        </Button>
+      </Box>
+
+      <Typography variant="body1" sx={{ mb: 3 }}>
+        物語世界の歴史的出来事、伝説、神話などを定義します。世界の背景と深みを提供し、現在の状況に説得力を与える重要な要素です。
       </Typography>
 
-      <TextField
+      {historyLegends.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: "center" }}>
+          <Typography color="text.secondary">
+            まだ歴史・伝説が追加されていません。「新しい歴史・伝説を追加」ボタンから追加できます。
+          </Typography>
+        </Paper>
+      ) : (
+        <List sx={{ width: "100%" }}>
+          {historyLegends.map(
+            (history: HistoryLegendElement, index: number) => (
+              <Paper
+                key={history.id || index}
+                elevation={1}
+                sx={{
+                  mb: 2,
+                  p: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <ListItem
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "stretch",
+                    p: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      mb: 2,
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {safeStringDisplay(history.name) || "名称未設定"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        時代: {safeStringDisplay(history.period) || "未設定"} |
+                        重要性:{" "}
+                        {safeStringDisplay(history.importance) || "未設定"}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <IconButton
+                        onClick={() => handleEdit(history)}
+                        color="primary"
+                        size="small"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(history.id)}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+
+                  {history.description && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        説明
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {safeStringDisplay(history.description)}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {history.significantEvents && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        重要な出来事
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {safeStringDisplay(history.significantEvents)}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {history.consequences && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        結果・影響
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {safeStringDisplay(history.consequences)}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {history.relations && (
+                    <Box>
+                      <Typography variant="subtitle2" gutterBottom>
+                        関連要素
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: "pre-wrap" }}
+                      >
+                        {safeStringDisplay(history.relations)}
+                      </Typography>
+                    </Box>
+                  )}
+                </ListItem>
+              </Paper>
+            )
+          )}
+        </List>
+      )}
+
+      {/* 編集・新規作成ダイアログ */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="md"
         fullWidth
-        label="名前 (Name)"
-        placeholder="歴史的出来事や伝説の名前を入力してください"
-        value={targetHistoryElement?.name || ""}
-        onChange={handleFieldChange("name")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="説明 (Description)"
-        placeholder="この歴史的出来事や伝説の基本的な説明を記述してください"
-        value={targetHistoryElement?.description || ""}
-        onChange={handleFieldChange("description")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="特徴 (Features)"
-        placeholder="この出来事や伝説の特徴的な要素を記述してください"
-        value={targetHistoryElement?.features || ""}
-        onChange={handleFieldChange("features")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        label="重要性 (Importance)"
-        placeholder="物語における重要度（高・中・低など）"
-        value={targetHistoryElement?.importance || ""}
-        onChange={handleFieldChange("importance")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <TextField
-        fullWidth
-        label="時代・期間 (Period)"
-        placeholder="いつ起こったか、どの時代の出来事かを記述してください"
-        value={targetHistoryElement?.period || ""}
-        onChange={handleFieldChange("period")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={4}
-        label="重要な出来事 (Significant Events)"
-        placeholder="この歴史や伝説における重要な出来事の詳細を記述してください"
-        value={targetHistoryElement?.significantEvents || ""}
-        onChange={handleFieldChange("significantEvents")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="結果・影響 (Consequences)"
-        placeholder="この出来事が世界や社会に与えた影響や結果を記述してください"
-        value={targetHistoryElement?.consequences || ""}
-        onChange={handleFieldChange("consequences")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <TextField
-        fullWidth
-        multiline
-        rows={3}
-        label="関連 (Relations)"
-        placeholder="他の歴史的出来事、人物、場所との関連性を記述してください"
-        value={targetHistoryElement?.relations || ""}
-        onChange={handleFieldChange("relations")}
-        variant="outlined"
-        margin="normal"
-      />
-
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 2, textAlign: "center" }}
       >
-        歴史と伝説は世界の深みと背景を提供し、現在の状況に説得力を与える重要な要素です。
-      </Typography>
+        <DialogTitle>
+          {isEditing ? "歴史・伝説を編集" : "新しい歴史・伝説を追加"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="名前"
+            name="name"
+            placeholder="歴史的出来事や伝説の名前"
+            value={safeStringDisplay(currentHistory?.name) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="説明"
+            name="description"
+            placeholder="この歴史的出来事や伝説の基本的な説明"
+            value={safeStringDisplay(currentHistory?.description) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="特徴"
+            name="features"
+            placeholder="この出来事や伝説の特徴的な要素"
+            value={safeStringDisplay(currentHistory?.features) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="重要性"
+            name="importance"
+            placeholder="物語における重要度（高・中・低など）"
+            value={safeStringDisplay(currentHistory?.importance) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="時代・期間"
+            name="period"
+            placeholder="いつ起こったか、どの時代の出来事か"
+            value={safeStringDisplay(currentHistory?.period) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="重要な出来事"
+            name="significantEvents"
+            placeholder="この歴史や伝説における重要な出来事の詳細"
+            value={safeStringDisplay(currentHistory?.significantEvents) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="結果・影響"
+            name="consequences"
+            placeholder="この出来事が世界や社会に与えた影響や結果"
+            value={safeStringDisplay(currentHistory?.consequences) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="関連要素"
+            name="relations"
+            placeholder="他の歴史的出来事、人物、場所との関連性"
+            value={safeStringDisplay(currentHistory?.relations) || ""}
+            onChange={handleInputChange}
+            variant="outlined"
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>キャンセル</Button>
+          <Button onClick={handleSaveHistory} variant="contained">
+            {isEditing ? "更新" : "追加"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

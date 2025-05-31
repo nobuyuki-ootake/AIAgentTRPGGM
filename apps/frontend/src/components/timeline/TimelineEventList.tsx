@@ -1,9 +1,20 @@
-import React from "react";
-import { Box, Typography, Button, Paper } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import {
   Add as AddIcon,
   Save as SaveIcon,
   SmartToy as SmartToyIcon,
+  RestartAlt as RestartAltIcon,
 } from "@mui/icons-material";
 import TimelineEventCard from "./TimelineEventCard";
 import { TimelineItem } from "../../hooks/useTimeline";
@@ -14,6 +25,8 @@ interface TimelineEventListProps {
   onAddEvent: () => void;
   onAIAssist: () => void;
   onEditEvent: (id: string) => void;
+  onDeleteEvent: (id: string) => void;
+  onResetTimeline: () => void;
   hasUnsavedChanges: boolean;
   onSave: () => void;
   getCharacterNameById?: (id: string) => string;
@@ -25,11 +38,28 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
   onAddEvent,
   onAIAssist,
   onEditEvent,
+  onDeleteEvent,
+  onResetTimeline,
   hasUnsavedChanges,
   onSave,
   getCharacterNameById,
   getPlaceNameById,
 }) => {
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
+  const handleResetClick = () => {
+    setResetDialogOpen(true);
+  };
+
+  const handleResetConfirm = () => {
+    onResetTimeline();
+    setResetDialogOpen(false);
+  };
+
+  const handleResetCancel = () => {
+    setResetDialogOpen(false);
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
       <Box
@@ -59,6 +89,16 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
             size="medium"
           >
             AIでイベント生成
+          </Button>
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<RestartAltIcon />}
+            onClick={handleResetClick}
+            size="medium"
+            disabled={timelineItems.length === 0}
+          >
+            タイムラインリセット
           </Button>
           <Button
             variant="outlined"
@@ -118,6 +158,7 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
                   key={item.id}
                   event={eventForCard}
                   onEdit={onEditEvent}
+                  onDelete={onDeleteEvent}
                   placeName={placeNameForCard}
                   getCharacterNameById={getCharacterNameById}
                   dndContextType="list"
@@ -127,6 +168,36 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
           </Box>
         )}
       </Paper>
+
+      {/* リセット確認ダイアログ */}
+      <Dialog
+        open={resetDialogOpen}
+        onClose={handleResetCancel}
+        aria-labelledby="reset-dialog-title"
+        aria-describedby="reset-dialog-description"
+      >
+        <DialogTitle id="reset-dialog-title">
+          タイムラインリセットの確認
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="reset-dialog-description">
+            すべてのタイムラインイベントが削除されます。この操作は元に戻すことができません。
+            本当にタイムラインをリセットしますか？
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleResetCancel} color="primary">
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleResetConfirm}
+            color="warning"
+            variant="contained"
+          >
+            リセット
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
