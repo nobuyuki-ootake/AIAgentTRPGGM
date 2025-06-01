@@ -18,6 +18,16 @@ import {
   CardContent,
   Chip,
   Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -27,62 +37,38 @@ import {
   Home,
   Castle,
   Store,
+  ExpandMore as ExpandMoreIcon,
+  Security,
+  AttachMoney,
+  People,
 } from "@mui/icons-material";
-import { useWorldBuildingContext } from "../../contexts/WorldBuildingContext";
-import { v4 as uuidv4 } from "uuid";
-
-// 拠点の型定義
-export interface Base {
-  id: string;
-  name: string;
-  type: "village" | "city" | "castle" | "camp" | "other";
-  description: string;
-  facilities: string[];
-  npcs: string[]; // NPC IDのリスト
-  services: string[];
-  defenseLevel: number; // 1-10
-  population?: number;
-  notes?: string;
-}
+import { useBases } from "../../hooks/useBases";
+import { BaseLocation } from "@novel-ai-assistant/types";
 
 const BaseTab: React.FC = () => {
-  const { bases = [], setBases, handleFieldChange } = useWorldBuildingContext();
+  const {
+    bases,
+    isLoading,
+    error,
+    createBase,
+    updateBase,
+    deleteBase,
+    createBaseTemplate,
+  } = useBases();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingBase, setEditingBase] = useState<Base | null>(null);
-  const [formData, setFormData] = useState<Base>({
-    id: "",
-    name: "",
-    type: "village",
-    description: "",
-    facilities: [],
-    npcs: [],
-    services: [],
-    defenseLevel: 5,
-    population: 0,
-    notes: "",
-  });
-  const [newFacility, setNewFacility] = useState("");
-  const [newService, setNewService] = useState("");
+  const [editingBase, setEditingBase] = useState<BaseLocation | null>(null);
+  const [formData, setFormData] = useState<Omit<BaseLocation, "id" | "created_at" | "updated_at">>(createBaseTemplate("村"));
 
   // ダイアログを開く
-  const handleOpenDialog = (base?: Base) => {
+  const handleOpenDialog = (base?: BaseLocation) => {
     if (base) {
       setEditingBase(base);
-      setFormData(base);
+      const { id, created_at, updated_at, ...editableData } = base;
+      setFormData(editableData);
     } else {
       setEditingBase(null);
-      setFormData({
-        id: uuidv4(),
-        name: "",
-        type: "village",
-        description: "",
-        facilities: [],
-        npcs: [],
-        services: [],
-        defenseLevel: 5,
-        population: 0,
-        notes: "",
-      });
+      setFormData(createBaseTemplate("村"));
     }
     setDialogOpen(true);
   };
@@ -91,92 +77,95 @@ const BaseTab: React.FC = () => {
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingBase(null);
-    setNewFacility("");
-    setNewService("");
   };
 
   // 拠点を保存
-  const handleSaveBase = () => {
+  const handleSaveBase = async () => {
     if (!formData.name.trim()) return;
 
-    let newBases: Base[];
-    if (editingBase) {
-      newBases = bases.map((b) =>
-        b.id === editingBase.id ? formData : b
-      );
-    } else {
-      newBases = [...bases, formData];
+    try {
+      if (editingBase) {
+        await updateBase(editingBase.id, formData);
+      } else {
+        await createBase(formData);
+      }
+      handleCloseDialog();
+    } catch (error) {
+      console.error("拠点の保存に失敗しました:", error);
     }
-    
-    setBases(newBases);
-    handleFieldChange();
-    handleCloseDialog();
   };
 
   // 拠点を削除
-  const handleDeleteBase = (id: string) => {
+  const handleDeleteBase = async (id: string) => {
     if (window.confirm("この拠点を削除してもよろしいですか？")) {
-      const newBases = bases.filter((b) => b.id !== id);
-      setBases(newBases);
-      handleFieldChange();
+      try {
+        await deleteBase(id);
+      } catch (error) {
+        console.error("拠点の削除に失敗しました:", error);
+      }
     }
   };
 
   // フォーム入力の処理
-  const handleFormChange = (
-    field: keyof Base,
-    value: string | number | string[]
-  ) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
-  // 施設を追加
-  const handleAddFacility = () => {
-    if (newFacility.trim()) {
-      handleFormChange("facilities", [...formData.facilities, newFacility.trim()]);
-      setNewFacility("");
+  const handleFormChange = (field: string, value: any) => {
+    if (field.includes('.')) {
+      const [parentField, childField] = field.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parentField]: {
+          ...prev[parentField as keyof typeof prev],
+          [childField]: value,
+        },
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
     }
   };
 
-  // サービスを追加
-  const handleAddService = () => {
-    if (newService.trim()) {
-      handleFormChange("services", [...formData.services, newService.trim()]);
-      setNewService("");
-    }
-  };
 
   // 拠点タイプのアイコンを取得
   const getBaseIcon = (type: string) => {
     switch (type) {
-      case "village":
+      case "村":
         return <Home />;
-      case "city":
+      case "町":
         return <LocationCity />;
-      case "castle":
+      case "都市":
+        return <LocationCity />;
+      case "城":
         return <Castle />;
-      case "camp":
-        return <Store />;
       default:
         return <Home />;
     }
   };
 
-  // 拠点タイプの表示名を取得
-  const getBaseTypeName = (type: string) => {
-    switch (type) {
-      case "village":
-        return "村";
-      case "city":
-        return "都市";
-      case "castle":
-        return "城";
-      case "camp":
-        return "野営地";
-      case "other":
-        return "その他";
+  // 重要度の色を取得
+  const getImportanceColor = (importance: BaseLocation["importance"]) => {
+    switch (importance) {
+      case "主要拠点":
+        return "primary";
+      case "サブ拠点":
+        return "secondary";
+      case "隠し拠点":
+        return "warning";
       default:
-        return "不明";
+        return "default";
+    }
+  };
+
+  // 危険度の色を取得
+  const getDangerColor = (dangerLevel: string) => {
+    switch (dangerLevel) {
+      case "極低":
+      case "低":
+        return "success";
+      case "中":
+        return "warning";
+      case "高":
+      case "極高":
+        return "error";
+      default:
+        return "default";
     }
   };
 
@@ -188,10 +177,17 @@ const BaseTab: React.FC = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
+          disabled={isLoading}
         >
           新規拠点
         </Button>
       </Box>
+
+      {error && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: "error.light", borderRadius: 1 }}>
+          <Typography color="error.main">{error}</Typography>
+        </Box>
+      )}
 
       {/* 拠点リスト */}
       <List>
@@ -203,55 +199,105 @@ const BaseTab: React.FC = () => {
                 <CardContent>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <Box sx={{ flexGrow: 1 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", mb: 1, flexWrap: "wrap", gap: 1 }}>
                         {getBaseIcon(base.type)}
-                        <Typography variant="h6" sx={{ ml: 1 }}>
+                        <Typography variant="h6">
                           {base.name}
                         </Typography>
                         <Chip
-                          label={getBaseTypeName(base.type)}
+                          label={base.type}
                           size="small"
-                          sx={{ ml: 1 }}
+                          variant="outlined"
                         />
                         <Chip
-                          label={`防御力: ${base.defenseLevel}/10`}
+                          label={base.rank}
                           size="small"
-                          sx={{ ml: 1 }}
-                          color={base.defenseLevel >= 7 ? "success" : base.defenseLevel >= 4 ? "warning" : "error"}
+                          color={getImportanceColor(base.importance) as any}
                         />
+                        <Chip
+                          label={`危険度: ${base.threats.dangerLevel}`}
+                          size="small"
+                          color={getDangerColor(base.threats.dangerLevel) as any}
+                        />
+                        {!base.meta.unlocked && (
+                          <Chip
+                            label="未開放"
+                            size="small"
+                            color="warning"
+                          />
+                        )}
                       </Box>
+                      
                       <Typography variant="body2" color="text.secondary" paragraph>
                         {base.description}
                       </Typography>
-                      {base.population && (
-                        <Typography variant="body2" color="text.secondary">
-                          人口: {base.population.toLocaleString()}人
-                        </Typography>
-                      )}
-                      {base.facilities.length > 0 && (
+                      
+                      <Grid container spacing={1} sx={{ mt: 1 }}>
+                        {base.region && (
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              地域: {base.region}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {base.threats.controllingFaction && (
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              支配勢力: {base.threats.controllingFaction}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+
+                      {/* 施設情報 */}
+                      {Object.keys(base.facilities).length > 0 && (
                         <Box sx={{ mt: 1 }}>
                           <Typography variant="body2" color="text.secondary">
                             施設:
                           </Typography>
                           <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
-                            {base.facilities.map((facility, i) => (
-                              <Chip key={i} label={facility} size="small" variant="outlined" />
+                            {base.facilities.inn && (
+                              <Chip key="inn" label={`宿屋: ${base.facilities.inn.name}`} size="small" variant="outlined" />
+                            )}
+                            {base.facilities.shops?.map((shop, i) => (
+                              <Chip key={`shop-${i}`} label={`店舗: ${shop.name}`} size="small" variant="outlined" />
                             ))}
+                            {base.facilities.armory && (
+                              <Chip key="armory" label={`武器庫: ${base.facilities.armory.name}`} size="small" variant="outlined" />
+                            )}
+                            {base.facilities.temple && (
+                              <Chip key="temple" label={`神殿: ${base.facilities.temple.name}`} size="small" variant="outlined" />
+                            )}
+                            {base.facilities.guild && (
+                              <Chip key="guild" label={`ギルド: ${base.facilities.guild.name}`} size="small" variant="outlined" />
+                            )}
+                            {base.facilities.blacksmith && (
+                              <Chip key="blacksmith" label={`鍛冶場: ${base.facilities.blacksmith.name}`} size="small" variant="outlined" />
+                            )}
                           </Stack>
                         </Box>
                       )}
-                      {base.services.length > 0 && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            サービス:
-                          </Typography>
-                          <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
-                            {base.services.map((service, i) => (
-                              <Chip key={i} label={service} size="small" color="primary" variant="outlined" />
-                            ))}
-                          </Stack>
-                        </Box>
-                      )}
+
+                      {/* 機能情報 */}
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          機能:
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
+                          {base.features.fastTravel && (
+                            <Chip label="ファストトラベル" size="small" color="primary" variant="outlined" />
+                          )}
+                          {base.features.playerBase && (
+                            <Chip label="プレイヤー拠点" size="small" color="primary" variant="outlined" />
+                          )}
+                          {base.features.questHub && (
+                            <Chip label="クエストハブ" size="small" color="primary" variant="outlined" />
+                          )}
+                          {base.features.defenseEvent && (
+                            <Chip label="防衛イベント" size="small" color="primary" variant="outlined" />
+                          )}
+                        </Stack>
+                      </Box>
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>
                       <IconButton
@@ -286,136 +332,246 @@ const BaseTab: React.FC = () => {
       )}
 
       {/* 拠点編集ダイアログ */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
         <DialogTitle>
           {editingBase ? "拠点を編集" : "新規拠点を作成"}
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={3}>
-            <TextField
-              label="拠点名"
-              value={formData.name}
-              onChange={(e) => handleFormChange("name", e.target.value)}
-              fullWidth
-              required
-            />
+            {/* 基本情報 */}
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">基本情報</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="拠点名"
+                      value={formData.name}
+                      onChange={(e) => handleFormChange("name", e.target.value)}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>拠点タイプ</InputLabel>
+                      <Select
+                        value={formData.type}
+                        onChange={(e) => handleFormChange("type", e.target.value)}
+                        label="拠点タイプ"
+                      >
+                        <MenuItem value="村">村</MenuItem>
+                        <MenuItem value="町">町</MenuItem>
+                        <MenuItem value="都市">都市</MenuItem>
+                        <MenuItem value="城">城</MenuItem>
+                        <MenuItem value="その他">その他</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="地域"
+                      value={formData.region}
+                      onChange={(e) => handleFormChange("region", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="ランク"
+                      value={formData.rank}
+                      onChange={(e) => handleFormChange("rank", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>重要度</InputLabel>
+                      <Select
+                        value={formData.importance}
+                        onChange={(e) => handleFormChange("importance", e.target.value)}
+                        label="重要度"
+                      >
+                        <MenuItem value="主要拠点">主要拠点</MenuItem>
+                        <MenuItem value="サブ拠点">サブ拠点</MenuItem>
+                        <MenuItem value="隠し拠点">隠し拠点</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="説明"
+                      value={formData.description}
+                      onChange={(e) => handleFormChange("description", e.target.value)}
+                      multiline
+                      rows={3}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              label="拠点タイプ"
-              select
-              value={formData.type}
-              onChange={(e) => handleFormChange("type", e.target.value)}
-              fullWidth
-              SelectProps={{ native: true }}
-            >
-              <option value="village">村</option>
-              <option value="city">都市</option>
-              <option value="castle">城</option>
-              <option value="camp">野営地</option>
-              <option value="other">その他</option>
-            </TextField>
+            {/* 機能設定 */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">機能設定</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.features.fastTravel}
+                          onChange={(e) => handleFormChange("features.fastTravel", e.target.checked)}
+                        />
+                      }
+                      label="ファストトラベル可能"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.features.playerBase}
+                          onChange={(e) => handleFormChange("features.playerBase", e.target.checked)}
+                        />
+                      }
+                      label="プレイヤー拠点として使用可能"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.features.questHub}
+                          onChange={(e) => handleFormChange("features.questHub", e.target.checked)}
+                        />
+                      }
+                      label="クエストハブ"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.features.defenseEvent}
+                          onChange={(e) => handleFormChange("features.defenseEvent", e.target.checked)}
+                        />
+                      }
+                      label="防衛イベント対象"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              label="説明"
-              value={formData.description}
-              onChange={(e) => handleFormChange("description", e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-            />
+            {/* 脅威・影響 */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">脅威・影響</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>危険レベル</InputLabel>
+                      <Select
+                        value={formData.threats.dangerLevel}
+                        onChange={(e) => handleFormChange("threats.dangerLevel", e.target.value)}
+                        label="危険レベル"
+                      >
+                        <MenuItem value="極低">極低</MenuItem>
+                        <MenuItem value="低">低</MenuItem>
+                        <MenuItem value="中">中</MenuItem>
+                        <MenuItem value="高">高</MenuItem>
+                        <MenuItem value="極高">極高</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="支配勢力"
+                      value={formData.threats.controllingFaction}
+                      onChange={(e) => handleFormChange("threats.controllingFaction", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              label="人口"
-              type="number"
-              value={formData.population || ""}
-              onChange={(e) => handleFormChange("population", parseInt(e.target.value) || 0)}
-              fullWidth
-            />
+            {/* 経済 */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">経済</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="通貨"
+                      value={formData.economy.currency}
+                      onChange={(e) => handleFormChange("economy.currency", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="価格修正倍率"
+                      type="number"
+                      value={formData.economy.priceModifier}
+                      onChange={(e) => handleFormChange("economy.priceModifier", parseFloat(e.target.value) || 1.0)}
+                      inputProps={{ min: 0.1, max: 5.0, step: 0.1 }}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              label="防御力 (1-10)"
-              type="number"
-              value={formData.defenseLevel}
-              onChange={(e) => handleFormChange("defenseLevel", Math.min(10, Math.max(1, parseInt(e.target.value) || 5)))}
-              fullWidth
-              inputProps={{ min: 1, max: 10 }}
-            />
-
-            {/* 施設 */}
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                施設
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <TextField
-                  placeholder="宿屋、鍛冶屋、教会など"
-                  value={newFacility}
-                  onChange={(e) => setNewFacility(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddFacility()}
-                  size="small"
-                  fullWidth
-                />
-                <Button onClick={handleAddFacility} variant="outlined" size="small">
-                  追加
-                </Button>
-              </Box>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                {formData.facilities.map((facility, index) => (
-                  <Chip
-                    key={index}
-                    label={facility}
-                    onDelete={() => handleFormChange("facilities", formData.facilities.filter((_, i) => i !== index))}
-                    size="small"
-                  />
-                ))}
-              </Stack>
-            </Box>
-
-            {/* サービス */}
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                サービス
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <TextField
-                  placeholder="武器販売、回復、情報収集など"
-                  value={newService}
-                  onChange={(e) => setNewService(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddService()}
-                  size="small"
-                  fullWidth
-                />
-                <Button onClick={handleAddService} variant="outlined" size="small">
-                  追加
-                </Button>
-              </Box>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                {formData.services.map((service, index) => (
-                  <Chip
-                    key={index}
-                    label={service}
-                    onDelete={() => handleFormChange("services", formData.services.filter((_, i) => i !== index))}
-                    size="small"
-                    color="primary"
-                  />
-                ))}
-              </Stack>
-            </Box>
-
-            <TextField
-              label="備考"
-              value={formData.notes || ""}
-              onChange={(e) => handleFormChange("notes", e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-            />
+            {/* メタ情報 */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">メタ情報</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.meta.unlocked}
+                          onChange={(e) => handleFormChange("meta.unlocked", e.target.checked)}
+                        />
+                      }
+                      label="解放済み"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="画像URL"
+                      value={formData.imageUrl || ""}
+                      onChange={(e) => handleFormChange("imageUrl", e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>キャンセル</Button>
-          <Button onClick={handleSaveBase} variant="contained" disabled={!formData.name.trim()}>
-            保存
+          <Button 
+            onClick={handleSaveBase} 
+            variant="contained" 
+            disabled={!formData.name.trim() || isLoading}
+          >
+            {isLoading ? "保存中..." : "保存"}
           </Button>
         </DialogActions>
       </Dialog>

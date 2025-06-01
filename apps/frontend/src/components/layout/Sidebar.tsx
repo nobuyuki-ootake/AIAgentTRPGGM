@@ -11,6 +11,8 @@ import {
   IconButton,
   Typography,
   Button,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import {
   ShortText as SynopsisIcon,
@@ -25,13 +27,15 @@ import {
   Security as EnemyIcon,
   Groups as NPCIcon,
   PlayArrow as SessionIcon,
+  DeveloperMode as DeveloperIcon,
 } from "@mui/icons-material";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   appModeState,
   AppMode,
   sidebarOpenState,
   currentProjectState,
+  developerModeState,
 } from "../../store/atoms";
 
 interface SidebarProps {
@@ -43,6 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const [appMode, setAppMode] = useRecoilState(appModeState);
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
   const [, setCurrentProject] = useRecoilState(currentProjectState);
+  const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
 
   const handleModeChange = (mode: AppMode) => {
     // 編集中の場合はイベントを発火してモード変更を試みる
@@ -98,41 +103,68 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     }
   };
 
-  const menuItems = [
-    { mode: "synopsis" as AppMode, text: "キャンペーン背景", icon: <SynopsisIcon /> },
-    { mode: "plot" as AppMode, text: "クエスト", icon: <PlotIcon /> },
+  // 開発者モードに応じて表示するメニューアイテムをフィルタリング
+  const allMenuItems = [
+    { 
+      mode: "synopsis" as AppMode, 
+      text: "キャンペーン背景", 
+      icon: <SynopsisIcon />,
+      developerOnly: true 
+    },
+    { 
+      mode: "plot" as AppMode, 
+      text: "クエスト", 
+      icon: <PlotIcon />,
+      developerOnly: true 
+    },
     {
       mode: "characters" as AppMode,
       text: "パーティー",
       icon: <CharactersIcon />,
+      developerOnly: false
     },
     {
       mode: "enemy" as AppMode,
       text: "エネミー",
       icon: <EnemyIcon />,
+      developerOnly: true
     },
     {
       mode: "npc" as AppMode,
       text: "NPC",
       icon: <NPCIcon />,
+      developerOnly: true
     },
     {
       mode: "worldbuilding" as AppMode,
       text: "世界観構築",
       icon: <WorldIcon />,
+      developerOnly: true
     },
     {
       mode: "timeline" as AppMode,
-      text: "セッション履歴",
+      text: developerMode ? "キャンペーンのイベント管理" : "セッション履歴",
       icon: <TimelineIcon />,
+      developerOnly: false
     },
-    { mode: "writing" as AppMode, text: "セッションノート", icon: <WritingIcon /> },
+    { 
+      mode: "writing" as AppMode, 
+      text: "セッションノート", 
+      icon: <WritingIcon />,
+      developerOnly: true 
+    },
     {
       mode: "session" as AppMode,
       text: "TRPGセッション",
       icon: <SessionIcon />,
+      developerOnly: false
     },
   ];
+
+  // 開発者モードでない場合は、開発者専用項目を除外
+  const menuItems = developerMode 
+    ? allMenuItems 
+    : allMenuItems.filter(item => !item.developerOnly);
 
   return (
     <Drawer
@@ -196,6 +228,37 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           </ListItem>
         ))}
       </List>
+
+      {/* 開発者モード切り替え */}
+      <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={developerMode}
+              onChange={(e) => setDeveloperMode(e.target.checked)}
+              icon={<DeveloperIcon />}
+              checkedIcon={<DeveloperIcon />}
+            />
+          }
+          label={
+            <Box>
+              <Typography variant="body2" fontWeight="bold">
+                開発者モード
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                キャンペーン設計機能を有効化
+              </Typography>
+            </Box>
+          }
+          labelPlacement="start"
+          sx={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            m: 0,
+            width: '100%'
+          }}
+        />
+      </Box>
 
       {/* 「ホームに戻る」ボタン */}
       <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>

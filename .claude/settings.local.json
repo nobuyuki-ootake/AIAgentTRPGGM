@@ -11,7 +11,9 @@
       "Bash(pnpm:*)",
       "Bash(npm run dev:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
