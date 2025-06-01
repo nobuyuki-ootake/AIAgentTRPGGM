@@ -99,7 +99,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        タイムラインチャート
+        セッションイベントチャート（日単位）
       </Typography>
       <Paper
         elevation={2}
@@ -113,7 +113,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
           flexDirection: "column",
         }}
       >
-        {/* X軸（場所）ラベル */}
+        {/* X軸（場所・拠点）ラベル */}
         <Box
           sx={{
             display: "flex",
@@ -156,7 +156,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
             overflowY: "hidden",
           }}
         >
-          {/* Y軸（時間）ラベルコンテナ */}
+          {/* Y軸（日付）ラベルコンテナ */}
           <Box
             sx={{
               width: 80,
@@ -170,7 +170,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
             {dateArray.map((dateString, index) => {
               // dateInfoをdateStringに変更
               const yPercent = calculateYPositionPercent(dateString);
-              const displayLabel = moment(dateString).format("MM/DD"); // ラベルをフォーマット
+              const displayLabel = moment(dateString).format("MM/DD"); // 日付ラベルをフォーマット
 
               return (
                 <React.Fragment key={`date-label-${dateString}-${index}`}>

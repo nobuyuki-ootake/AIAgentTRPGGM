@@ -21,6 +21,7 @@ export interface NewProjectFormProps {
 }
 
 export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
+  // Convert to TRPG Campaign Form
   const navigate = useNavigate();
   const { createProject, isCreating, error } = useCreateProject();
 
@@ -30,6 +31,8 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
   const [genreInput, setGenreInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [gameSystem, setGameSystem] = useState("");
+  const [playerCount, setPlayerCount] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,6 +46,8 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
       description: description.trim(),
       genre,
       tags,
+      gameSystem: gameSystem.trim(),
+      playerCount: parseInt(playerCount) || 4,
     });
 
     if (newProject) {
@@ -79,7 +84,7 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: "auto", my: 4 }}>
       <Typography variant="h5" component="h1" gutterBottom>
-        新しいプロジェクト
+        新しい TRPG キャンペーン
       </Typography>
 
       {error && (
@@ -90,7 +95,7 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
 
       <form onSubmit={handleSubmit}>
         <TextField
-          label="プロジェクト名"
+          label="キャンペーン名"
           fullWidth
           margin="normal"
           required
@@ -100,7 +105,7 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
         />
 
         <TextField
-          label="プロジェクトの説明"
+          label="キャンペーンの説明"
           fullWidth
           margin="normal"
           multiline
@@ -110,9 +115,30 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
           disabled={isCreating}
         />
 
+        <TextField
+          label="ゲームシステム"
+          fullWidth
+          margin="normal"
+          value={gameSystem}
+          onChange={(e) => setGameSystem(e.target.value)}
+          disabled={isCreating}
+          placeholder="D&D 5e, パスファインダー, クトゥルフなど"
+        />
+
+        <TextField
+          label="プレイヤー人数"
+          fullWidth
+          margin="normal"
+          type="number"
+          value={playerCount}
+          onChange={(e) => setPlayerCount(e.target.value)}
+          disabled={isCreating}
+          placeholder="4"
+        />
+
         <Box sx={{ mt: 2, mb: 1 }}>
           <Typography variant="subtitle1" gutterBottom>
-            ジャンル
+            ジャンル / テーマ
           </Typography>
 
           <Box sx={{ display: "flex", mb: 1 }}>
@@ -121,7 +147,7 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
               value={genreInput}
               onChange={(e) => setGenreInput(e.target.value)}
               disabled={isCreating}
-              placeholder="ジャンルを追加"
+              placeholder="ファンタジー、ホラー、SFなど"
               sx={{ flexGrow: 1, mr: 1 }}
             />
             <Button
@@ -158,7 +184,7 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               disabled={isCreating}
-              placeholder="タグを追加"
+              placeholder="ダンジョン探索、ロールプレイ重視など"
               sx={{ flexGrow: 1, mr: 1 }}
             />
             <Button

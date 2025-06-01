@@ -9,16 +9,25 @@ import {
   DialogActions,
   TextField,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
   Container,
-  Stack,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  IconButton,
+  Chip,
+  CircularProgress,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Campaign as CampaignIcon,
+  Group as GroupIcon,
+  Security as EnemyIcon,
+  Groups as NPCIcon,
+} from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
-import { useHome } from "../hooks/useHome";
-import ProjectCard from "../components/home/ProjectCard";
+import { useTRPGHome } from "../hooks/useTRPGHome";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -27,20 +36,35 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 const HomePage: React.FC = () => {
   const {
-    projects,
-    currentProject,
-    newProjectTitle,
-    setNewProjectTitle,
+    campaigns,
+    currentCampaign,
+    newCampaignTitle,
+    setNewCampaignTitle,
+    newCampaignSummary,
+    setNewCampaignSummary,
     dialogOpen,
     deleteDialogOpen,
+    campaignToDelete,
+    isLoading,
     handleOpenDialog,
     handleCloseDialog,
-    handleCreateProject,
-    handleSelectProject,
+    handleCreateCampaign,
+    handleSelectCampaign,
     handleOpenDeleteDialog,
     handleCloseDeleteDialog,
-    handleDeleteProject,
-  } = useHome();
+    handleDeleteCampaign,
+  } = useTRPGHome();
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>TRPG管理システムを初期化中...</Typography>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg">
@@ -53,179 +77,217 @@ const HomePage: React.FC = () => {
             mb: 4,
           }}
         >
-          <Typography variant="h4" component="h1" gutterBottom>
-            小説創作支援ツール
-          </Typography>
+          <Box>
+            <Typography variant="h3" component="h1" gutterBottom>
+              TRPGキャンペーン管理
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              テーブルトークRPGのキャンペーンを管理・運営するためのシステム
+            </Typography>
+          </Box>
           <Button
             variant="contained"
-            color="primary"
             startIcon={<AddIcon />}
             onClick={handleOpenDialog}
+            size="large"
           >
-            新規プロジェクト
+            新規キャンペーン
           </Button>
         </Box>
 
         <StyledPaper>
-          <Typography variant="h5" component="h2" gutterBottom>
-            プロジェクト一覧
+          <Typography variant="h5" gutterBottom>
+            キャンペーン一覧
           </Typography>
-          {projects.length === 0 ? (
-            <Typography variant="body1" color="textSecondary" sx={{ my: 2 }}>
-              プロジェクトがありません。新規プロジェクトを作成してください。
-            </Typography>
-          ) : (
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3, mt: 2 }}>
-              {projects.map((project) => (
-                <Box
-                  key={project.id}
-                  sx={{
-                    width: {
-                      xs: "100%",
-                      sm: "calc(50% - 16px)",
-                      md: "calc(33.33% - 16px)",
-                    },
-                  }}
-                >
-                  <ProjectCard
-                    project={project}
-                    isSelected={currentProject?.id === project.id}
-                    onSelect={() => handleSelectProject(project)}
-                    onDelete={handleOpenDeleteDialog.bind(null, project.id)}
-                  />
-                </Box>
-              ))}
+          
+          {campaigns.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 8 }}>
+              <CampaignIcon sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                キャンペーンがありません
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                新規キャンペーンを作成して、TRPG管理を始めましょう
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenDialog}
+              >
+                最初のキャンペーンを作成
+              </Button>
             </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {campaigns.map((campaign) => (
+                <Grid item xs={12} sm={6} md={4} key={campaign.id}>
+                  <Card 
+                    sx={{ 
+                      height: "100%", 
+                      display: "flex", 
+                      flexDirection: "column",
+                      cursor: "pointer",
+                      border: currentCampaign?.id === campaign.id ? 2 : 1,
+                      borderColor: currentCampaign?.id === campaign.id ? "primary.main" : "divider",
+                      "&:hover": {
+                        boxShadow: 3
+                      }
+                    }}
+                    onClick={() => handleSelectCampaign(campaign.id)}
+                  >
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                        <CampaignIcon color="primary" sx={{ mr: 1 }} />
+                        <Typography variant="h6" component="h2" noWrap>
+                          {campaign.title}
+                        </Typography>
+                      </Box>
+                      
+                      {campaign.summary && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {campaign.summary}
+                        </Typography>
+                      )}
+                      
+                      <Typography variant="caption" color="text.secondary">
+                        更新日: {new Date(campaign.updatedAt).toLocaleDateString()}
+                      </Typography>
+                      
+                      {currentCampaign?.id === campaign.id && (
+                        <Chip
+                          label="選択中"
+                          color="primary"
+                          size="small"
+                          sx={{ mt: 1 }}
+                        />
+                      )}
+                    </CardContent>
+                    
+                    <CardActions sx={{ justifyContent: "space-between", px: 2, pb: 2 }}>
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Chip
+                          icon={<GroupIcon />}
+                          label="PC"
+                          size="small"
+                          variant="outlined"
+                        />
+                        <Chip
+                          icon={<NPCIcon />}
+                          label="NPC"
+                          size="small"
+                          variant="outlined"
+                        />
+                        <Chip
+                          icon={<EnemyIcon />}
+                          label="敵"
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
+                      
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDeleteDialog(campaign.id);
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
           )}
         </StyledPaper>
 
-        <Stack direction={{ xs: "column", md: "row" }} spacing={4}>
-          <Box sx={{ flex: 1 }}>
-            <StyledPaper>
-              <Typography variant="h5" component="h2" gutterBottom>
-                ツールの特徴
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="物語の構造化"
-                    secondary="あらすじ、プロット、キャラクター設定などを体系的に管理できます。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="世界観構築支援"
-                    secondary="小説の世界観や設定を詳細に作り込むための各種ツールを提供します。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="タイムライン管理"
-                    secondary="物語の時系列を視覚的に管理し、整合性を保ちながら創作できます。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="AIアシスタント連携"
-                    secondary="創作過程でAIアシスタントからアドバイスやアイデアを得られます。"
-                  />
-                </ListItem>
-              </List>
-            </StyledPaper>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <StyledPaper>
-              <Typography variant="h5" component="h2" gutterBottom>
-                使い方
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="1. プロジェクトの作成"
-                    secondary="「新規プロジェクト」ボタンから小説のプロジェクトを作成します。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="2. 設定の作成"
-                    secondary="あらすじ、プロット、キャラクター、世界観などの設定を作成します。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="3. タイムラインの整理"
-                    secondary="物語の出来事を時系列順に配置し、整合性を確認します。"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="4. 執筆と編集"
-                    secondary="設定に基づいて執筆を進め、必要に応じてAIのサポートを受けられます。"
-                  />
-                </ListItem>
-              </List>
-            </StyledPaper>
-          </Box>
-        </Stack>
-      </Box>
-
-      {/* 新規プロジェクト作成ダイアログ */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>新規プロジェクト作成</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="プロジェクト名"
-            type="text"
-            fullWidth
-            value={newProjectTitle}
-            onChange={(e) => setNewProjectTitle(e.target.value)}
-            variant="outlined"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
-            キャンセル
-          </Button>
-          <Button
-            onClick={handleCreateProject}
-            color="primary"
-            variant="contained"
-            disabled={!newProjectTitle.trim()}
-          >
-            作成
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* プロジェクト削除確認ダイアログ */}
-      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>プロジェクトの削除</DialogTitle>
-        <DialogContent>
-          <Typography>このプロジェクトを削除してもよろしいですか？</Typography>
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            この操作は元に戻せません。
+        {/* 使用方法の説明 */}
+        <StyledPaper>
+          <Typography variant="h6" gutterBottom>
+            使用方法
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
-            キャンセル
-          </Button>
-          <Button
-            onClick={handleDeleteProject}
-            color="error"
-            variant="contained"
-          >
-            削除
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" gutterBottom>
+                📝 基本機能
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • キャンペーン作成・管理<br />
+                • PC・NPC・エネミーキャラクター管理<br />
+                • 世界観・拠点設定<br />
+                • セッション履歴管理
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" gutterBottom>
+                🎲 TRPG機能
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • リアルタイムセッション画面<br />
+                • ダイスロール機能<br />
+                • チャット・ログ管理<br />
+                • AI生成機能
+              </Typography>
+            </Grid>
+          </Grid>
+        </StyledPaper>
+
+        {/* 新規キャンペーン作成ダイアログ */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>新規キャンペーン作成</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="キャンペーン名"
+              fullWidth
+              variant="outlined"
+              value={newCampaignTitle}
+              onChange={(e) => setNewCampaignTitle(e.target.value)}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              margin="dense"
+              label="概要・説明"
+              fullWidth
+              multiline
+              rows={3}
+              variant="outlined"
+              value={newCampaignSummary}
+              onChange={(e) => setNewCampaignSummary(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>キャンセル</Button>
+            <Button 
+              onClick={handleCreateCampaign} 
+              variant="contained"
+              disabled={!newCampaignTitle.trim()}
+            >
+              作成
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* 削除確認ダイアログ */}
+        <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+          <DialogTitle>キャンペーンを削除</DialogTitle>
+          <DialogContent>
+            <Typography>
+              このキャンペーンを削除してもよろしいですか？<br />
+              この操作は元に戻せません。
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog}>キャンセル</Button>
+            <Button onClick={handleDeleteCampaign} color="error" variant="contained">
+              削除
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Container>
   );
 };

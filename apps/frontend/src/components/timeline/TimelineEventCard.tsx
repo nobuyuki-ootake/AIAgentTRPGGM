@@ -156,7 +156,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     noWrap
                     sx={{ mt: 0.25 }}
                   >
-                    関連プロット: {plotName}
+                    関連クエスト: {plotName}
                   </Typography>
                 )}
               </Box>
@@ -167,7 +167,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                 color="text.secondary"
                 sx={{ mr: 1, whiteSpace: "nowrap" }}
               >
-                {moment(event.date).format("YYYY/MM/DD")}
+                {moment(event.date).format("MM/DD HH:mm")}
               </Typography>
               <Tooltip title="編集">
                 <IconButton
@@ -190,7 +190,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
               >
                 <LocationIcon fontSize="small" color="action" />
                 <Typography variant="body2" color="text.secondary">
-                  {placeName}
+                  場所: {placeName}
                 </Typography>
               </Box>
             )}

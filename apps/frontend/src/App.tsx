@@ -10,6 +10,9 @@ import WorldBuildingPage from "./pages/WorldBuildingPage";
 import TimelinePage from "./pages/TimelinePage";
 import NewProjectPage from "./pages/NewProjectPage";
 import ProjectsPage from "./pages/ProjectsPage";
+import EnemyPage from "./pages/EnemyPage";
+import NPCPage from "./pages/NPCPage";
+import TRPGSessionPage from "./pages/TRPGSessionPage";
 import { appModeState, currentProjectState } from "./store/atoms";
 import { Toaster } from "sonner";
 import { WorldBuildingProvider } from "./contexts/WorldBuildingContext";
@@ -42,6 +45,12 @@ const MainContent = () => {
       return <TimelinePage />;
     case "writing":
       return <WritingPage />;
+    case "enemy":
+      return <EnemyPage />;
+    case "npc":
+      return <NPCPage />;
+    case "session":
+      return <TRPGSessionPage />;
     default:
       return <HomePage />;
   }
@@ -66,6 +75,9 @@ function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/new" element={<NewProjectPage />} />
             <Route path="/worldbuilding" element={<WorldBuildingPage />} />
+            <Route path="/enemy" element={<EnemyPage />} />
+            <Route path="/npc" element={<NPCPage />} />
+            <Route path="/session" element={<TRPGSessionPage />} />
           </Routes>
         </WorldBuildingProvider>
       </Router>

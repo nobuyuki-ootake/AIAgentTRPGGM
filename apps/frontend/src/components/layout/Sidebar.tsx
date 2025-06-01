@@ -22,6 +22,9 @@ import {
   Feedback as FeedbackIcon,
   ChevronLeft as ChevronLeftIcon,
   ExitToApp as ExitIcon,
+  Security as EnemyIcon,
+  Groups as NPCIcon,
+  PlayArrow as SessionIcon,
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import {
@@ -96,12 +99,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   };
 
   const menuItems = [
-    { mode: "synopsis" as AppMode, text: "あらすじ", icon: <SynopsisIcon /> },
-    { mode: "plot" as AppMode, text: "プロット", icon: <PlotIcon /> },
+    { mode: "synopsis" as AppMode, text: "キャンペーン背景", icon: <SynopsisIcon /> },
+    { mode: "plot" as AppMode, text: "クエスト", icon: <PlotIcon /> },
     {
       mode: "characters" as AppMode,
-      text: "キャラクター",
+      text: "パーティー",
       icon: <CharactersIcon />,
+    },
+    {
+      mode: "enemy" as AppMode,
+      text: "エネミー",
+      icon: <EnemyIcon />,
+    },
+    {
+      mode: "npc" as AppMode,
+      text: "NPC",
+      icon: <NPCIcon />,
     },
     {
       mode: "worldbuilding" as AppMode,
@@ -110,14 +123,14 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     },
     {
       mode: "timeline" as AppMode,
-      text: "タイムライン",
+      text: "セッション履歴",
       icon: <TimelineIcon />,
     },
-    { mode: "writing" as AppMode, text: "本文執筆", icon: <WritingIcon /> },
+    { mode: "writing" as AppMode, text: "セッションノート", icon: <WritingIcon /> },
     {
-      mode: "feedback" as AppMode,
-      text: "想定読者",
-      icon: <FeedbackIcon />,
+      mode: "session" as AppMode,
+      text: "TRPGセッション",
+      icon: <SessionIcon />,
     },
   ];
 

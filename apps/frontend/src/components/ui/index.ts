@@ -5,6 +5,7 @@ export { default as LoadingOverlay } from "./LoadingOverlay";
 export { default as ErrorDisplay } from "./ErrorDisplay";
 export { default as SearchableList } from "./SearchableList";
 export { ProgressSnackbar } from "./ProgressSnackbar";
+export { TabPanel, default as TabPanelDefault } from "./TabPanel";
 
 // 既存のコンポーネントも参照
 export { AIAssistButton } from "./AIAssistButton";

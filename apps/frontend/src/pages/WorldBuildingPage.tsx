@@ -25,6 +25,7 @@ import RulesTab from "../components/worldbuilding/RulesTab";
 import PlacesTab from "../components/worldbuilding/PlacesTab";
 import FreeFieldsTab from "../components/worldbuilding/FreeFieldsTab";
 import CharacterStatusList from "../components/characters/CharacterStatusList";
+import BaseTab from "../components/worldbuilding/BaseTab";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { useRecoilValue } from "recoil";
 import { currentProjectState } from "../store/atoms";
@@ -456,6 +457,18 @@ ${
             }
             sx={{ fontWeight: tabValue === 9 ? "bold" : "normal" }}
           />
+          <Tab
+            label={
+              updatedTabs[10] ? (
+                <Badge color="secondary" variant="dot">
+                  拠点
+                </Badge>
+              ) : (
+                "拠点"
+              )
+            }
+            sx={{ fontWeight: tabValue === 10 ? "bold" : "normal" }}
+          />
         </Tabs>
 
         {/* ワールドマップタブ */}
@@ -534,6 +547,11 @@ ${
               }}
             />
           </Box>
+        </TabPanel>
+
+        {/* 拠点タブ */}
+        <TabPanel value={tabValue} index={10}>
+          <BaseTab />
         </TabPanel>
       </Paper>
 

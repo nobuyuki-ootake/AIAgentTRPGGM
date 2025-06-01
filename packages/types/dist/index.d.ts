@@ -1,18 +1,25 @@
 import type { Descendant } from "slate";
-export interface NovelProject {
+export interface TRPGCampaign {
     id: string;
     title: string;
     createdAt: Date;
     updatedAt: Date;
+    gameSystem: string;
+    gamemaster: string;
+    players: Player[];
     synopsis: string;
-    plot: PlotElement[];
-    characters: Character[];
+    plot: QuestElement[];
+    characters: TRPGCharacter[];
     worldBuilding: WorldBuilding;
-    timeline: TimelineEvent[];
-    chapters: Chapter[];
+    timeline: SessionEvent[];
+    sessions: GameSession[];
+    enemies: EnemyCharacter[];
+    npcs: NPCCharacter[];
+    rules: CampaignRule[];
+    handouts: Handout[];
     feedback: Feedback[];
     definedCharacterStatuses?: CharacterStatus[];
-    metadata?: ProjectMetadata;
+    metadata?: CampaignMetadata;
     notes?: {
         id: string;
         title: string;
@@ -21,6 +28,31 @@ export interface NovelProject {
         updatedAt: Date;
         tags?: string[];
     }[];
+}
+export interface NovelProject extends TRPGCampaign {
+    chapters: Chapter[];
+}
+export interface Player {
+    id: string;
+    name: string;
+    email?: string;
+    characterIds: string[];
+    isOnline?: boolean;
+    lastSeen?: Date;
+}
+export interface QuestElement {
+    id: string;
+    title: string;
+    description: string;
+    order: number;
+    status: "未開始" | "進行中" | "完了" | "失敗" | "保留";
+    questType: "メイン" | "サブ" | "個人" | "隠し";
+    difficulty: 1 | 2 | 3 | 4 | 5;
+    rewards?: string[];
+    prerequisites?: string[];
+    sessionId?: string;
+    relatedCharacterIds?: string[];
+    relatedPlaceIds?: string[];
 }
 export interface PlotElement {
     id: string;
@@ -46,6 +78,113 @@ export interface CharacterStatus {
     type: "life" | "abnormal" | "custom";
     mobility: "normal" | "slow" | "impossible";
     description?: string;
+}
+export interface CharacterStats {
+    strength: number;
+    dexterity: number;
+    constitution: number;
+    intelligence: number;
+    wisdom: number;
+    charisma: number;
+    hitPoints: {
+        current: number;
+        max: number;
+        temp: number;
+    };
+    manaPoints?: {
+        current: number;
+        max: number;
+    };
+    armorClass: number;
+    speed: number;
+    level: number;
+    experience: number;
+    proficiencyBonus?: number;
+}
+export interface Equipment {
+    id: string;
+    name: string;
+    type: "weapon" | "armor" | "accessory" | "consumable" | "tool" | "misc";
+    description?: string;
+    quantity: number;
+    weight?: number;
+    value?: number;
+    equipped?: boolean;
+    enchantments?: string[];
+}
+export interface Skill {
+    id: string;
+    name: string;
+    type: "skill" | "spell" | "ability";
+    description: string;
+    level?: number;
+    cost?: string;
+    damage?: string;
+    range?: string;
+    duration?: string;
+    cooldown?: number;
+}
+export interface CharacterProgression {
+    id: string;
+    sessionId: string;
+    date: Date;
+    description: string;
+    experienceGained: number;
+    levelUp?: boolean;
+    newSkills?: string[];
+    statChanges?: Partial<CharacterStats>;
+}
+export interface TRPGCharacter {
+    id: string;
+    name: string;
+    characterType: "PC" | "NPC" | "Enemy";
+    playerName?: string;
+    race?: string;
+    class?: string;
+    background?: string;
+    alignment?: string;
+    gender?: string;
+    age?: string;
+    appearance?: string;
+    personality?: string;
+    motivation?: string;
+    stats: CharacterStats;
+    skills: Skill[];
+    equipment: Equipment[];
+    progression: CharacterProgression[];
+    traits: CharacterTrait[];
+    relationships: Relationship[];
+    imageUrl?: string;
+    customFields?: CustomField[];
+    statuses?: CharacterStatus[];
+    notes?: string;
+}
+export interface PlayerCharacter extends TRPGCharacter {
+    characterType: "PC";
+    playerName: string;
+    backstory: string;
+    goals: string[];
+    bonds: string[];
+    flaws: string[];
+    ideals: string[];
+}
+export interface NPCCharacter extends TRPGCharacter {
+    characterType: "NPC";
+    location?: string;
+    occupation?: string;
+    attitude: "friendly" | "neutral" | "hostile" | "unknown";
+    knowledge?: string[];
+    services?: string[];
+    questIds?: string[];
+}
+export interface EnemyCharacter extends TRPGCharacter {
+    characterType: "Enemy";
+    enemyType: "mob" | "elite" | "boss";
+    challengeRating: number;
+    tactics?: string;
+    loot?: Equipment[];
+    spawnLocations?: string[];
+    behaviorPattern?: string;
 }
 export interface Character {
     id: string;
@@ -94,6 +233,80 @@ export interface WorldBuilding {
     };
     worldMapImageUrl?: string;
     description?: string;
+}
+export interface GameSession {
+    id: string;
+    sessionNumber: number;
+    title: string;
+    date: Date;
+    duration: number;
+    attendees: string[];
+    gamemaster: string;
+    synopsis?: string;
+    content: Descendant[];
+    events: SessionEvent[];
+    combats: CombatEncounter[];
+    questsAdvanced: string[];
+    questsCompleted: string[];
+    experienceAwarded: number;
+    status: "planned" | "inProgress" | "completed" | "cancelled";
+    notes?: string;
+}
+export interface SessionEvent {
+    id: string;
+    title: string;
+    description: string;
+    sessionDay: number;
+    sessionTime?: string;
+    relatedCharacters: string[];
+    relatedPlaces: string[];
+    order: number;
+    eventType: "combat" | "roleplay" | "exploration" | "puzzle" | "social" | "discovery" | "rest";
+    outcome?: "success" | "failure" | "partial" | "ongoing";
+    postEventCharacterStatuses?: {
+        [characterId: string]: CharacterStatus[];
+    };
+    relatedQuestIds?: string[];
+    placeId?: string;
+    experienceAwarded?: number;
+    lootGained?: Equipment[];
+}
+export interface CombatEncounter {
+    id: string;
+    name: string;
+    sessionId: string;
+    participants: CombatParticipant[];
+    round: number;
+    status: "planning" | "active" | "completed";
+    initiative: InitiativeOrder[];
+    battlemap?: string;
+    conditions?: CombatCondition[];
+    summary?: string;
+    experienceAwarded?: number;
+    lootDropped?: Equipment[];
+}
+export interface CombatParticipant {
+    characterId: string;
+    characterType: "PC" | "NPC" | "Enemy";
+    initiative: number;
+    currentHP: number;
+    maxHP: number;
+    conditions: string[];
+    position?: {
+        x: number;
+        y: number;
+    };
+}
+export interface InitiativeOrder {
+    characterId: string;
+    initiative: number;
+    hasActed: boolean;
+}
+export interface CombatCondition {
+    name: string;
+    description: string;
+    duration: number;
+    effects: string[];
 }
 export interface TimelineEvent {
     id: string;
@@ -168,8 +381,43 @@ export interface TimelineSettings {
  * プロジェクトの状態を表す型
  */
 export type ProjectStatus = "active" | "archived" | "template";
+export interface CampaignRule {
+    id: string;
+    name: string;
+    category: "house_rule" | "variant" | "custom" | "clarification";
+    description: string;
+    details: string;
+    appliesTo?: string[];
+    isActive: boolean;
+}
+export interface Handout {
+    id: string;
+    title: string;
+    content: string;
+    type: "info" | "map" | "image" | "rules" | "quest" | "letter" | "other";
+    isPublic: boolean;
+    recipientIds?: string[];
+    imageUrl?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface CampaignMetadata {
+    version: string;
+    tags?: string[];
+    genre?: string[];
+    difficulty: "beginner" | "intermediate" | "advanced" | "expert";
+    estimatedSessions?: number;
+    targetPlayers: {
+        min: number;
+        max: number;
+    };
+    status: CampaignStatus;
+    lastBackupDate?: string;
+    totalPlayTime?: number;
+}
+export type CampaignStatus = "planning" | "active" | "paused" | "completed" | "archived";
 /**
- * プロジェクトのメタデータ
+ * プロジェクトのメタデータ（後方互換性のため維持）
  */
 export interface ProjectMetadata {
     version: string;

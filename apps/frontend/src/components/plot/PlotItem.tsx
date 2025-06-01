@@ -16,6 +16,7 @@ import {
   DragIndicator as DragIcon,
 } from "@mui/icons-material";
 import { PlotElement } from "@novel-ai-assistant/types";
+import { CalendarMonth, EmojiEvents, CheckCircle } from "@mui/icons-material";
 
 interface PlotItemProps {
   item: PlotElement;
@@ -42,8 +43,10 @@ const PlotItem: React.FC<PlotItemProps> = ({
         display: "flex",
         alignItems: "flex-start",
         borderLeft: `6px solid ${
-          item.status === "決定" ? "primary.main" : "grey.400"
+          item.status === "決定" ? "success.main" : "warning.main"
         }`,
+        backgroundColor: item.status === "決定" ? "success.light" : "transparent",
+        opacity: item.status === "決定" ? 0.9 : 1,
       }}
     >
       <Box sx={{ mr: 1, color: "grey.500" }}>
@@ -57,9 +60,16 @@ const PlotItem: React.FC<PlotItemProps> = ({
             mb: 1,
           }}
         >
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            {item.title}
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 1 }}>
+            {item.status === "決定" ? (
+              <CheckCircle color="success" fontSize="small" />
+            ) : (
+              <EmojiEvents color="warning" fontSize="small" />
+            )}
+            <Typography variant="h6">
+              {item.title}
+            </Typography>
+          </Box>
           <FormControl size="small" sx={{ minWidth: 100, mr: 1 }}>
             <InputLabel id={`status-label-${item.id}`}>ステータス</InputLabel>
             <Select
@@ -73,16 +83,16 @@ const PlotItem: React.FC<PlotItemProps> = ({
                 )
               }
             >
-              <MenuItem value="決定">決定</MenuItem>
-              <MenuItem value="検討中">検討中</MenuItem>
+              <MenuItem value="決定">完了</MenuItem>
+              <MenuItem value="検討中">未実施</MenuItem>
             </Select>
           </FormControl>
           <IconButton onClick={() => onDelete(item.id)} color="error">
             <DeleteIcon />
           </IconButton>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          {item.description || "詳細なし"}
+        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "pre-wrap" }}>
+          {item.description || "クエスト詳細が設定されていません"}
         </Typography>
         <Button size="small" onClick={() => onEdit(item)} sx={{ mt: 1 }}>
           編集

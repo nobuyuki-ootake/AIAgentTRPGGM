@@ -1,23 +1,27 @@
-import { NovelProject, PlaceElement } from "@novel-ai-assistant/types";
+import { TRPGCampaign, NovelProject, PlaceElement, GameSession } from "@novel-ai-assistant/types";
 import {
   atom,
   // RecoilEnv, // 未使用のためコメントアウト (または削除)
   // DefaultValue, // 未使用のためコメントアウト
 } from "recoil";
 
-// 現在選択されているプロジェクトのID
-export const currentProjectIdState = atom<string | null>({
-  key: "currentProjectId",
+// 現在選択されているキャンペーンのID
+export const currentCampaignIdState = atom<string | null>({
+  key: "currentCampaignId",
   default: null,
 });
 
-// 現在のプロジェクト
-export const currentProjectState = atom<NovelProject | null>({
-  key: "currentProject",
+// 現在のキャンペーン
+export const currentCampaignState = atom<TRPGCampaign | null>({
+  key: "currentCampaign",
   default: null,
 });
 
-// アプリの現在のモード（プロット、キャラクター、章など）
+// 互換性のために旧名も一時的に保持
+export const currentProjectIdState = currentCampaignIdState;
+export const currentProjectState = currentCampaignState;
+
+// アプリの現在のモード（プロット、キャラクター、セッションなど）
 export type AppMode =
   | "synopsis"
   | "plot"
@@ -25,18 +29,25 @@ export type AppMode =
   | "worldbuilding"
   | "timeline"
   | "writing"
-  | "feedback";
+  | "feedback"
+  | "enemy"
+  | "npc"
+  | "session"
+  | "home";
 
 export const appModeState = atom<AppMode>({
   key: "appMode",
   default: "synopsis",
 });
 
-// 現在選択されている章のID
-export const currentChapterIdState = atom<string | null>({
-  key: "currentChapterId",
+// 現在選択されているセッションのID
+export const currentSessionIdState = atom<string | null>({
+  key: "currentSessionId",
   default: null,
 });
+
+// 互換性のために旧名も一時的に保持
+export const currentChapterIdState = currentSessionIdState;
 
 // AIアシスタントとの会話履歴
 export interface Message {
@@ -74,7 +85,7 @@ export const aiChatPanelOpenState = atom<boolean>({
 // 選択された要素のID一覧を格納するステート
 export interface SelectedElement {
   id: string;
-  type: "plot" | "character" | "chapter" | "worldbuilding";
+  type: "plot" | "character" | "chapter" | "worldbuilding" | "enemy" | "npc" | "quest";
   content: {
     title: string;
     description?: string;
@@ -187,5 +198,29 @@ export const worldBuildingForceUpdateCounterState = atom<number>({
 
 export const pendingPlacesState = atom<PlaceElement[]>({
   key: "pendingPlacesState",
+  default: [],
+});
+
+// 開発者モードの状態管理
+export const developerModeState = atom<boolean>({
+  key: "developerMode",
+  default: false,
+});
+
+// TRPGセッションの状態管理
+export const sessionStateAtom = atom<GameSession | null>({
+  key: "sessionState",
+  default: null,
+});
+
+// 敵キャラクターの状態管理
+export const enemiesStateAtom = atom<any[]>({
+  key: "enemiesState",
+  default: [],
+});
+
+// NPCの状態管理
+export const npcsStateAtom = atom<any[]>({
+  key: "npcsState",
   default: [],
 });

@@ -143,13 +143,13 @@ const TimelinePage: React.FC = () => {
       }
 
       if (targetPlot) {
-        prompt += `プロット「${targetPlot.title}」において、`;
+        prompt += `クエスト「${targetPlot.title}」において、`;
       } else if (allPlots && allPlots.length > 0) {
         // フォールバック: selectedPlotId がない場合や見つからなかった場合
         const fallbackPlot = allPlots.find((p) => p.title) || allPlots[0];
-        prompt += `プロット「${fallbackPlot.title}」において、`;
+        prompt += `クエスト「${fallbackPlot.title}」において、`;
       } else {
-        prompt += "物語の次の展開として、";
+        prompt += "TRPGセッションの次の展開として、";
       }
 
       if (characters && characters.length > 0) {
@@ -159,12 +159,12 @@ const TimelinePage: React.FC = () => {
           .filter((name) => name)
           .join("と");
         if (mainChars) {
-          prompt += `${mainChars}が関わる重要な出来事を3つ提案してください。`;
+          prompt += `${mainChars}が関わるセッションイベントを3つ提案してください。エンカウンター、NPCとの会話、クエストの進展など。`;
         } else {
-          prompt += "登場人物が関わる重要な出来事を3つ提案してください。";
+          prompt += "パーティーが関わるセッションイベントを3つ提案してください。";
         }
       } else {
-        prompt += "何らかの重要な出来事を3つ提案してください。";
+        prompt += "セッション中のイベントを3つ提案してください。";
       }
       return prompt;
     },

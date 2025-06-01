@@ -1,13 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRecoilState } from "recoil";
-import { currentProjectState } from "../store/atoms";
+import { currentCampaignState } from "../store/atoms";
 import {
+  TRPGCharacter,
   Character,
   CustomField,
   CharacterTrait,
   Relationship,
   CharacterStatus,
   NovelProject,
+  TRPGCampaign,
+  CharacterStats,
+  Skill,
+  Equipment,
+  CharacterProgression,
 } from "@novel-ai-assistant/types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -24,26 +30,86 @@ const dataUrlToEmoji = (dataUrl: string): string | null => {
   return decodeURIComponent(dataUrl.split(",")[1]);
 };
 
-// キャラクター型を変換する関数
-const convertToIndexCharacter = (character: Character): Character => {
+// TRPGキャラクター型を変換する関数
+const convertToTRPGCharacter = (character: TRPGCharacter): TRPGCharacter => {
   // traitsはそのまま
   const traits = character.traits || [];
   // relationshipsもそのまま
   const relationships = character.relationships || [];
+  
+  // 基本ステータスの初期化
+  const defaultStats: CharacterStats = {
+    strength: 10,
+    dexterity: 10,
+    constitution: 10,
+    intelligence: 10,
+    wisdom: 10,
+    charisma: 10,
+    hitPoints: { current: 10, max: 10, temp: 0 },
+    manaPoints: { current: 0, max: 0 },
+    armorClass: 10,
+    speed: 30,
+    level: 1,
+    experience: 0,
+    proficiencyBonus: 2,
+  };
+  
   return {
     ...character,
+    characterType: character.characterType || "NPC",
+    stats: character.stats || defaultStats,
+    skills: character.skills || [],
+    equipment: character.equipment || [],
+    progression: character.progression || [],
     traits,
     relationships,
+  };
+};
+
+// 後方互換性のための変換関数
+const convertLegacyCharacter = (character: Character): TRPGCharacter => {
+  const defaultStats: CharacterStats = {
+    strength: 10,
+    dexterity: 10,
+    constitution: 10,
+    intelligence: 10,
+    wisdom: 10,
+    charisma: 10,
+    hitPoints: { current: 10, max: 10, temp: 0 },
+    manaPoints: { current: 0, max: 0 },
+    armorClass: 10,
+    speed: 30,
+    level: 1,
+    experience: 0,
+    proficiencyBonus: 2,
+  };
+  
+  return {
+    ...character,
+    characterType: "NPC" as const,
+    stats: defaultStats,
+    skills: [],
+    equipment: [],
+    progression: [],
+    race: "",
+    class: "",
+    background: character.background || "",
+    alignment: "",
+    age: "",
+    appearance: character.description || "",
+    personality: "",
+    motivation: character.motivation || "",
+    notes: "",
   };
 };
 
 export function useCharacters() {
   // Recoilの状態
   const [currentProject, setCurrentProject] =
-    useRecoilState(currentProjectState);
+    useRecoilState(currentCampaignState);
 
   // ローカルの状態
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const [characters, setCharacters] = useState<TRPGCharacter[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
   const [openDialog, setOpenDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -57,30 +123,53 @@ export function useCharacters() {
   >("success");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // 新規キャラクター用の初期状態
-  const initialCharacterState: Partial<Character> & {
+  // 新規TRPGキャラクター用の初期状態
+  const initialCharacterState: Partial<TRPGCharacter> & {
     id: string;
     name: string;
-    role: "protagonist" | "antagonist" | "supporting";
+    characterType: "PC" | "NPC" | "Enemy";
   } = {
     id: "",
     name: "",
-    role: "supporting",
-    gender: "",
-    birthDate: "",
-    description: "",
+    characterType: "NPC",
+    race: "",
+    class: "",
     background: "",
+    alignment: "",
+    gender: "",
+    age: "",
+    appearance: "",
+    personality: "",
     motivation: "",
+    stats: {
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10,
+      hitPoints: { current: 10, max: 10, temp: 0 },
+      manaPoints: { current: 0, max: 0 },
+      armorClass: 10,
+      speed: 30,
+      level: 1,
+      experience: 0,
+      proficiencyBonus: 2,
+    },
+    skills: [],
+    equipment: [],
+    progression: [],
     traits: [],
     relationships: [],
     imageUrl: "",
     customFields: [],
     statuses: [],
+    notes: "",
   };
 
   // フォーム入力用の状態
-  const [formData, setFormData] = useState<Character>({
-    ...(initialCharacterState as Character),
+  const [formData, setFormData] = useState<TRPGCharacter>({
+    ...(initialCharacterState as TRPGCharacter),
   });
   const [newTrait, setNewTrait] = useState("");
   const [newCustomField, setNewCustomField] = useState<CustomField>({
@@ -89,54 +178,18 @@ export function useCharacters() {
     value: "",
   });
 
-  // プロジェクトからキャラクターを読み込む
+  // プロジェクト（キャンペーン）からキャラクターを読み込む
   useEffect(() => {
     if (currentProject?.characters) {
       // キャラクターデータの互換性を確保
       const convertedCharacters = currentProject.characters.map((character) => {
-        // traitsがstring[]の場合はCharacterTrait[]に変換
-        const traits = Array.isArray(character.traits)
-          ? character.traits.map((trait) => {
-              if (typeof trait === "string") {
-                return {
-                  id: uuidv4(),
-                  name: trait,
-                  value: "",
-                } as CharacterTrait;
-              }
-              // valueがundefinedの場合は空文字に補正
-              return {
-                ...trait,
-                value: trait.value ?? "",
-              } as CharacterTrait;
-            })
-          : [];
-        // relationshipsが旧型の場合はRelationship[]に変換
-        const relationships = Array.isArray(character.relationships)
-          ? character.relationships.map((rel) => {
-              if ("characterId" in rel) {
-                return {
-                  id: uuidv4(),
-                  targetCharacterId: rel.characterId,
-                  type:
-                    "type" in rel
-                      ? rel.type
-                      : "relationshipType" in rel
-                      ? (rel as { relationshipType?: string })
-                          .relationshipType ?? ""
-                      : "",
-                  description: rel.description || "",
-                } as Relationship;
-              }
-              return rel as Relationship;
-            })
-          : [];
-        return {
-          ...character,
-          traits,
-          relationships,
-          statuses: character.statuses || [],
-        } as Character;
+        // 既にTRPGCharacter型の場合はそのまま使用
+        if ('characterType' in character && 'stats' in character) {
+          return convertToTRPGCharacter(character as TRPGCharacter);
+        }
+        
+        // 古いCharacter型の場合はTRPGCharacterに変換
+        return convertLegacyCharacter(character as Character);
       });
       setCharacters(convertedCharacters);
     }
@@ -152,35 +205,24 @@ export function useCharacters() {
     []
   );
 
-  // ダイアログを開く（新規作成）
-  const handleOpenDialog = useCallback(() => {
-    setFormData({
-      ...(initialCharacterState as Character),
-      id: uuidv4(),
-      statuses: [],
-    });
-    setTempImageUrl("");
-    setSelectedEmoji("");
-    setFormErrors({});
-    setEditMode(false);
-    setOpenDialog(true);
-    setHasUnsavedChanges(false);
-  }, [initialCharacterState]);
-
   // ダイアログを開く（編集）
   const handleEditCharacter = useCallback(
-    (character: Character) => {
+    (character: TRPGCharacter) => {
       // 必須フィールドを確保
       const ensuredCharacter = {
         ...initialCharacterState,
         ...character,
-        description: character.description || "",
+        appearance: character.appearance || "",
         background: character.background || "",
         motivation: character.motivation || "",
         relationships: character.relationships || [],
         traits: character.traits || [],
         customFields: character.customFields || [],
         statuses: character.statuses || [],
+        stats: character.stats || initialCharacterState.stats,
+        skills: character.skills || [],
+        equipment: character.equipment || [],
+        progression: character.progression || [],
       };
 
       setFormData(ensuredCharacter);
@@ -202,6 +244,31 @@ export function useCharacters() {
     },
     [initialCharacterState]
   );
+
+  // ダイアログを開く（新規作成）
+  const handleOpenDialog = useCallback((characterId?: string) => {
+    // characterIdが渡された場合は既存キャラクターを編集
+    if (characterId) {
+      const character = characters.find(c => c.id === characterId);
+      if (character) {
+        handleEditCharacter(character);
+        return;
+      }
+    }
+    
+    // 新規作成の場合
+    setFormData({
+      ...(initialCharacterState as TRPGCharacter),
+      id: uuidv4(),
+      statuses: [],
+    });
+    setTempImageUrl("");
+    setSelectedEmoji("");
+    setFormErrors({});
+    setEditMode(false);
+    setOpenDialog(true);
+    setHasUnsavedChanges(false);
+  }, [initialCharacterState, characters, handleEditCharacter]);
 
   // ダイアログを閉じる
   const handleCloseDialog = useCallback(() => {
@@ -387,8 +454,8 @@ export function useCharacters() {
       errors.name = "名前は必須です";
     }
 
-    if (!formData.role) {
-      errors.role = "役割は必須です";
+    if (!formData.characterType) {
+      errors.characterType = "キャラクタータイプは必須です";
     }
 
     setFormErrors(errors);
@@ -400,7 +467,7 @@ export function useCharacters() {
     // バリデーション
     if (!validateForm() || !currentProject) return;
 
-    const characterToSave: Character = {
+    const characterToSave: TRPGCharacter = {
       ...formData,
       statuses: formData.statuses || [],
     };
@@ -450,7 +517,7 @@ export function useCharacters() {
     setHasUnsavedChanges(false);
 
     // フォームをリセット
-    setFormData({ ...(initialCharacterState as Character) });
+    setFormData({ ...(initialCharacterState as TRPGCharacter) });
     setTempImageUrl("");
     setSelectedEmoji("");
 
@@ -553,7 +620,7 @@ export function useCharacters() {
 
   // キャラクター即時追加
   const addCharacter = useCallback(
-    (character: Character) => {
+    (character: TRPGCharacter) => {
       try {
         console.log("キャラクター追加:", character.name); // デバッグ用
 
@@ -569,7 +636,7 @@ export function useCharacters() {
             (c) => c.id === character.id
           );
 
-          let updatedCharacters: Character[];
+          let updatedCharacters: TRPGCharacter[];
           if (existingIndex >= 0) {
             // 既存のキャラクターを更新
             updatedCharacters = [...prevCharacters];
@@ -643,6 +710,111 @@ export function useCharacters() {
     [setCurrentProject] // charactersを依存配列から削除
   );
 
+  // AI応答からキャラクターを解析する関数
+  const parseAIResponseToCharacters = useCallback((response: string): TRPGCharacter[] => {
+    try {
+      // JSONオブジェクトの配列として解析を試行
+      if (response.trim().startsWith('[')) {
+        const parsed = JSON.parse(response);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item: any) => convertToTRPGCharacter({
+            id: item.id || uuidv4(),
+            name: item.name || "未設定",
+            characterType: item.characterType || "NPC",
+            race: item.race || "",
+            class: item.class || "",
+            background: item.background || "",
+            alignment: item.alignment || "",
+            gender: item.gender || "",
+            age: item.age || "",
+            appearance: item.appearance || item.description || "",
+            personality: item.personality || "",
+            motivation: item.motivation || "",
+            stats: item.stats || initialCharacterState.stats!,
+            skills: item.skills || [],
+            equipment: item.equipment || [],
+            progression: item.progression || [],
+            traits: item.traits || [],
+            relationships: item.relationships || [],
+            imageUrl: item.imageUrl || "",
+            customFields: item.customFields || [],
+            statuses: item.statuses || [],
+            notes: item.notes || "",
+          }));
+        }
+      }
+      
+      // テキスト形式の解析（行ベース）
+      const lines = response.split('\n').filter(line => line.trim());
+      const characters: TRPGCharacter[] = [];
+      let currentCharacter: Partial<TRPGCharacter> | null = null;
+      
+      for (const line of lines) {
+        if (line.includes('名前:') || line.includes('キャラクター名:')) {
+          // 前のキャラクターを保存
+          if (currentCharacter && currentCharacter.name) {
+            characters.push(convertToTRPGCharacter({
+              ...initialCharacterState,
+              ...currentCharacter,
+              id: uuidv4(),
+            } as TRPGCharacter));
+          }
+          // 新しいキャラクター開始
+          currentCharacter = {
+            name: line.split(':')[1]?.trim() || "未設定",
+            characterType: "NPC",
+          };
+        } else if (currentCharacter) {
+          // キャラクター情報の解析
+          if (line.includes('種族:')) {
+            currentCharacter.race = line.split(':')[1]?.trim();
+          } else if (line.includes('クラス:') || line.includes('職業:')) {
+            currentCharacter.class = line.split(':')[1]?.trim();
+          } else if (line.includes('性別:')) {
+            currentCharacter.gender = line.split(':')[1]?.trim();
+          } else if (line.includes('年齢:')) {
+            currentCharacter.age = line.split(':')[1]?.trim();
+          } else if (line.includes('外見:') || line.includes('容姿:')) {
+            currentCharacter.appearance = line.split(':')[1]?.trim();
+          } else if (line.includes('性格:')) {
+            currentCharacter.personality = line.split(':')[1]?.trim();
+          } else if (line.includes('動機:') || line.includes('目標:')) {
+            currentCharacter.motivation = line.split(':')[1]?.trim();
+          } else if (line.includes('背景:') || line.includes('経歴:')) {
+            currentCharacter.background = line.split(':')[1]?.trim();
+          }
+        }
+      }
+      
+      // 最後のキャラクターを保存
+      if (currentCharacter && currentCharacter.name) {
+        characters.push(convertToTRPGCharacter({
+          ...initialCharacterState,
+          ...currentCharacter,
+          id: uuidv4(),
+        } as TRPGCharacter));
+      }
+      
+      return characters;
+    } catch (error) {
+      console.error('AI応答の解析エラー:', error);
+      return [];
+    }
+  }, [initialCharacterState]);
+
+  // PC/NPCフィルタリング関数
+  const getPCs = useCallback(() => {
+    return characters.filter(c => c.characterType === 'PC');
+  }, [characters]);
+
+  const getNPCs = useCallback(() => {
+    return characters.filter(c => c.characterType === 'NPC');
+  }, [characters]);
+
+  const getEnemies = useCallback(() => {
+    return characters.filter(c => c.characterType === 'Enemy');
+  }, [characters]);
+
   return {
     characters,
     viewMode,
@@ -658,6 +830,7 @@ export function useCharacters() {
     snackbarOpen,
     snackbarMessage,
     snackbarSeverity,
+    currentProject,
     handleViewModeChange,
     handleOpenDialog,
     handleEditCharacter,
@@ -681,5 +854,9 @@ export function useCharacters() {
     dataUrlToEmoji,
     setFormData,
     addCharacter,
+    parseAIResponseToCharacters,
+    getPCs,
+    getNPCs,
+    getEnemies,
   };
 }

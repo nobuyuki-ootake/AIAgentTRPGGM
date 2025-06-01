@@ -9,9 +9,10 @@ import {
   appModeState,
 } from "../store/atoms";
 import { useEffect } from "react";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 
 const ProjectsPage = () => {
+  // Convert to Campaign page for TRPG
   const navigate = useNavigate();
   const setCurrentProject = useSetRecoilState(currentProjectState);
   const setSidebarOpen = useSetRecoilState(sidebarOpenState);
@@ -20,77 +21,77 @@ const ProjectsPage = () => {
 
   // サイドバーとチャットパネルを表示しない
   useEffect(() => {
-    console.log("ProjectsPage - サイドバーとチャットパネルを非表示にします");
+    console.log("CampaignsPage - サイドバーとチャットパネルを非表示にします");
     setSidebarOpen(false);
     setChatPanelOpen(false);
   }, [setSidebarOpen, setChatPanelOpen]);
 
   const handleProjectSelect = (projectId: string) => {
     console.log(
-      "ProjectsPage - プロジェクト選択ハンドラが呼ばれました:",
+      "CampaignsPage - キャンペーン選択ハンドラが呼ばれました:",
       projectId
     );
 
-    // ローカルストレージからプロジェクトを取得
-    const projectsStr = localStorage.getItem("novelProjects");
+    // ローカルストレージからキャンペーンを取得
+    const projectsStr = localStorage.getItem("trpgCampaigns");
     console.log(
-      "ProjectsPage - LocalStorageからデータ取得:",
+      "CampaignsPage - LocalStorageからデータ取得:",
       projectsStr ? "データあり" : "データなし"
     );
 
     if (projectsStr) {
       try {
-        const projects = JSON.parse(projectsStr) as NovelProject[];
+        const projects = JSON.parse(projectsStr) as TRPGCampaign[];
         console.log(
-          "ProjectsPage - パースしたプロジェクト数:",
+          "CampaignsPage - パースしたキャンペーン数:",
           projects.length
         );
 
         const project = projects.find((p) => p.id === projectId);
         console.log(
-          "ProjectsPage - 見つかったプロジェクト:",
+          "CampaignsPage - 見つかったキャンペーン:",
           project ? project.title : "見つかりません"
         );
 
         if (project) {
           // Recoilステートに設定
           console.log(
-            "ProjectsPage - Recoilステートにプロジェクト設定:",
+            "CampaignsPage - Recoilステートにキャンペーン設定:",
             project.title
           );
           setCurrentProject(project);
 
           // アプリモードをシノプシスに設定
-          console.log("ProjectsPage - アプリモードをsynopsisに設定");
+          console.log("CampaignsPage - アプリモードをsynopsisに設定");
           setAppMode("synopsis");
 
-          // ローカルストレージにも現在のプロジェクトIDを保存
+          // ローカルストレージにも現在のキャンペーンIDを保存
           console.log(
-            "ProjectsPage - LocalStorageにcurrentProjectId保存:",
+            "CampaignsPage - LocalStorageにcurrentCampaignId保存:",
             projectId
           );
-          localStorage.setItem("currentProjectId", projectId);
+          localStorage.setItem("currentCampaignId", projectId);
 
           // サイドバーとチャットパネルを表示する
-          console.log("ProjectsPage - サイドバーとチャットパネルを表示");
+          console.log("CampaignsPage - サイドバーとチャットパネルを表示");
           setSidebarOpen(true);
           setChatPanelOpen(true);
 
           // シノプシスページへナビゲート
-          console.log("ProjectsPage - シノプシスページへナビゲート開始");
+          console.log("CampaignsPage - シノプシスページへナビゲート開始");
           navigate("/synopsis");
-          console.log("ProjectsPage - ナビゲーション完了");
+          console.log("CampaignsPage - ナビゲーション完了");
         } else {
           console.error(
-            "ProjectsPage - プロジェクトが見つかりません:",
+            "CampaignsPage - キャンペーンが見つかりません:",
             projectId
           );
         }
       } catch (error) {
-        console.error("ProjectsPage - プロジェクトの読み込みエラー:", error);
+        console.error("CampaignsPage - キャンペーンの読み込みエラー:", error);
       }
     } else {
-      console.error("ProjectsPage - novelProjectsがLocalStorageに存在しません");
+      console.error("CampaignsPage - trpgCampaignsがLocalStorageに存在しません");
     }
   };
 
