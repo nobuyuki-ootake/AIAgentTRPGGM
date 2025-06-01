@@ -1,8 +1,8 @@
 {
-  "name": "novel-creation-agent-proxy",
+  "name": "trpg-ai-gm-proxy",
   "version": "0.1.0",
   "type": "module",
-  "description": "AI APIプロキシサーバー for 小説作成エージェント",
+  "description": "AI APIプロキシサーバー for TRPG AIエージェントGM",
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --exec \"tsx src/index.ts\"",

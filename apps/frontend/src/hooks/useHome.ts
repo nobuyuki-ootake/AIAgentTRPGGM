@@ -1,31 +1,40 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { currentProjectState } from "../store/atoms";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { currentCampaignState } from "../store/atoms";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 // import { LocalStorageManager } from "../utils/localStorage"; // 未使用のためコメントアウト
 
 export function useHome() {
-  const [projects, setProjects] = useState<NovelProject[]>([]);
-  const currentProject = useRecoilValue(currentProjectState);
-  const [, setCurrentProjectStateSetter] = useRecoilState(currentProjectState);
-  const [newProjectTitle, setNewProjectTitle] = useState("");
+  const [campaigns, setCampaigns] = useState<TRPGCampaign[]>([]);
+  const currentCampaign = useRecoilValue(currentCampaignState);
+  const [, setCurrentCampaignStateSetter] = useRecoilState(currentCampaignState);
+  const [newCampaignTitle, setNewCampaignTitle] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [campaignToDelete, setCampaignToDelete] = useState<string | null>(null);
 
-  // ローカルストレージからプロジェクト一覧を取得
+  // ローカルストレージからキャンペーン一覧を取得
   useEffect(() => {
-    const savedProjects = localStorage.getItem("novelProjects");
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
+    let savedCampaigns = localStorage.getItem("trpgCampaigns");
+    // 旧キーからの移行
+    if (!savedCampaigns) {
+      const legacyCampaigns = localStorage.getItem("novelProjects");
+      if (legacyCampaigns) {
+        savedCampaigns = legacyCampaigns;
+        localStorage.setItem("trpgCampaigns", legacyCampaigns);
+        localStorage.removeItem("novelProjects");
+      }
+    }
+    if (savedCampaigns) {
+      setCampaigns(JSON.parse(savedCampaigns));
     }
   }, []);
 
-  // プロジェクト一覧を保存
-  const saveProjects = (updatedProjects: NovelProject[]) => {
-    localStorage.setItem("novelProjects", JSON.stringify(updatedProjects));
-    setProjects(updatedProjects);
+  // キャンペーン一覧を保存
+  const saveCampaigns = (updatedCampaigns: TRPGCampaign[]) => {
+    localStorage.setItem("trpgCampaigns", JSON.stringify(updatedCampaigns));
+    setCampaigns(updatedCampaigns);
   };
 
   // 新規プロジェクト作成ダイアログを開く
@@ -33,19 +42,19 @@ export function useHome() {
     setDialogOpen(true);
   };
 
-  // 新規プロジェクト作成ダイアログを閉じる
+  // 新規キャンペーン作成ダイアログを閉じる
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    setNewProjectTitle("");
+    setNewCampaignTitle("");
   };
 
-  // 新規プロジェクト作成
-  const handleCreateProject = () => {
-    if (!newProjectTitle.trim()) return;
+  // 新規キャンペーン作成
+  const handleCreateCampaign = () => {
+    if (!newCampaignTitle.trim()) return;
 
-    const newProject: NovelProject = {
+    const newCampaign: TRPGCampaign = {
       id: uuidv4(),
-      title: newProjectTitle.trim(),
+      title: newCampaignTitle.trim(),
       createdAt: new Date(),
       updatedAt: new Date(),
       synopsis: "",
@@ -69,92 +78,92 @@ export function useHome() {
       feedback: [],
     };
 
-    const updatedProjects = [...projects, newProject];
-    saveProjects(updatedProjects);
+    const updatedCampaigns = [...campaigns, newCampaign];
+    saveCampaigns(updatedCampaigns);
 
-    // 新規プロジェクトを選択
-    setCurrentProjectStateSetter(newProject);
-    localStorage.setItem("currentProjectId", newProject.id);
+    // 新規キャンペーンを選択
+    setCurrentCampaignStateSetter(newCampaign);
+    localStorage.setItem("currentCampaignId", newCampaign.id);
 
     handleCloseDialog();
   };
 
-  // プロジェクト選択
-  const handleSelectProject = (project: NovelProject) => {
-    setCurrentProjectStateSetter(project);
-    localStorage.setItem("currentProjectId", project.id);
+  // キャンペーン選択
+  const handleSelectCampaign = (campaign: TRPGCampaign) => {
+    setCurrentCampaignStateSetter(campaign);
+    localStorage.setItem("currentCampaignId", campaign.id);
   };
 
   // 削除確認ダイアログを開く
   const handleOpenDeleteDialog = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setProjectToDelete(id);
+    setCampaignToDelete(id);
     setDeleteDialogOpen(true);
   };
 
   // 削除確認ダイアログを閉じる
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
-    setProjectToDelete(null);
+    setCampaignToDelete(null);
   };
 
-  // プロジェクト削除
-  const handleDeleteProject = () => {
-    if (!projectToDelete) return;
+  // キャンペーン削除
+  const handleDeleteCampaign = () => {
+    if (!campaignToDelete) return;
 
-    const updatedProjects = projects.filter(
-      (project) => project.id !== projectToDelete
+    const updatedCampaigns = campaigns.filter(
+      (campaign) => campaign.id !== campaignToDelete
     );
-    saveProjects(updatedProjects);
+    saveCampaigns(updatedCampaigns);
     handleCloseDeleteDialog();
   };
 
-  // 現在のプロジェクトデータをlocalStorageに保存する関数
-  const updateAndSaveCurrentProject = useCallback(
-    (projectToSave: NovelProject | null) => {
-      if (!projectToSave) return;
+  // 現在のキャンペーンデータをlocalStorageに保存する関数
+  const updateAndSaveCurrentCampaign = useCallback(
+    (campaignToSave: TRPGCampaign | null) => {
+      if (!campaignToSave) return;
 
-      const savedProjectsString = localStorage.getItem("novelProjects");
-      let projectsToUpdate: NovelProject[] = [];
-      if (savedProjectsString) {
-        projectsToUpdate = JSON.parse(savedProjectsString);
+      const savedCampaignsString = localStorage.getItem("trpgCampaigns");
+      let campaignsToUpdate: TRPGCampaign[] = [];
+      if (savedCampaignsString) {
+        campaignsToUpdate = JSON.parse(savedCampaignsString);
       }
 
-      const projectIndex = projectsToUpdate.findIndex(
-        (p) => p.id === projectToSave.id
+      const campaignIndex = campaignsToUpdate.findIndex(
+        (c) => c.id === campaignToSave.id
       );
 
-      if (projectIndex !== -1) {
-        projectsToUpdate[projectIndex] = projectToSave;
+      if (campaignIndex !== -1) {
+        campaignsToUpdate[campaignIndex] = campaignToSave;
       } else {
-        // もしプロジェクトリストに存在しない場合（通常はありえないが念のため）、新しいプロジェクトとして追加
-        projectsToUpdate.push(projectToSave);
+        // もしキャンペーンリストに存在しない場合（通常はありえないが念のため）、新しいキャンペーンとして追加
+        campaignsToUpdate.push(campaignToSave);
       }
 
-      localStorage.setItem("novelProjects", JSON.stringify(projectsToUpdate));
-      setProjects(projectsToUpdate); // ローカルのprojectsステートも更新
+      localStorage.setItem("trpgCampaigns", JSON.stringify(campaignsToUpdate));
+      setCampaigns(campaignsToUpdate); // ローカルのcampaignsステートも更新
       console.log(
-        "[DEBUG] Project saved to localStorage:",
-        projectToSave.title
+        "[DEBUG] Campaign saved to localStorage:",
+        campaignToSave.title
       );
     },
-    [] // 依存配列は空でOK (localStorage と projects ステートの更新のみのため)
+    [] // 依存配列は空でOK (localStorage と campaigns ステートの更新のみのため)
   );
 
   return {
-    projects,
-    currentProject,
-    newProjectTitle,
-    setNewProjectTitle,
+    campaigns,
+    currentCampaign,
+    newCampaignTitle,
+    setNewCampaignTitle,
     dialogOpen,
     deleteDialogOpen,
     handleOpenDialog,
     handleCloseDialog,
-    handleCreateProject,
-    handleSelectProject,
+    handleCreateCampaign,
+    handleSelectCampaign,
     handleOpenDeleteDialog,
     handleCloseDeleteDialog,
-    handleDeleteProject,
-    updateAndSaveCurrentProject,
+    handleDeleteCampaign,
+    updateAndSaveCurrentCampaign,
   };
 }

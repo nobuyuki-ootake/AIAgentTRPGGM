@@ -13,21 +13,21 @@ import ProjectsPage from "./pages/ProjectsPage";
 import EnemyPage from "./pages/EnemyPage";
 import NPCPage from "./pages/NPCPage";
 import TRPGSessionPage from "./pages/TRPGSessionPage";
-import { appModeState, currentProjectState } from "./store/atoms";
+import { appModeState, currentCampaignState } from "./store/atoms";
 import { Toaster } from "sonner";
 import { WorldBuildingProvider } from "./contexts/WorldBuildingContext";
 
 // メインコンテンツを表示するコンポーネント
 const MainContent = () => {
   const appMode = useRecoilValue(appModeState);
-  const currentProject = useRecoilValue(currentProjectState);
+  const currentCampaign = useRecoilValue(currentCampaignState);
 
-  // デバッグ用に現在のモードとプロジェクトを表示
+  // デバッグ用に現在のモードとキャンペーンを表示
   console.log("MainContent rendering, appMode:", appMode);
-  console.log("CurrentProject:", currentProject);
+  console.log("CurrentCampaign:", currentCampaign);
 
-  // プロジェクトが選択されていない場合はホーム画面に戻す
-  if (!currentProject) {
+  // キャンペーンが選択されていない場合はホーム画面に戻す
+  if (!currentCampaign) {
     return <HomePage />;
   }
 
@@ -72,7 +72,7 @@ function App() {
                 </AppLayout>
               }
             />
-            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/campaigns" element={<ProjectsPage />} />
             <Route path="/new" element={<NewProjectPage />} />
             <Route path="/worldbuilding" element={<WorldBuildingPage />} />
             <Route path="/enemy" element={<EnemyPage />} />

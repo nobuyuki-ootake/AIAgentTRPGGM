@@ -24,6 +24,7 @@ import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { TRPGCharacter } from "@novel-ai-assistant/types";
 import TabPanel from "../components/ui/TabPanel";
+import ExportMenu from "../components/export/ExportMenu";
 
 // CharacterPageの実装コンポーネント
 const CharactersPageContent: React.FC = () => {
@@ -228,6 +229,11 @@ const CharactersPageContent: React.FC = () => {
             disabled={false}
             showHelp={true}
             helpText="キャンペーン設定とクエストを参考に、TRPGセッションに適したPC/NPCのキャラクターシートを自動生成します。能力値、スキル、装備なども含まれます。"
+          />
+          <ExportMenu
+            campaign={currentProject!}
+            characters={characters}
+            disabled={!currentProject || characters.length === 0}
           />
           <Button
             variant="contained"

@@ -5,10 +5,12 @@ import moment from "moment";
 import {
   TRPGCampaign,
   TimelineEvent,
+  SessionEvent,
   TRPGCharacter,
   PlaceElement,
   CharacterStatus,
   QuestElement,
+  NovelProject,
 } from "@novel-ai-assistant/types";
 import { currentCampaignState } from "../store/atoms";
 
@@ -29,13 +31,13 @@ export interface TimelineItem {
   description?: string;
   relatedCharacters: string[];
   relatedCharacterNames?: string;
-  relatedCharacterData?: Character[];
+  relatedCharacterData?: TRPGCharacter[];
   eventType?: string;
 }
 
 // タイムライン設定の型定義
 export interface TimelineSettings {
-  startDate: string; // yyyy-MM-dd
+  maxDays: number; // 最大日数（例：30日間）
 }
 
 export function useTimeline() {
@@ -55,9 +57,9 @@ export function useTimeline() {
   const [safeMinY, setSafeMinY] = useState<number>(0);
   const [safeMaxY, setSafeMaxY] = useState<number>(0);
 
-  // セッション履歴の設定
+  // タイムライン設定
   const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>({
-    startDate: moment().format("YYYY-MM-DD"),
+    maxDays: 7,
   });
 
   // 設定ダイアログの状態
@@ -69,6 +71,7 @@ export function useTimeline() {
     title: "",
     description: "",
     date: moment().toISOString(),
+    dayNumber: 1,
     relatedCharacters: [],
     relatedPlaces: [],
     order: 0,
@@ -90,12 +93,26 @@ export function useTimeline() {
   // キャンペーンデータの初期化
   useEffect(() => {
     if (currentCampaign) {
-      // セッション履歴を読み込み
-      setTimelineEvents(currentCampaign.sessions || []);
+      // SessionEventをTimelineEventに変換
+      const convertedEvents: TimelineEvent[] = (currentCampaign.timeline || []).map((sessionEvent: SessionEvent) => ({
+        id: sessionEvent.id,
+        title: sessionEvent.title,
+        description: sessionEvent.description,
+        date: sessionEvent.sessionTime || new Date().toISOString(), // sessionTimeをdateとして使用
+        relatedCharacters: sessionEvent.relatedCharacters,
+        relatedPlaces: sessionEvent.relatedPlaces,
+        order: sessionEvent.order,
+        eventType: sessionEvent.eventType,
+        postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
+        relatedPlotIds: sessionEvent.relatedQuestIds || [], // relatedQuestIdsをrelatedPlotIdsにマップ
+        placeId: sessionEvent.placeId,
+      }));
+      
+      setTimelineEvents(convertedEvents);
       // キャラクターを読み込み
       setCharacters(currentCampaign.characters || []);
       // クエストを読み込み
-      setAllPlots(currentCampaign.quests || []);
+      setAllPlots(currentCampaign.plot || []);
       // 場所を読み込み
       setPlaces(currentCampaign.worldBuilding?.places || []);
       // キャラクターステータスを読み込み
@@ -144,6 +161,9 @@ export function useTimeline() {
       if (name === "date" && value) {
         // YYYY-MM-DD形式をISO文字列に変換
         processedValue = moment(value).toISOString();
+      } else if (name === "dayNumber" && value) {
+        // 日数フィールドの場合、数値に変換
+        processedValue = parseInt(value, 10);
       }
 
       setNewEvent((prev) => ({
@@ -207,9 +227,15 @@ export function useTimeline() {
       const name = field || target.name;
       const value = target.value;
 
+      // maxDaysフィールドの場合、数値に変換
+      let processedValue = value;
+      if (name === "maxDays" && value) {
+        processedValue = parseInt(value, 10);
+      }
+
       setTimelineSettings((prev) => ({
         ...prev,
-        [name]: value,
+        [name]: processedValue,
       }));
       setHasUnsavedChanges(true);
     },
@@ -356,7 +382,21 @@ export function useTimeline() {
         }
       }
 
-      setTimelineEvents(campaignDataToUse.timeline || []);
+      // SessionEventをTimelineEventに変換
+      const convertedEvents: TimelineEvent[] = (campaignDataToUse.timeline || []).map((sessionEvent: SessionEvent) => ({
+        id: sessionEvent.id,
+        title: sessionEvent.title,
+        description: sessionEvent.description,
+        date: sessionEvent.sessionTime || new Date().toISOString(),
+        relatedCharacters: sessionEvent.relatedCharacters,
+        relatedPlaces: sessionEvent.relatedPlaces,
+        order: sessionEvent.order,
+        eventType: sessionEvent.eventType,
+        postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
+        relatedPlotIds: sessionEvent.relatedQuestIds || [],
+        placeId: sessionEvent.placeId,
+      }));
+      setTimelineEvents(convertedEvents);
       setCharacters(campaignDataToUse.characters || []);
       setPlaces(campaignDataToUse.worldBuilding?.places || []);
       setDefinedCharacterStatusesForDialog(
@@ -377,31 +417,26 @@ export function useTimeline() {
 
   // Y軸の日付範囲と目盛りを計算
   useEffect(() => {
-    if (timelineSettings.startDate) {
-      const start = moment(timelineSettings.startDate, "YYYY-MM-DD");
-      const dates: string[] = [];
-      // startDateから前後30日間（約2ヶ月間）を表示
-      for (let i = -30; i <= 30; i++) {
-        dates.push(start.clone().add(i, "days").format("YYYY-MM-DD"));
-      }
-      setDateArray(dates);
-      if (dates.length > 0) {
-        const minY = moment(dates[0], "YYYY-MM-DD").valueOf();
-        const maxY = moment(dates[dates.length - 1], "YYYY-MM-DD")
-          .add(1, "day")
-          .startOf("day")
-          .valueOf();
-        setSafeMinY(minY);
-        setSafeMaxY(maxY);
-        console.log("[useTimeline] Y-axis calculation:", {
-          startDate: timelineSettings.startDate,
-          dates,
-          minY,
-          maxY,
-        });
-      }
+    // 日数ベースでタイムライン設定（デフォルト7日間：約1時間のプレイ時間想定）
+    const maxDays = timelineSettings.maxDays;
+    const dayLabels: string[] = [];
+    
+    // 1日目～X日目のラベルを生成
+    for (let i = 1; i <= maxDays; i++) {
+      dayLabels.push(`${i}日目`);
     }
-  }, [timelineSettings.startDate]);
+    
+    setDateArray(dayLabels);
+    setSafeMinY(1);
+    setSafeMaxY(maxDays);
+    
+    console.log("[useTimeline] Day-based timeline:", {
+      maxDays,
+      dayLabels,
+      minY: 1,
+      maxY: maxDays,
+    });
+  }, [timelineSettings.maxDays]);
 
   // 地名（グループ）の更新
   useEffect(() => {
@@ -423,8 +458,8 @@ export function useTimeline() {
   const sortedTimelineEvents = useMemo(() => {
     if (
       !currentCampaign ||
-      !currentCampaign.quests ||
-      currentCampaign.quests.length === 0
+      !currentCampaign.plot ||
+      currentCampaign.plot.length === 0
     ) {
       return [...timelineEvents].sort((a, b) => {
         const dateA = moment(a.date).valueOf();
@@ -437,7 +472,7 @@ export function useTimeline() {
     }
 
     const plotOrderMap = new Map<string, number>(
-      currentCampaign.quests.map((p) => [p.id, p.order])
+      currentCampaign.plot.map((p) => [p.id, p.order])
     );
 
     return [...timelineEvents].sort((a, b) => {
@@ -474,7 +509,7 @@ export function useTimeline() {
       const items = sortedTimelineEvents.map((event) => {
         const relatedCharacterData = event.relatedCharacters
           .map((charId) => characters.find((c) => c.id === charId))
-          .filter((char): char is Character => char !== undefined);
+          .filter((char): char is TRPGCharacter => char !== undefined);
 
         const relatedCharacterNames = relatedCharacterData
           .map((char) => char.name)
@@ -533,16 +568,32 @@ export function useTimeline() {
   // 変更をキャンペーンに保存する関数
   const handleSave = useCallback(async () => {
     if (currentCampaign) {
+      // TimelineEventをSessionEventに変換して保存
+      const sessionEvents: SessionEvent[] = sortedTimelineEvents.map((event) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        sessionDay: 1, // デフォルト値
+        sessionTime: event.date,
+        relatedCharacters: event.relatedCharacters,
+        relatedPlaces: event.relatedPlaces,
+        order: event.order,
+        eventType: event.eventType as SessionEvent["eventType"],
+        postEventCharacterStatuses: event.postEventCharacterStatuses,
+        relatedQuestIds: event.relatedPlotIds,
+        placeId: event.placeId,
+      }));
+      
       const updatedCampaign: TRPGCampaign = {
         ...currentCampaign,
-        sessions: sortedTimelineEvents,
+        timeline: sessionEvents,
         worldBuilding: {
           ...currentCampaign.worldBuilding,
           timelineSettings: timelineSettings,
           places: places,
         },
         characters: characters,
-        quests: allPlots,
+        plot: allPlots,
         definedCharacterStatuses: definedCharacterStatuses,
         updatedAt: new Date(),
       };
@@ -610,12 +661,8 @@ export function useTimeline() {
     (id: string) => {
       const eventToEdit = timelineEvents.find((event) => event.id === id);
       if (eventToEdit) {
-        // 日付をYYYY-MM-DD形式に変換してセット
-        const formattedEvent = {
-          ...eventToEdit,
-          date: moment(eventToEdit.date).format("YYYY-MM-DD"),
-        };
-        setNewEvent(formattedEvent);
+        // 日付をISO形式に保持（後でフォーマットは表示時に行う）
+        setNewEvent(eventToEdit);
         setIsEditing(true);
         setCurrentEventId(id);
         setDialogOpen(true);

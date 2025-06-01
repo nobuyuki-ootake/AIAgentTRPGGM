@@ -28,7 +28,7 @@ import CharacterStatusList from "../components/characters/CharacterStatusList";
 import BaseTab from "../components/worldbuilding/BaseTab";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { useRecoilValue } from "recoil";
-import { currentProjectState } from "../store/atoms";
+import { currentCampaignState } from "../store/atoms";
 import { useWorldBuildingContext } from "../contexts/WorldBuildingContext";
 import { useWorldBuildingAI } from "../hooks/useWorldBuildingAI";
 import { useElementAccumulator } from "../hooks/useElementAccumulator";
@@ -36,7 +36,7 @@ import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
 import { toast } from "sonner";
 
 const WorldBuildingPage: React.FC = () => {
-  const currentProject = useRecoilValue(currentProjectState);
+  const currentCampaign = useRecoilValue(currentCampaignState);
   const { resetWorldBuildingElements } = useElementAccumulator();
   const { openAIAssist } = useAIChatIntegration();
 
@@ -124,8 +124,8 @@ const WorldBuildingPage: React.FC = () => {
 
   // AIアシスト機能の統合
   const handleOpenAIAssist = (): void => {
-    if (!currentProject) {
-      toast.error("プロジェクトがロードされていません。");
+    if (!currentCampaign) {
+      toast.error("キャンペーンがロードされていません。");
       return;
     }
 
@@ -135,8 +135,8 @@ const WorldBuildingPage: React.FC = () => {
       return;
     }
 
-    // プロジェクトの設定を分析してジャンルを判定
-    const synopsis = currentProject.synopsis || "";
+    // キャンペーンの設定を分析してジャンルを判定
+    const synopsis = currentCampaign.synopsis || "";
     const isModernOrFuture =
       synopsis.includes("近未来") ||
       synopsis.includes("現代") ||
@@ -149,8 +149,8 @@ const WorldBuildingPage: React.FC = () => {
       synopsis.includes("剣") ||
       synopsis.includes("魔王");
 
-    // プロジェクトの文脈に合ったデフォルトメッセージを構築
-    let contextualMessage = `「${currentProject.title}」の世界観について、以下の要素を考えてください。
+    // キャンペーンの文脈に合ったデフォルトメッセージを構築
+    let contextualMessage = `「${currentCampaign.title}」の世界観について、以下の要素を考えてください。
 
 **必須要件:**
 - 物語の舞台となる主要な場所を最低3つ生成してください
@@ -175,19 +175,19 @@ const WorldBuildingPage: React.FC = () => {
 
     contextualMessage += `
 
-**物語のあらすじ:**
-${currentProject.synopsis || "（あらすじが設定されていません）"}
+**キャンペーンのあらすじ:**
+${currentCampaign.synopsis || "（あらすじが設定されていません）"}
 
-**既存のプロット要素:**
+**既存のクエスト要素:**
 ${
-  currentProject.plot
+  currentCampaign.plot
     ?.map((p) => `- ${p.title}: ${p.description}`)
-    .join("\n") || "（プロット要素が設定されていません）"
+    .join("\n") || "（クエスト要素が設定されていません）"
 }
 
 **既存のキャラクター:**
 ${
-  currentProject.characters
+  currentCampaign.characters
     ?.map((c) => `- ${c.name}: ${c.description}`)
     .join("\n") || "（キャラクターが設定されていません）"
 }`;
@@ -215,8 +215,8 @@ ${
           try {
             await generateWorldBuildingBatch(
               result.content as string,
-              currentProject?.plot || [],
-              currentProject?.characters || []
+              currentCampaign?.plot || [],
+              currentCampaign?.characters || []
             );
             setHasUnsavedChanges(true);
             // 成功メッセージはuseWorldBuildingAIの通知で表示される
@@ -228,7 +228,7 @@ ${
           }
         },
       },
-      currentProject
+      currentCampaign
     );
   };
 
@@ -244,10 +244,22 @@ ${
     }
   };
 
-  if (!currentProject) {
+  if (!currentCampaign) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography>プロジェクトが選択されていません。</Typography>
+      <Box sx={{ p: 3, textAlign: 'center', py: 8 }}>
+        <Typography variant="h5" gutterBottom color="text.secondary">
+          キャンペーンが選択されていません
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }} color="text.secondary">
+          世界観構築を行うには、まずキャンペーンを選択してください。
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => window.location.href = '/'}
+          sx={{ mt: 2 }}
+        >
+          ホームに戻ってキャンペーンを選択
+        </Button>
       </Box>
     );
   }
@@ -266,7 +278,7 @@ ${
         >
           <Box>
             <Typography variant="h4" gutterBottom>
-              {currentProject.title}
+              {currentCampaign.title}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
               世界観構築
@@ -474,14 +486,14 @@ ${
         {/* ワールドマップタブ */}
         <TabPanel value={tabValue} index={0}>
           <WorldMapTab
-            mapImageUrl={currentProject.worldBuilding?.worldMapImageUrl || ""}
+            mapImageUrl={currentCampaign.worldBuilding?.worldMapImageUrl || ""}
             onMapImageUpload={handleMapImageUpload || (() => {})}
           />
         </TabPanel>
 
         {/* 世界観設定タブ */}
         <TabPanel value={tabValue} index={1}>
-          <SettingTab settings={currentProject.worldBuilding?.setting || []} />
+          <SettingTab settings={currentCampaign.worldBuilding?.setting || []} />
         </TabPanel>
 
         {/* ルールタブ */}

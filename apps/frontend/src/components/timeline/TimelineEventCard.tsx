@@ -167,7 +167,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                 color="text.secondary"
                 sx={{ mr: 1, whiteSpace: "nowrap" }}
               >
-                {moment(event.date).format("MM/DD HH:mm")}
+                {event.dayNumber ? `${event.dayNumber}日目` : moment(event.date).format("MM/DD HH:mm")}
               </Typography>
               <Tooltip title="編集">
                 <IconButton

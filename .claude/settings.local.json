@@ -13,7 +13,9 @@
       "Bash(grep:*)",
       "Bash(rg:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(timeout 30s pnpm dev:frontend)"
     ],
     "deny": []
   }

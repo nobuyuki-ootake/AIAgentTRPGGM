@@ -15,6 +15,7 @@ export interface TRPGCampaign {
     sessions: GameSession[];
     enemies: EnemyCharacter[];
     npcs: NPCCharacter[];
+    bases: BaseLocation[];
     rules: CampaignRule[];
     handouts: Handout[];
     feedback: Feedback[];
@@ -28,6 +29,7 @@ export interface TRPGCampaign {
         updatedAt: Date;
         tags?: string[];
     }[];
+    imageUrl?: string;
 }
 export interface NovelProject extends TRPGCampaign {
     chapters: Chapter[];
@@ -137,36 +139,75 @@ export interface CharacterProgression {
 export interface TRPGCharacter {
     id: string;
     name: string;
-    characterType: "PC" | "NPC" | "Enemy";
-    playerName?: string;
-    race?: string;
-    class?: string;
-    background?: string;
-    alignment?: string;
-    gender?: string;
-    age?: string;
-    appearance?: string;
-    personality?: string;
-    motivation?: string;
-    stats: CharacterStats;
-    skills: Skill[];
-    equipment: Equipment[];
-    progression: CharacterProgression[];
-    traits: CharacterTrait[];
-    relationships: Relationship[];
+    characterType: "PC" | "NPC";
+    profession: string;
+    gender: string;
+    age: number;
+    nation: string;
+    religion: string;
+    player: string;
+    description: string;
+    scars?: string;
+    attributes: {
+        STR: number;
+        CON: number;
+        SIZ: number;
+        INT: number;
+        POW: number;
+        DEX: number;
+        CHA: number;
+    };
+    derived: {
+        HP: number;
+        MP: number;
+        SW: number;
+        RES: number;
+    };
+    weapons: StormbringerWeapon[];
+    armor: {
+        head: number;
+        body: number;
+        leftArm: number;
+        rightArm: number;
+        leftLeg: number;
+        rightLeg: number;
+    };
+    skills: {
+        AgilitySkills: StormbringerSkill[];
+        CommunicationSkills: StormbringerSkill[];
+        KnowledgeSkills: StormbringerSkill[];
+        ManipulationSkills: StormbringerSkill[];
+        PerceptionSkills: StormbringerSkill[];
+        StealthSkills: StormbringerSkill[];
+        MagicSkills: StormbringerSkill[];
+        WeaponSkills: StormbringerSkill[];
+    };
     imageUrl?: string;
-    customFields?: CustomField[];
-    statuses?: CharacterStatus[];
-    notes?: string;
+    campaignId?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+export interface StormbringerWeapon {
+    name: string;
+    attack: number;
+    damage: string;
+    hit: number;
+    parry: number;
+    range: string;
+}
+export interface StormbringerSkill {
+    name: string;
+    value: number;
 }
 export interface PlayerCharacter extends TRPGCharacter {
     characterType: "PC";
-    playerName: string;
     backstory: string;
     goals: string[];
     bonds: string[];
     flaws: string[];
     ideals: string[];
+    currentHP?: number;
+    currentMP?: number;
 }
 export interface NPCCharacter extends TRPGCharacter {
     characterType: "NPC";
@@ -176,15 +217,65 @@ export interface NPCCharacter extends TRPGCharacter {
     knowledge?: string[];
     services?: string[];
     questIds?: string[];
+    dialoguePatterns?: string[];
 }
-export interface EnemyCharacter extends TRPGCharacter {
-    characterType: "Enemy";
-    enemyType: "mob" | "elite" | "boss";
-    challengeRating: number;
-    tactics?: string;
-    loot?: Equipment[];
-    spawnLocations?: string[];
-    behaviorPattern?: string;
+export interface EnemyCharacter {
+    id: string;
+    name: string;
+    rank: "モブ" | "中ボス" | "ボス" | "EXボス";
+    type: string;
+    description: string;
+    level: number;
+    attributes: {
+        strength: number;
+        dexterity: number;
+        constitution: number;
+        intelligence: number;
+        wisdom: number;
+    };
+    derivedStats: {
+        hp: number;
+        mp: number;
+        attack: number;
+        defense: number;
+        magicAttack: number;
+        magicDefense: number;
+        accuracy: number;
+        evasion: number;
+        criticalRate: number;
+        initiative: number;
+    };
+    skills: {
+        basicAttack: string;
+        specialSkills: SpecialSkill[];
+        passives: string[];
+    };
+    behavior: {
+        aiPattern: string;
+        targeting: string;
+    };
+    drops: {
+        exp: number;
+        gold: number;
+        items: string[];
+        rareDrops: string[];
+    };
+    status: {
+        currentHp: number;
+        currentMp: number;
+        statusEffects: string[];
+        location: string;
+    };
+    imageUrl?: string;
+    campaignId?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+export interface SpecialSkill {
+    name: string;
+    effect: string;
+    cooldown?: number;
+    cost?: string;
 }
 export interface Character {
     id: string;
@@ -313,6 +404,7 @@ export interface TimelineEvent {
     title: string;
     description: string;
     date: string;
+    dayNumber?: number;
     relatedCharacters: string[];
     relatedPlaces: string[];
     order: number;
@@ -742,5 +834,118 @@ export interface AIError {
     code: string;
     message: string;
     details?: unknown;
+}
+export interface BaseLocation {
+    id: string;
+    name: string;
+    type: string;
+    region: string;
+    description: string;
+    rank: string;
+    importance: "主要拠点" | "サブ拠点" | "隠し拠点";
+    facilities: {
+        inn?: Inn;
+        shops?: Shop[];
+        armory?: Armory;
+        temple?: Temple;
+        guild?: Guild;
+        blacksmith?: Blacksmith;
+        otherFacilities?: OtherFacility[];
+    };
+    npcs: LocationNPC[];
+    features: {
+        fastTravel: boolean;
+        playerBase: boolean;
+        questHub: boolean;
+        defenseEvent: boolean;
+    };
+    threats: {
+        dangerLevel: string;
+        monsterAttackRate: number;
+        playerReputation: number;
+        currentEvents: string[];
+        controllingFaction: string;
+    };
+    economy: {
+        currency: string;
+        priceModifier: number;
+        localGoods: string[];
+        tradeGoods: string[];
+    };
+    meta: {
+        locationId: string;
+        unlocked: boolean;
+        lastUpdated: string;
+    };
+    imageUrl?: string;
+    campaignId?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+export interface Inn {
+    name: string;
+    pricePerNight: number;
+    description?: string;
+    services?: string[];
+}
+export interface Shop {
+    name: string;
+    type: string;
+    items: string[];
+    priceModifier: number;
+    description?: string;
+}
+export interface Armory {
+    name: string;
+    weaponTypes: string[];
+    armorTypes: string[];
+    specialItems?: string[];
+    description?: string;
+}
+export interface Temple {
+    name: string;
+    deity: string;
+    functions: string[];
+    donation?: number;
+    description?: string;
+}
+export interface Guild {
+    name: string;
+    type: string;
+    services: string[];
+    membershipRequired?: boolean;
+    description?: string;
+}
+export interface Blacksmith {
+    name: string;
+    services: string[];
+    specialties?: string[];
+    description?: string;
+}
+export interface OtherFacility {
+    name: string;
+    type: string;
+    description: string;
+    functions?: string[];
+}
+export interface LocationNPC {
+    id: string;
+    name: string;
+    role: string;
+    function: string;
+    description?: string;
+    questIds?: string[];
+}
+export interface CharacterInteraction {
+    id: string;
+    sourceCharacterId: string;
+    targetCharacterId: string;
+    interactionType: "heal" | "damage" | "statusEffect" | "buff" | "debuff" | "custom";
+    value?: number;
+    statusEffect?: string;
+    duration?: number;
+    description: string;
+    timestamp: Date;
+    sessionId?: string;
 }
 //# sourceMappingURL=index.d.ts.map
