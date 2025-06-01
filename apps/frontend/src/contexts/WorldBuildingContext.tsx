@@ -28,9 +28,14 @@ import {
   // BaseWorldBuildingElement, // 未使用のためコメントアウト
   // WorldBuildingElement, // 未使用のためコメントアウト
 } from "@novel-ai-assistant/types";
+import { Base } from "../components/worldbuilding/BaseTab";
 
 // Contextで提供する値の型定義
 export interface WorldBuildingContextType {
+  // 拠点管理
+  bases?: Base[];
+  setBases?: (bases: Base[]) => void;
+  handleFieldChange?: () => void;
   updatedTabs: { [key: number]: boolean };
   addPendingWorldmap: (worldmapData: WorldmapElement) => void;
   addPendingPlace: (placeData: PlaceElement) => void;
@@ -169,9 +174,14 @@ export const WorldBuildingProvider: React.FC<{ children: ReactNode }> = ({
     handleSaveWorldBuilding: () => {
       const projectToSave = restOfElementAccumulator.getCurrentProjectState();
       updateAndSaveCurrentProject(projectToSave);
-      showNotification("プロジェクトが保存されました。");
+      showNotification("キャンペーンが保存されました。");
       setHasUnsavedChanges(false);
     },
+    // useWorldBuildingから拠点関連のプロパティを追加
+    bases: worldBuildingHook.bases,
+    setBases: worldBuildingHook.setBases,
+    handleFieldChange: worldBuildingHook.handleFieldChange,
+    markTabAsUpdated: worldBuildingHook.markTabAsUpdated,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     projectForSaving,

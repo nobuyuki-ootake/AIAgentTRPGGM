@@ -2,25 +2,23 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useCharacters } from "../hooks/useCharacters";
 import { useRecoilValue } from "recoil";
 import {
+  TRPGCharacter,
   Character,
   NovelProject,
+  TRPGCampaign,
   CustomField,
   CharacterStatus,
 } from "@novel-ai-assistant/types";
-import { currentProjectState } from "../store/atoms";
-import {
-  parseAIResponseToCharacter,
-  parseAIResponseToCharacters,
-} from "../utils/aiResponseParser";
+import { currentCampaignState } from "../store/atoms";
 
 // コンテキストで提供する値の型定義
 interface CharactersContextType {
-  // キャラクター状態
-  characters: Character[];
+  // TRPGキャラクター状態
+  characters: TRPGCharacter[];
   viewMode: "grid" | "list";
   openDialog: boolean;
   editMode: boolean;
-  formData: Character;
+  formData: TRPGCharacter;
   formErrors: Record<string, string>;
   tempImageUrl: string;
   selectedEmoji: string;
@@ -29,7 +27,7 @@ interface CharactersContextType {
   snackbarOpen: boolean;
   snackbarMessage: string;
   snackbarSeverity: "success" | "error" | "info" | "warning";
-  currentProject: NovelProject | null; // 現在のプロジェクト情報
+  currentProject: TRPGCampaign | null; // 現在のキャンペーン情報
 
   // アクション
   handleViewModeChange: (
@@ -37,7 +35,7 @@ interface CharactersContextType {
     newMode: "grid" | "list" | null
   ) => void;
   handleOpenDialog: (characterId?: string) => void;
-  handleEditCharacter: (character: Character) => void;
+  handleEditCharacter: (character: TRPGCharacter) => void;
   handleCloseDialog: () => void;
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleEmojiSelect: (emoji: string) => void;
@@ -58,11 +56,13 @@ interface CharactersContextType {
   handleCloseSnackbar: () => void;
   handleSaveStatus: (status: CharacterStatus) => void;
   handleDeleteStatus: (statusId: string) => void;
-  addCharacter: (character: Character) => void;
+  addCharacter: (character: TRPGCharacter) => void;
 
-  // AIアシスト機能（後方互換性のため残す）
-  parseAIResponseToCharacter: (aiResponse: string) => Character | null;
-  parseAIResponseToCharacters: (aiResponse: string) => Character[];
+  // TRPGアシスト機能
+  parseAIResponseToCharacters: (response: string) => TRPGCharacter[];
+  getPCs: () => TRPGCharacter[];
+  getNPCs: () => TRPGCharacter[];
+  getEnemies: () => TRPGCharacter[];
 }
 
 // コンテキストの作成
@@ -74,7 +74,7 @@ const CharactersContext = createContext<CharactersContextType | undefined>(
 export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const currentProject = useRecoilValue(currentProjectState);
+  const currentProject = useRecoilValue(currentCampaignState);
 
   // useCharactersフックからキャラクター関連のロジックを取得
   const {
@@ -111,6 +111,10 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
     handleSaveStatus,
     handleDeleteStatus,
     addCharacter,
+    parseAIResponseToCharacters,
+    getPCs,
+    getNPCs,
+    getEnemies,
   } = useCharacters();
 
   // コンテキストで提供する値
@@ -151,9 +155,11 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
     handleDeleteStatus,
     addCharacter,
 
-    // AIアシスト関連
-    parseAIResponseToCharacter,
+    // TRPGアシスト関連
     parseAIResponseToCharacters,
+    getPCs,
+    getNPCs,
+    getEnemies,
   };
 
   return (

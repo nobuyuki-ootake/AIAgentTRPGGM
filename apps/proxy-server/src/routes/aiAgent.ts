@@ -2,7 +2,18 @@ import express from 'express';
 import { processAIRequest } from '../services/aiIntegration.js';
 import { StandardAIRequest } from '@novel-ai-assistant/types';
 import templateManager from '../utils/aiTemplateManager.js';
-import { PLOT_DEVELOPER, WORLD_BUILDER } from '../utils/systemPrompts.js';
+import { 
+  PLOT_DEVELOPER, 
+  WORLD_BUILDER,
+  TRPG_CHARACTER_CREATOR,
+  TRPG_ENEMY_CREATOR,
+  TRPG_NPC_CREATOR,
+  TRPG_QUEST_GENERATOR,
+  TRPG_ENCOUNTER_GENERATOR,
+  TRPG_GM_ASSISTANT,
+  TRPG_COMBAT_RESOLVER,
+  TRPG_STORY_PROGRESSION
+} from '../utils/systemPrompts.js';
 import * as yaml from 'js-yaml';
 import {
   WorldBuildingElementType,
@@ -1524,6 +1535,775 @@ ${existingCharacterContext}
       message:
         error.message ||
         'キャラクターリスト生成中に予期しないエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPGキャラクターシート生成エンドポイント
+ * PC/NPCのキャラクターシートを生成します
+ */
+router.post('/character-sheet-generation', async (req, res) => {
+  try {
+    const { characterName, characterType, level, campaign, model } = req.body;
+    
+    console.log('[API] TRPGキャラクターシート生成リクエスト:', {
+      characterName,
+      characterType,
+      level,
+      campaign: campaign?.name
+    });
+
+    const userPrompt = `TRPGキャラクター「${characterName}」のキャラクターシートを作成してください。
+    
+キャラクタータイプ: ${characterType || 'PC'}
+レベル: ${level || 1}
+${campaign ? `キャンペーン: ${campaign.name}\n設定: ${campaign.description}` : ''}
+
+以下の形式でキャラクターシートを作成してください：
+
+基本情報：
+- 名前: ${characterName}
+- 種族:
+- クラス:
+- レベル: ${level || 1}
+- 属性:
+
+能力値：
+- STR (筋力):
+- DEX (敏捷):
+- CON (耐久):
+- INT (知力):
+- WIS (知恵):
+- CHA (魅力):
+
+スキル：
+[レベルに応じた適切なスキルリスト]
+
+特技・特殊能力：
+[クラスと種族に応じた能力]
+
+装備：
+- 武器:
+- 防具:
+- その他:
+
+バックストーリー：
+[キャラクターの背景と動機]`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'character-sheet-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_CHARACTER_CREATOR,
+      userPrompt,
+      context: {
+        characterName,
+        characterType,
+        level,
+        campaign
+      },
+      options: {
+        temperature: 0.7,
+        maxTokens: 2000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPGキャラクターシート生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPGキャラクターシート生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'キャラクターシート生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPG敵キャラクター生成エンドポイント
+ * モンスターや敵NPCを生成します
+ */
+router.post('/enemy-generation', async (req, res) => {
+  try {
+    const { enemyType, challengeRating, partyLevel, environment, model } = req.body;
+    
+    console.log('[API] TRPG敵キャラクター生成リクエスト:', {
+      enemyType,
+      challengeRating,
+      partyLevel,
+      environment
+    });
+
+    const userPrompt = `以下の条件でTRPGの敵キャラクターを生成してください：
+
+敵タイプ: ${enemyType || '任意'}
+チャレンジレート: ${challengeRating || `パーティーレベル${partyLevel || 3}に適切`}
+遭遇環境: ${environment || '任意'}
+パーティーレベル: ${partyLevel || 3}
+
+以下の形式で敵キャラクターを作成してください：
+
+名前:
+種別:
+チャレンジレート (CR):
+HP:
+AC (アーマークラス):
+移動速度:
+
+能力値：
+- STR:
+- DEX:
+- CON:
+- INT:
+- WIS:
+- CHA:
+
+攻撃：
+[攻撃手段と詳細]
+
+特殊能力：
+[特殊な能力や呪文]
+
+弱点：
+[弱点と対処法]
+
+戦術：
+[戦闘時の行動パターン]
+
+宝物：
+[倒した際のドロップアイテム]`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'enemy-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_ENEMY_CREATOR,
+      userPrompt,
+      context: {
+        enemyType,
+        challengeRating,
+        partyLevel,
+        environment
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 2000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPG敵キャラクター生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPG敵キャラクター生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || '敵キャラクター生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPG NPC生成エンドポイント
+ * 物語に関わるNPCを生成します
+ */
+router.post('/npc-generation', async (req, res) => {
+  try {
+    const { npcRole, location, faction, importance, campaign, model } = req.body;
+    
+    console.log('[API] TRPG NPC生成リクエスト:', {
+      npcRole,
+      location,
+      faction,
+      importance
+    });
+
+    const userPrompt = `以下の条件でTRPGのNPCを生成してください：
+
+NPC役割: ${npcRole || '町の住人'}
+場所: ${location || '町'}
+所属: ${faction || '中立'}
+重要度: ${importance || '一般'}
+${campaign ? `キャンペーン設定: ${campaign.description}` : ''}
+
+以下の形式でNPCを作成してください：
+
+基本情報：
+- 名前:
+- 職業:
+- 年齢:
+- 性別:
+- 外見:
+
+性格と話し方：
+[性格の特徴と話し方の癖]
+
+動機と目的：
+[NPCが何を求めているか]
+
+秘密：
+[PCには知られていない情報]
+
+関係性：
+[他のNPCや組織との関係]
+
+提供できる情報/クエスト：
+[PCに与えられる情報やクエスト]
+
+能力（必要に応じて）：
+[戦闘能力や特殊技能]`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'npc-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_NPC_CREATOR,
+      userPrompt,
+      context: {
+        npcRole,
+        location,
+        faction,
+        importance,
+        campaign
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 2000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPG NPC生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPG NPC生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'NPC生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPGクエスト生成エンドポイント
+ * シナリオやクエストを生成します
+ */
+router.post('/quest-generation', async (req, res) => {
+  try {
+    const { questType, difficulty, partyLevel, campaign, rewards, model } = req.body;
+    
+    console.log('[API] TRPGクエスト生成リクエスト:', {
+      questType,
+      difficulty,
+      partyLevel
+    });
+
+    const userPrompt = `以下の条件でTRPGのクエストを生成してください：
+
+クエストタイプ: ${questType || '探索'}
+難易度: ${difficulty || '中'}
+パーティーレベル: ${partyLevel || 3}
+${campaign ? `キャンペーン設定: ${campaign.description}` : ''}
+${rewards ? `希望報酬: ${rewards}` : ''}
+
+以下の形式でクエストを作成してください：
+
+クエスト名：
+
+概要：
+[クエストの簡潔な説明]
+
+依頼人：
+[名前と簡単な背景]
+
+背景と動機：
+[なぜこのクエストが必要なのか]
+
+目的：
+[具体的な達成条件]
+
+障害と課題：
+[PCが直面する困難]
+
+場所：
+[クエストの舞台となる場所]
+
+報酬：
+- 経験値:
+- 金銭:
+- アイテム:
+- その他:
+
+分岐と結果：
+[プレイヤーの選択による展開の違い]
+
+推奨プレイ時間：`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'quest-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_QUEST_GENERATOR,
+      userPrompt,
+      context: {
+        questType,
+        difficulty,
+        partyLevel,
+        campaign,
+        rewards
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 2500,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPGクエスト生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPGクエスト生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'クエスト生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPGエンカウンター生成エンドポイント
+ * 遭遇イベントを生成します
+ */
+router.post('/encounter-generation', async (req, res) => {
+  try {
+    const { encounterType, environment, partyLevel, difficulty, model } = req.body;
+    
+    console.log('[API] TRPGエンカウンター生成リクエスト:', {
+      encounterType,
+      environment,
+      partyLevel,
+      difficulty
+    });
+
+    const userPrompt = `以下の条件でTRPGのエンカウンターを生成してください：
+
+エンカウンタータイプ: ${encounterType || '戦闘'}
+環境: ${environment || 'ダンジョン'}
+パーティーレベル: ${partyLevel || 3}
+難易度: ${difficulty || '中'}
+
+以下の形式でエンカウンターを作成してください：
+
+エンカウンター名：
+
+タイプ: ${encounterType || '戦闘'}
+
+場所の描写：
+[環境の詳細な描写]
+
+${encounterType === '戦闘' || !encounterType ? `
+敵構成：
+[敵の種類と数]
+
+戦術：
+[敵の戦術と配置]
+
+環境要素：
+[戦闘に影響する環境要素]
+` : ''}
+
+${encounterType === '社交' ? `
+登場NPC：
+[NPCの名前と役割]
+
+目的：
+[社交エンカウンターの目的]
+
+情報/リソース：
+[得られる情報や支援]
+` : ''}
+
+${encounterType === '探索' ? `
+探索対象：
+[探索する場所や物]
+
+手がかり：
+[発見できる情報]
+
+罠/障害：
+[存在する危険]
+` : ''}
+
+成功条件：
+[エンカウンターのクリア条件]
+
+失敗の結果：
+[失敗した場合の影響]
+
+報酬：
+[成功時の報酬]`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'encounter-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_ENCOUNTER_GENERATOR,
+      userPrompt,
+      context: {
+        encounterType,
+        environment,
+        partyLevel,
+        difficulty
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 2000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPGエンカウンター生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPGエンカウンター生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'エンカウンター生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPGセッションGMアシストエンドポイント
+ * セッション中のGM支援を行います
+ */
+router.post('/session-gm-assist', async (req, res) => {
+  try {
+    const { situation, playerAction, sessionContext, assistType, model } = req.body;
+    
+    console.log('[API] TRPGセッションGMアシストリクエスト:', {
+      assistType,
+      situation
+    });
+
+    const userPrompt = `ゲームマスターとして以下の状況に対応してください：
+
+現在の状況：
+${situation}
+
+${playerAction ? `プレイヤーの行動：\n${playerAction}\n` : ''}
+
+${sessionContext ? `セッション背景：\n${sessionContext}\n` : ''}
+
+アシストタイプ: ${assistType || '一般的なGM支援'}
+
+${assistType === 'npc_dialogue' ? 'NPCとしてロールプレイし、適切なセリフと行動を提案してください。' : ''}
+${assistType === 'rule_clarification' ? 'ルールの解釈と適用方法を説明してください。' : ''}
+${assistType === 'improvisation' ? '予期しないプレイヤーの行動に対する即興的な対応を提案してください。' : ''}
+${assistType === 'description' ? '場面の詳細な描写を行ってください。' : ''}
+
+GMとして適切な対応を提案してください。`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'session-gm-assist',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_GM_ASSISTANT,
+      userPrompt,
+      context: {
+        situation,
+        playerAction,
+        sessionContext,
+        assistType
+      },
+      options: {
+        temperature: 0.7,
+        maxTokens: 1500,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPGセッションGMアシストエラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPGセッションGMアシストエラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'GMアシスト中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPG戦闘解決エンドポイント
+ * 戦闘の進行を支援します
+ */
+router.post('/combat-resolution', async (req, res) => {
+  try {
+    const { combatSituation, combatants, currentTurn, requestType, model } = req.body;
+    
+    console.log('[API] TRPG戦闘解決リクエスト:', {
+      requestType,
+      currentTurn
+    });
+
+    const userPrompt = `以下の戦闘状況を解決してください：
+
+戦闘状況：
+${combatSituation}
+
+参戦者：
+${combatants ? combatants.map((c: any) => `- ${c.name} (HP: ${c.hp}/${c.maxHp}, AC: ${c.ac})`).join('\n') : '不明'}
+
+現在のターン: ${currentTurn || '不明'}
+
+リクエストタイプ: ${requestType || 'general'}
+
+${requestType === 'initiative' ? 'イニシアチブ順を決定してください。' : ''}
+${requestType === 'damage' ? 'ダメージ計算と適用を行ってください。' : ''}
+${requestType === 'tactics' ? '戦術的なアドバイスを提供してください。' : ''}
+${requestType === 'description' ? '戦闘の様子を描写してください。' : ''}`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'combat-resolution',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_COMBAT_RESOLVER,
+      userPrompt,
+      context: {
+        combatSituation,
+        combatants,
+        currentTurn,
+        requestType
+      },
+      options: {
+        temperature: 0.6,
+        maxTokens: 1500,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPG戦闘解決エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPG戦闘解決エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || '戦闘解決中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * TRPGストーリー進行エンドポイント
+ * 物語の展開を支援します
+ */
+router.post('/story-progression', async (req, res) => {
+  try {
+    const { currentSituation, playerChoices, storyContext, progressionType, model } = req.body;
+    
+    console.log('[API] TRPGストーリー進行リクエスト:', {
+      progressionType
+    });
+
+    const userPrompt = `以下の状況から物語を進行させてください：
+
+現在の状況：
+${currentSituation}
+
+${playerChoices ? `プレイヤーの選択：\n${playerChoices}\n` : ''}
+
+${storyContext ? `物語の背景：\n${storyContext}\n` : ''}
+
+進行タイプ: ${progressionType || '一般的な展開'}
+
+${progressionType === 'consequence' ? 'プレイヤーの選択に基づく結果を描写してください。' : ''}
+${progressionType === 'branch' ? '物語の分岐点と選択肢を提示してください。' : ''}
+${progressionType === 'revelation' ? '重要な情報や秘密の開示を行ってください。' : ''}
+${progressionType === 'climax' ? 'クライマックスに向けた展開を提案してください。' : ''}
+
+プレイヤーの選択が意味を持つような展開を提案してください。`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'story-progression',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: TRPG_STORY_PROGRESSION,
+      userPrompt,
+      context: {
+        currentSituation,
+        playerChoices,
+        storyContext,
+        progressionType
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 2000,
+        expectedFormat: 'text',
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPGストーリー進行エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      data: aiResponse.content,
+      rawContent: aiResponse.rawContent,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPGストーリー進行エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'ストーリー進行中にエラーが発生しました',
     });
   }
 });

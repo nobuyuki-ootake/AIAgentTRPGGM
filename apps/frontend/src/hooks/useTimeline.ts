@@ -3,14 +3,14 @@ import { useRecoilState } from "recoil";
 import { SelectChangeEvent } from "@mui/material";
 import moment from "moment";
 import {
-  NovelProject,
+  TRPGCampaign,
   TimelineEvent,
-  Character,
+  TRPGCharacter,
   PlaceElement,
   CharacterStatus,
-  PlotElement,
+  QuestElement,
 } from "@novel-ai-assistant/types";
-import { currentProjectState } from "../store/atoms";
+import { currentCampaignState } from "../store/atoms";
 
 // タイムライングループの型定義
 export interface TimelineGroup {
@@ -39,12 +39,12 @@ export interface TimelineSettings {
 }
 
 export function useTimeline() {
-  const [currentProject, setCurrentProject] =
-    useRecoilState(currentProjectState);
+  const [currentCampaign, setCurrentCampaign] =
+    useRecoilState(currentCampaignState);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const [characters, setCharacters] = useState<TRPGCharacter[]>([]);
   const [places, setPlaces] = useState<PlaceElement[]>([]);
-  const [allPlots, setAllPlots] = useState<PlotElement[]>([]);
+  const [allPlots, setAllPlots] = useState<QuestElement[]>([]);
 
   // グラフ表示用のデータ
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
@@ -55,7 +55,7 @@ export function useTimeline() {
   const [safeMinY, setSafeMinY] = useState<number>(0);
   const [safeMaxY, setSafeMaxY] = useState<number>(0);
 
-  // タイムラインの設定
+  // セッション履歴の設定
   const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>({
     startDate: moment().format("YYYY-MM-DD"),
   });
@@ -86,6 +86,22 @@ export function useTimeline() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // キャンペーンデータの初期化
+  useEffect(() => {
+    if (currentCampaign) {
+      // セッション履歴を読み込み
+      setTimelineEvents(currentCampaign.sessions || []);
+      // キャラクターを読み込み
+      setCharacters(currentCampaign.characters || []);
+      // クエストを読み込み
+      setAllPlots(currentCampaign.quests || []);
+      // 場所を読み込み
+      setPlaces(currentCampaign.worldBuilding?.places || []);
+      // キャラクターステータスを読み込み
+      setDefinedCharacterStatusesForDialog([]);
+    }
+  }, [currentCampaign]);
 
   // プロジェクトで定義済みの状態リストをuseStateで管理
   const [
@@ -254,7 +270,7 @@ export function useTimeline() {
   const handleResetTimeline = useCallback(() => {
     setTimelineEvents([]);
     setHasUnsavedChanges(true);
-    setSnackbarMessage("タイムラインがリセットされました。");
+    setSnackbarMessage("セッション履歴がリセットされました。");
     setSnackbarOpen(true);
   }, []);
 
@@ -296,22 +312,22 @@ export function useTimeline() {
 
   // 初期データのロード
   useEffect(() => {
-    if (currentProject) {
+    if (currentCampaign) {
       console.log(
-        "[useTimeline] useEffect - START - currentProject.id:",
-        currentProject.id
+        "[useTimeline] useEffect - START - currentCampaign.id:",
+        currentCampaign.id
       );
 
-      let projectDataToUse = { ...currentProject };
+      let campaignDataToUse = { ...currentCampaign };
 
       // 最新のデータをローカルストレージから直接読み込み
-      const projectId = currentProject.id;
+      const campaignId = currentCampaign.id;
       const projectsStr = localStorage.getItem("novelProjects");
       if (projectsStr) {
         try {
           const projects: NovelProject[] = JSON.parse(projectsStr);
           const latestProjectFromLocalStorage = projects.find(
-            (p) => p.id === projectId
+            (p) => p.id === campaignId
           );
 
           if (latestProjectFromLocalStorage) {
@@ -321,18 +337,18 @@ export function useTimeline() {
             );
             if (
               latestProjectFromLocalStorage.updatedAt >
-                projectDataToUse.updatedAt ||
+                campaignDataToUse.updatedAt ||
               (latestProjectFromLocalStorage.definedCharacterStatuses &&
                 latestProjectFromLocalStorage.definedCharacterStatuses.length >
                   0 &&
-                (!projectDataToUse.definedCharacterStatuses ||
-                  projectDataToUse.definedCharacterStatuses.length === 0))
+                (!campaignDataToUse.definedCharacterStatuses ||
+                  campaignDataToUse.definedCharacterStatuses.length === 0))
             ) {
               console.log(
-                "[useTimeline] Using project data from localStorage as it seems newer or more complete for statuses."
+                "[useTimeline] Using campaign data from localStorage as it seems newer or more complete for statuses."
               );
-              projectDataToUse = { ...latestProjectFromLocalStorage };
-              setCurrentProject(projectDataToUse);
+              campaignDataToUse = { ...latestProjectFromLocalStorage };
+              setCurrentCampaign(campaignDataToUse);
             }
           }
         } catch (error) {
@@ -340,32 +356,32 @@ export function useTimeline() {
         }
       }
 
-      setTimelineEvents(projectDataToUse.timeline || []);
-      setCharacters(projectDataToUse.characters || []);
-      setPlaces(projectDataToUse.worldBuilding?.places || []);
+      setTimelineEvents(campaignDataToUse.timeline || []);
+      setCharacters(campaignDataToUse.characters || []);
+      setPlaces(campaignDataToUse.worldBuilding?.places || []);
       setDefinedCharacterStatusesForDialog(
-        projectDataToUse.definedCharacterStatuses || []
+        campaignDataToUse.definedCharacterStatuses || []
       );
-      setAllPlots(projectDataToUse.plot || []);
+      setAllPlots(campaignDataToUse.plot || []);
 
       // 設定を読み込み
-      if (projectDataToUse.worldBuilding?.timelineSettings?.startDate) {
+      if (campaignDataToUse.worldBuilding?.timelineSettings?.startDate) {
         setTimelineSettings({
-          startDate: projectDataToUse.worldBuilding.timelineSettings.startDate,
+          startDate: campaignDataToUse.worldBuilding.timelineSettings.startDate,
         });
       }
     } else {
-      console.log("[useTimeline] useEffect - currentProject is null");
+      console.log("[useTimeline] useEffect - currentCampaign is null");
     }
-  }, [currentProject, setCurrentProject]);
+  }, [currentCampaign, setCurrentCampaign]);
 
   // Y軸の日付範囲と目盛りを計算
   useEffect(() => {
     if (timelineSettings.startDate) {
       const start = moment(timelineSettings.startDate, "YYYY-MM-DD");
       const dates: string[] = [];
-      // startDateから前後7日間（合計15日間）
-      for (let i = -7; i <= 7; i++) {
+      // startDateから前後30日間（約2ヶ月間）を表示
+      for (let i = -30; i <= 30; i++) {
         dates.push(start.clone().add(i, "days").format("YYYY-MM-DD"));
       }
       setDateArray(dates);
@@ -406,9 +422,9 @@ export function useTimeline() {
   // ソート済みタイムラインイベント
   const sortedTimelineEvents = useMemo(() => {
     if (
-      !currentProject ||
-      !currentProject.plot ||
-      currentProject.plot.length === 0
+      !currentCampaign ||
+      !currentCampaign.quests ||
+      currentCampaign.quests.length === 0
     ) {
       return [...timelineEvents].sort((a, b) => {
         const dateA = moment(a.date).valueOf();
@@ -421,7 +437,7 @@ export function useTimeline() {
     }
 
     const plotOrderMap = new Map<string, number>(
-      currentProject.plot.map((p) => [p.id, p.order])
+      currentCampaign.quests.map((p) => [p.id, p.order])
     );
 
     return [...timelineEvents].sort((a, b) => {
@@ -450,7 +466,7 @@ export function useTimeline() {
       }
       return (a.order || 0) - (b.order || 0);
     });
-  }, [timelineEvents, currentProject]);
+  }, [timelineEvents, currentCampaign]);
 
   // timelineItemsの生成
   useEffect(() => {
@@ -514,46 +530,34 @@ export function useTimeline() {
     setHasUnsavedChanges(true);
   }, []);
 
-  // 変更をプロジェクトに保存する関数
+  // 変更をキャンペーンに保存する関数
   const handleSave = useCallback(async () => {
-    if (currentProject) {
-      const updatedProject: NovelProject = {
-        ...currentProject,
-        timeline: sortedTimelineEvents,
+    if (currentCampaign) {
+      const updatedCampaign: TRPGCampaign = {
+        ...currentCampaign,
+        sessions: sortedTimelineEvents,
         worldBuilding: {
-          ...currentProject.worldBuilding,
+          ...currentCampaign.worldBuilding,
           timelineSettings: timelineSettings,
           places: places,
         },
         characters: characters,
-        plot: allPlots,
+        quests: allPlots,
         definedCharacterStatuses: definedCharacterStatuses,
         updatedAt: new Date(),
       };
 
       try {
-        const projectsStr = localStorage.getItem("novelProjects");
-        const projects: NovelProject[] = projectsStr
-          ? JSON.parse(projectsStr)
-          : [];
-        const projectIndex = projects.findIndex(
-          (p) => p.id === currentProject.id
-        );
-        if (projectIndex > -1) {
-          projects[projectIndex] = updatedProject;
-        } else {
-          projects.push(updatedProject);
-        }
-        localStorage.setItem("novelProjects", JSON.stringify(projects));
-        setCurrentProject(updatedProject);
+        // キャンペーンを更新
+        setCurrentCampaign(updatedCampaign);
 
         setHasUnsavedChanges(false);
-        setSnackbarMessage("タイムラインが保存されました。");
+        setSnackbarMessage("セッション履歴が保存されました。");
         setSnackbarOpen(true);
-        console.log("[useTimeline] Project saved:", updatedProject);
+        console.log("[useTimeline] Campaign saved:", updatedCampaign);
       } catch (error) {
         console.error(
-          "[useTimeline] Error saving project to localStorage:",
+          "[useTimeline] Error saving campaign:",
           error
         );
         setSnackbarMessage("保存中にエラーが発生しました。");
@@ -561,8 +565,8 @@ export function useTimeline() {
       }
     }
   }, [
-    currentProject,
-    setCurrentProject,
+    currentCampaign,
+    setCurrentCampaign,
     sortedTimelineEvents,
     timelineSettings,
     characters,
@@ -627,7 +631,7 @@ export function useTimeline() {
 
   return {
     // 状態
-    currentProject,
+    currentCampaign,
     timelineEvents,
     characters,
     places,

@@ -21,7 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import PlotItem from "../components/plot/PlotItem";
 import { PlotProvider, usePlotContext } from "../contexts/PlotContext";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 
 // PlotPageの実装コンポーネント
 const PlotPageContent: React.FC = () => {
@@ -54,20 +54,20 @@ const PlotPageContent: React.FC = () => {
   // AIアシスト機能の統合
   const handleOpenAIAssist = async (): Promise<void> => {
     openAIAssist(
-      "plot",
+      "quest",
       {
-        title: "プロット作成アシスタント",
+        title: "TRPGクエスト作成アシスタント",
         description:
-          "あらすじを参照して、物語に必要なプロットアイテムを生成します。",
-        defaultMessage: `あらすじを参照して、物語に必要なプロットアイテムを複数考えてください。
+          "キャンペーン設定を参照して、プレイヤーが挑戦できるクエストやイベントを生成します。",
+        defaultMessage: `キャンペーン設定を参照して、TRPGセッションで使用できるクエストやイベントを複数考えてください。
 
-物語の展開や重要な出来事、転換点などを含めて、魅力的なストーリーを構成するプロット要素を提案してください。
+メインクエスト、サブクエスト、ランダムエンカウンターなど、プレイヤーが楽しめる多様な要素を提案してください。
 
-現在のあらすじ:
-${(currentProject as NovelProject)?.synopsis || "（あらすじがありません）"}`,
+現在のキャンペーン設定:
+${(currentProject as TRPGCampaign)?.synopsis || "（キャンペーン設定がありません）"}`,
         onComplete: (result) => {
-          // プロット生成完了時の処理
-          console.log("プロット生成完了:", result);
+          // クエスト生成完了時の処理
+          console.log("クエスト生成完了:", result);
           if (result.content) {
             // result.contentが配列の場合は構造化されたデータ、文字列の場合は従来のレスポンス
             if (Array.isArray(result.content)) {
@@ -87,12 +87,12 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
   if (!currentProject) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Typography>プロジェクトが選択されていません。</Typography>
+        <Typography>キャンペーンが選択されていません。</Typography>
       </Container>
     );
   }
 
-  // ステータス別のアイテム数をカウント
+  // ステータス別のクエスト数をカウント
   const countByStatus = plotItems.reduce((acc, item) => {
     acc[item.status] = (acc[item.status] || 0) + 1;
     return acc;
@@ -102,10 +102,10 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
     <Container maxWidth="lg" sx={{ mt: 4, mb: 8 }}>
       <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
         <Typography variant="h4" gutterBottom>
-          {(currentProject as NovelProject).title}
+          {(currentProject as TRPGCampaign).title}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          プロット
+          クエスト・イベント管理
         </Typography>
 
         <Box
@@ -118,10 +118,10 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
         >
           <Stack direction="row" spacing={2}>
             <Typography variant="body2" color="text.secondary">
-              検討中: {countByStatus["検討中"] || 0}
+              未実施: {countByStatus["検討中"] || 0}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              決定済み: {countByStatus["決定"] || 0}
+              完了: {countByStatus["決定"] || 0}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               合計: {plotItems.length}
@@ -151,7 +151,7 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
                 });
               }}
             >
-              新規追加
+              新規クエスト
             </Button>
             <Button
               variant="contained"
@@ -213,25 +213,26 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
         fullWidth
       >
         <DialogTitle>
-          {editItemTitle ? "プロット項目を編集" : "新規プロット項目"}
+          {editItemTitle ? "クエストを編集" : "新規クエスト"}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <TextField
-              label="タイトル"
+              label="クエスト名"
               fullWidth
               margin="normal"
               value={editItemTitle}
               onChange={(e) => setEditItemTitle(e.target.value)}
             />
             <TextField
-              label="説明"
+              label="クエスト詳細"
               fullWidth
               margin="normal"
               multiline
               rows={6}
               value={editItemDescription}
               onChange={(e) => setEditItemDescription(e.target.value)}
+              placeholder="依頼人、目的、報酬、障害などを記載"
             />
             <FormControl fullWidth margin="normal">
               <InputLabel>ステータス</InputLabel>
@@ -242,8 +243,8 @@ ${(currentProject as NovelProject)?.synopsis || "（あらすじがありませ�
                   setEditItemStatus(e.target.value as "検討中" | "決定")
                 }
               >
-                <MenuItem value="検討中">検討中</MenuItem>
-                <MenuItem value="決定">決定</MenuItem>
+                <MenuItem value="検討中">未実施</MenuItem>
+                <MenuItem value="決定">完了</MenuItem>
               </Select>
             </FormControl>
           </Box>

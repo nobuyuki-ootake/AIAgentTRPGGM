@@ -158,25 +158,25 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {isEditing ? "イベントを編集" : "新しいイベントを追加"}
+        {isEditing ? "セッションイベントを編集" : "新しいセッションイベントを追加"}
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={3} sx={{ pt: 1 }}>
           <TextField
             name="title"
-            label="イベントタイトル"
+            label="イベント名"
             fullWidth
             value={newEvent.title}
             onChange={onEventChange}
-            placeholder="例：「主人公の故郷が襲撃される」「重要な手がかりを発見」など"
+            placeholder="例：「ゴブリンの襲撃」「ボス戦」「重要NPCとの会話」など"
           />
 
           <TextField
             name="date"
-            label="日付"
-            type="date"
+            label="セッション日時"
+            type="datetime-local"
             fullWidth
-            value={moment(newEvent.date).format("YYYY-MM-DD")}
+            value={moment(newEvent.date).format("YYYY-MM-DDTHH:mm")}
             onChange={onEventChange}
             InputLabelProps={{ shrink: true }}
           />
@@ -189,7 +189,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
             fullWidth
             value={newEvent.description}
             onChange={onEventChange}
-            placeholder="イベントの詳細を入力してください"
+            placeholder="セッション中に起きた出来事の詳細、結果、影響などを記録"
           />
 
           <FormControl fullWidth>

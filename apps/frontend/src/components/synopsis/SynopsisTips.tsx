@@ -5,27 +5,30 @@ export const SynopsisTips: React.FC = () => {
   return (
     <CardContent>
       <Typography variant="h6" gutterBottom>
-        AIアシスタントのヒント
+        TRPGゲームマスタリングのヒント
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        効果的なあらすじの書き方：
+        効果的なキャンペーン設定のポイント：
       </Typography>
       <Box component="ul" sx={{ mt: 1 }}>
         <Typography component="li" variant="body2">
-          主人公の目標と障害を明確にする
+          キャンペーンの世界観と舞台設定を明確にする
         </Typography>
         <Typography component="li" variant="body2">
-          物語の主要な転換点を含める
+          プレイヤーキャラクターが活躍できる冒険の機会を用意する
         </Typography>
         <Typography component="li" variant="body2">
-          物語の舞台設定と時代背景を簡潔に説明する
+          長期的な目標と短期的なクエストのバランスを考える
         </Typography>
         <Typography component="li" variant="body2">
-          最終的な結末まで含める（ネタバレを気にする必要はありません）
+          NPCや敵対勢力の動機と目的を設定する
+        </Typography>
+        <Typography component="li" variant="body2">
+          プレイヤーの選択が物語に影響を与える仕組みを作る
         </Typography>
       </Box>
       <Typography variant="body2" sx={{ mt: 2 }}>
-        必要な支援が欲しい場合は、右側のチャットパネルからAIアシスタントに質問できます。
+        AIゲームマスターアシスタントを使用して、セッション中のサポートを受けることができます。
       </Typography>
     </CardContent>
   );
