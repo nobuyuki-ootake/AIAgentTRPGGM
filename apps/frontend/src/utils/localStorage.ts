@@ -1,78 +1,91 @@
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 
 /**
  * ローカルストレージを操作するためのクラス
  */
 export class LocalStorageManager {
-  private static readonly PROJECT_KEY_PREFIX = "novel_project_";
-  private static readonly PROJECT_LIST_KEY = "novel_project_list";
+  private static readonly PROJECT_KEY_PREFIX = "trpg_campaign_";
+  private static readonly PROJECT_LIST_KEY = "trpg_campaign_list";
+  // 後方互換性のための旧キー
+  private static readonly LEGACY_PROJECT_KEY_PREFIX = "novel_project_";
+  private static readonly LEGACY_PROJECT_LIST_KEY = "novel_project_list";
 
   /**
-   * プロジェクトをローカルストレージに保存する
-   * @param project 保存するプロジェクト
+   * キャンペーンをローカルストレージに保存する
+   * @param campaign 保存するキャンペーン
    * @returns 成功したかどうか
    */
-  static saveProject(project: NovelProject): boolean {
+  static saveProject(campaign: TRPGCampaign): boolean {
     try {
-      // プロジェクトデータをJSON文字列に変換して保存
-      const projectJson = JSON.stringify(project);
+      // キャンペーンデータをJSON文字列に変換して保存
+      const campaignJson = JSON.stringify(campaign);
       localStorage.setItem(
-        `${this.PROJECT_KEY_PREFIX}${project.id}`,
-        projectJson
+        `${this.PROJECT_KEY_PREFIX}${campaign.id}`,
+        campaignJson
       );
 
-      // プロジェクトリストを更新
-      this.addProjectToList(project);
+      // キャンペーンリストを更新
+      this.addProjectToList(campaign);
 
       return true;
     } catch (error) {
-      console.error("プロジェクトの保存に失敗しました:", error);
+      console.error("キャンペーンの保存に失敗しました:", error);
       return false;
     }
   }
 
   /**
-   * プロジェクトをローカルストレージから読み込む
-   * @param projectId プロジェクトID
-   * @returns プロジェクトデータ、存在しない場合はnull
+   * キャンペーンをローカルストレージから読み込む
+   * @param campaignId キャンペーンID
+   * @returns キャンペーンデータ、存在しない場合はnull
    */
-  static loadProject(projectId: string): NovelProject | null {
+  static loadProject(campaignId: string): TRPGCampaign | null {
     try {
-      const projectJson = localStorage.getItem(
-        `${this.PROJECT_KEY_PREFIX}${projectId}`
+      let campaignJson = localStorage.getItem(
+        `${this.PROJECT_KEY_PREFIX}${campaignId}`
       );
-      if (!projectJson) return null;
+      
+      // 新キーで見つからない場合は旧キーで試す
+      if (!campaignJson) {
+        campaignJson = localStorage.getItem(
+          `${this.LEGACY_PROJECT_KEY_PREFIX}${campaignId}`
+        );
+      }
+      
+      if (!campaignJson) return null;
 
-      return JSON.parse(projectJson) as NovelProject;
+      return JSON.parse(campaignJson) as TRPGCampaign;
     } catch (error) {
-      console.error("プロジェクトの読み込みに失敗しました:", error);
+      console.error("キャンペーンの読み込みに失敗しました:", error);
       return null;
     }
   }
 
   /**
-   * プロジェクトをローカルストレージから削除する
-   * @param projectId プロジェクトID
+   * キャンペーンをローカルストレージから削除する
+   * @param campaignId キャンペーンID
    * @returns 成功したかどうか
    */
-  static deleteProject(projectId: string): boolean {
+  static deleteProject(campaignId: string): boolean {
     try {
-      // プロジェクトデータを削除
-      localStorage.removeItem(`${this.PROJECT_KEY_PREFIX}${projectId}`);
+      // キャンペーンデータを削除
+      localStorage.removeItem(`${this.PROJECT_KEY_PREFIX}${campaignId}`);
+      // 旧キーも削除
+      localStorage.removeItem(`${this.LEGACY_PROJECT_KEY_PREFIX}${campaignId}`);
 
-      // プロジェクトリストから削除
-      this.removeProjectFromList(projectId);
+      // キャンペーンリストから削除
+      this.removeProjectFromList(campaignId);
 
       return true;
     } catch (error) {
-      console.error("プロジェクトの削除に失敗しました:", error);
+      console.error("キャンペーンの削除に失敗しました:", error);
       return false;
     }
   }
 
   /**
-   * 保存されているすべてのプロジェクトのメタデータのリストを取得する
-   * @returns プロジェクトメタデータのリスト
+   * 保存されているすべてのキャンペーンのメタデータのリストを取得する
+   * @returns キャンペーンメタデータのリスト
    */
   static getProjectList(): Array<{
     id: string;
@@ -80,7 +93,18 @@ export class LocalStorageManager {
     updatedAt: string;
   }> {
     try {
-      const listJson = localStorage.getItem(this.PROJECT_LIST_KEY);
+      let listJson = localStorage.getItem(this.PROJECT_LIST_KEY);
+      
+      // 新キーで見つからない場合は旧キーで試す
+      if (!listJson) {
+        listJson = localStorage.getItem(this.LEGACY_PROJECT_LIST_KEY);
+        // 旧キーから新キーへ移行
+        if (listJson) {
+          localStorage.setItem(this.PROJECT_LIST_KEY, listJson);
+          localStorage.removeItem(this.LEGACY_PROJECT_LIST_KEY);
+        }
+      }
+      
       if (!listJson) return [];
 
       return JSON.parse(listJson) as Array<{
@@ -89,51 +113,51 @@ export class LocalStorageManager {
         updatedAt: string;
       }>;
     } catch (error) {
-      console.error("プロジェクトリストの取得に失敗しました:", error);
+      console.error("キャンペーンリストの取得に失敗しました:", error);
       return [];
     }
   }
 
   /**
-   * プロジェクトリストにプロジェクトを追加または更新します。
-   * @param project 保存するプロジェクトデータ
+   * キャンペーンリストにキャンペーンを追加または更新します。
+   * @param campaign 保存するキャンペーンデータ
    */
-  private static addProjectToList(project: NovelProject): void {
-    const projects = this.getProjectList();
-    const index = projects.findIndex((p) => p.id === project.id);
+  private static addProjectToList(campaign: TRPGCampaign): void {
+    const campaigns = this.getProjectList();
+    const index = campaigns.findIndex((c) => c.id === campaign.id);
 
-    // 既存のプロジェクトの場合は更新
+    // 既存のキャンペーンの場合は更新
     if (index >= 0) {
-      projects[index] = {
-        id: project.id,
-        title: project.title,
-        updatedAt: project.updatedAt.toISOString(),
+      campaigns[index] = {
+        id: campaign.id,
+        title: campaign.title,
+        updatedAt: campaign.updatedAt.toISOString(),
       };
     } else {
-      // 新規プロジェクトの場合は追加
-      projects.push({
-        id: project.id,
-        title: project.title,
-        updatedAt: project.updatedAt.toISOString(),
+      // 新規キャンペーンの場合は追加
+      campaigns.push({
+        id: campaign.id,
+        title: campaign.title,
+        updatedAt: campaign.updatedAt.toISOString(),
       });
     }
 
     // リストを保存
-    localStorage.setItem(this.PROJECT_LIST_KEY, JSON.stringify(projects));
+    localStorage.setItem(this.PROJECT_LIST_KEY, JSON.stringify(campaigns));
   }
 
   /**
-   * プロジェクトリストからプロジェクトを削除する
-   * @param projectId 削除するプロジェクトID
+   * キャンペーンリストからキャンペーンを削除する
+   * @param campaignId 削除するキャンペーンID
    */
-  private static removeProjectFromList(projectId: string): void {
-    let projectList = this.getProjectList();
+  private static removeProjectFromList(campaignId: string): void {
+    let campaignList = this.getProjectList();
 
-    // 指定されたIDのプロジェクトを除外
-    projectList = projectList.filter((p) => p.id !== projectId);
+    // 指定されたIDのキャンペーンを除外
+    campaignList = campaignList.filter((c) => c.id !== campaignId);
 
     // リストを保存
-    localStorage.setItem(this.PROJECT_LIST_KEY, JSON.stringify(projectList));
+    localStorage.setItem(this.PROJECT_LIST_KEY, JSON.stringify(campaignList));
   }
 
   /**

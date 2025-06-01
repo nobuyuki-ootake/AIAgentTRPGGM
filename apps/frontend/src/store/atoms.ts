@@ -169,7 +169,7 @@ export interface AssistConfig {
 export interface AIChatContext {
   mode: AIChatMode;
   pageContext: PageContext;
-  projectData: NovelProject | null;
+  campaignData: TRPGCampaign | null;
   selectedElements: SelectedElement[];
   assistConfig?: AssistConfig;
 }
@@ -179,7 +179,7 @@ export const aiChatContextState = atom<AIChatContext>({
   default: {
     mode: "chat",
     pageContext: "characters",
-    projectData: null,
+    campaignData: null,
     selectedElements: [],
   },
 });

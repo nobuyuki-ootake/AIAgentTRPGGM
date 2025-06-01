@@ -1,26 +1,26 @@
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../store/atoms";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 
 /**
- * 現在のプロジェクトを取得・更新するためのカスタムフック
+ * 現在のキャンペーンを取得・更新するためのカスタムフック
  */
 export function useCurrentProject() {
   const [currentProject, setCurrentProject] =
     useRecoilState(currentProjectState);
 
   /**
-   * プロジェクト全体を更新
+   * キャンペーン全体を更新
    */
-  const updateProject = (newProject: NovelProject | null) => {
+  const updateProject = (newProject: TRPGCampaign | null) => {
     setCurrentProject(newProject);
     return newProject;
   };
 
   /**
-   * プロジェクトの部分的な更新
+   * キャンペーンの部分的な更新
    */
-  const updateProjectPartial = (partialProject: Partial<NovelProject>) => {
+  const updateProjectPartial = (partialProject: Partial<TRPGCampaign>) => {
     if (!currentProject) return null;
 
     const updatedProject = {

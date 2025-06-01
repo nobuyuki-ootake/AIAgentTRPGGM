@@ -306,13 +306,13 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
       if (result) {
         switch (format) {
           case "json":
-            message = "プロジェクトをJSONとしてエクスポートしました";
+            message = "キャンペーンをJSONとしてエクスポートしました";
             break;
           case "text":
-            message = "プロジェクトをテキストとしてエクスポートしました";
+            message = "キャンペーンをテキストとしてエクスポートしました";
             break;
           case "stats":
-            message = "プロジェクトの統計情報をエクスポートしました";
+            message = "キャンペーンの統計情報をエクスポートしました";
             break;
         }
       } else {
@@ -359,7 +359,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
     loadProjects();
 
     // 成功メッセージを表示
-    setSnackbarMessage("プロジェクトが正常にインポートされました");
+    setSnackbarMessage("キャンペーンが正常にインポートされました");
     setSnackbarOpen(true);
   };
 
@@ -374,7 +374,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
         }}
       >
         <Typography variant="h5" component="h1">
-          プロジェクト一覧
+          キャンペーン一覧
         </Typography>
         <Box>
           <Button
@@ -411,7 +411,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
         ) : projects.length === 0 ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography variant="body1" color="text.secondary">
-              プロジェクトがありません。新しいプロジェクトを作成してください。
+              キャンペーンがありません。新しいキャンペーンを作成してください。
             </Typography>
             <Button
               variant="outlined"
@@ -420,7 +420,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
               onClick={handleCreateNew}
               sx={{ mt: 2 }}
             >
-              プロジェクトを作成
+              キャンペーンを作成
             </Button>
           </Box>
         ) : (
@@ -480,10 +480,10 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
 
       {/* 削除確認ダイアログ */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-        <DialogTitle>プロジェクトの削除</DialogTitle>
+        <DialogTitle>キャンペーンの削除</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            このプロジェクトを削除してもよろしいですか？この操作は元に戻せません。
+            このキャンペーンを削除してもよろしいですか？この操作は元に戻せません。
           </DialogContentText>
         </DialogContent>
         <DialogActions>

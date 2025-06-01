@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useCreateProject } from "../hooks/useCreateProject";
 import { useNavigate } from "react-router-dom";
+import GameSystemSelector, { GameSystem } from "../../../components/campaign/GameSystemSelector";
 
 // Material-UIのimport
 import {
@@ -31,7 +32,8 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
   const [genreInput, setGenreInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [gameSystem, setGameSystem] = useState("");
+  const [gameSystem, setGameSystem] = useState("stormbringer");
+  const [selectedGameSystem, setSelectedGameSystem] = useState<GameSystem | null>(null);
   const [playerCount, setPlayerCount] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
@@ -81,6 +83,11 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
+  const handleGameSystemChange = (systemId: string, system: GameSystem) => {
+    setGameSystem(systemId);
+    setSelectedGameSystem(system);
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: "auto", my: 4 }}>
       <Typography variant="h5" component="h1" gutterBottom>
@@ -115,15 +122,16 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
           disabled={isCreating}
         />
 
-        <TextField
-          label="ゲームシステム"
-          fullWidth
-          margin="normal"
-          value={gameSystem}
-          onChange={(e) => setGameSystem(e.target.value)}
-          disabled={isCreating}
-          placeholder="D&D 5e, パスファインダー, クトゥルフなど"
-        />
+        <Box sx={{ mt: 2, mb: 1 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            ゲームシステム
+          </Typography>
+          <GameSystemSelector
+            selectedSystemId={gameSystem}
+            onSystemChange={handleGameSystemChange}
+            showDetails={true}
+          />
+        </Box>
 
         <TextField
           label="プレイヤー人数"

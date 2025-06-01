@@ -21,7 +21,7 @@ import {
   Paper,
 } from "@mui/material";
 import {
-  Character,
+  TRPGCharacter,
   TimelineEvent,
   CharacterStatus,
   PlotElement,
@@ -56,7 +56,7 @@ interface TimelineEventDialogProps {
   open: boolean;
   isEditing: boolean;
   newEvent: TimelineEvent;
-  characters: Character[];
+  characters: TRPGCharacter[];
   onClose: () => void;
   onSave: () => void;
   onEventChange: (
@@ -158,7 +158,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {isEditing ? "セッションイベントを編集" : "新しいセッションイベントを追加"}
+        {isEditing ? "イベントを編集" : "新しいイベントを追加"}
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={3} sx={{ pt: 1 }}>
@@ -172,13 +172,15 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
           />
 
           <TextField
-            name="date"
-            label="セッション日時"
-            type="datetime-local"
+            name="dayNumber"
+            label="イベント発生日（日数）"
+            type="number"
             fullWidth
-            value={moment(newEvent.date).format("YYYY-MM-DDTHH:mm")}
+            value={newEvent.dayNumber || 1}
             onChange={onEventChange}
             InputLabelProps={{ shrink: true }}
+            inputProps={{ min: 1, step: 1 }}
+            helperText="1日目～X日目の形式で入力してください"
           />
 
           <TextField
@@ -189,7 +191,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
             fullWidth
             value={newEvent.description}
             onChange={onEventChange}
-            placeholder="セッション中に起きた出来事の詳細、結果、影響などを記録"
+            placeholder="イベントの詳細、結果、影響などを記録"
           />
 
           <FormControl fullWidth>

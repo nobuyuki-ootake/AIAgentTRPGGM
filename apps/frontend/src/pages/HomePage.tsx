@@ -21,11 +21,11 @@ import {
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Campaign as CampaignIcon,
   Group as GroupIcon,
   Security as EnemyIcon,
   Groups as NPCIcon,
 } from "@mui/icons-material";
+import { CampaignIcon, DiceD20Icon } from "../components/icons/TRPGIcons";
 import { styled } from "@mui/material/styles";
 import { useTRPGHome } from "../hooks/useTRPGHome";
 
@@ -78,11 +78,14 @@ const HomePage: React.FC = () => {
           }}
         >
           <Box>
-            <Typography variant="h3" component="h1" gutterBottom>
-              TRPGキャンペーン管理
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <DiceD20Icon sx={{ fontSize: 48, mr: 2, color: 'primary.main' }} />
+              <Typography variant="h3" component="h1">
+                TRPG AIエージェントGM
+              </Typography>
+            </Box>
             <Typography variant="subtitle1" color="text.secondary">
-              テーブルトークRPGのキャンペーンを管理・運営するためのシステム
+              AIがゲームマスターをサポートする次世代TRPGキャンペーン管理システム
             </Typography>
           </Box>
           <Button
@@ -203,32 +206,70 @@ const HomePage: React.FC = () => {
           )}
         </StyledPaper>
 
-        {/* 使用方法の説明 */}
+        {/* 機能説明・使用方法 */}
         <StyledPaper>
           <Typography variant="h6" gutterBottom>
-            使用方法
+            🎲 TRPG AI エージェント GM の機能
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                📝 基本機能
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                📋 キャンペーン管理
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                • キャンペーン作成・管理<br />
-                • PC・NPC・エネミーキャラクター管理<br />
-                • 世界観・拠点設定<br />
-                • セッション履歴管理
+                • 複数ゲームシステム対応（Stormbringer、D&D 5e、Pathfinder等）<br />
+                • キャンペーン設定・世界観構築<br />
+                • プロット・クエスト管理<br />
+                • タイムライン・スケジュール管理<br />
+                • 拠点・地理情報管理
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                👥 キャラクター管理
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • PCキャラクターシート作成・管理<br />
+                • NPCデータベース構築<br />
+                • エネミー情報管理<br />
+                • 能力値・スキル・装備管理<br />
+                • キャラクターシート印刷・エクスポート
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                🤖 AI エージェント機能
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • AI GM アシスタント<br />
+                • 自動キャラクター生成<br />
+                • シナリオ・イベント提案<br />
+                • NPC会話生成<br />
+                • 世界観設定自動補完
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2" gutterBottom>
-                🎲 TRPG機能
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                🎮 セッション機能
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 • リアルタイムセッション画面<br />
-                • ダイスロール機能<br />
+                • 多彩なダイスロール機能<br />
                 • チャット・ログ管理<br />
-                • AI生成機能
+                • 戦闘管理・ターン制御<br />
+                • セッション履歴記録
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" gutterBottom color="primary">
+                🛠️ 開発者機能
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                • 開発者モード・プレイモード切り替え<br />
+                • シナリオ事前設計<br />
+                • デバッグ・テスト機能<br />
+                • データエクスポート・インポート<br />
+                • カスタマイズ設定
               </Typography>
             </Grid>
           </Grid>

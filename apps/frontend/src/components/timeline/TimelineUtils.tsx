@@ -1,5 +1,5 @@
 import React from "react";
-import { Character } from "@novel-ai-assistant/types";
+import { TRPGCharacter } from "@novel-ai-assistant/types";
 import {
   Event as EventIcon,
   SportsKabaddi as BattleIcon,
@@ -15,28 +15,19 @@ import {
 } from "@mui/icons-material";
 
 // キャラクターの役割に応じたアイコンとカラーを定義
-export const getCharacterIcon = (character: Character) => {
-  switch (character.role) {
-    case "protagonist":
-      return {
-        color: "#FFD700", // ゴールド
-        emoji: "👑",
-      };
-    case "antagonist":
-      return {
-        color: "#DC143C", // クリムゾン
-        emoji: "😈",
-      };
-    case "supporting":
-      return {
-        color: "#4169E1", // ロイヤルブルー
-        emoji: "🙂",
-      };
-    default:
-      return {
-        color: "#808080", // グレー
-        emoji: "��",
-      };
+export const getCharacterIcon = (character: TRPGCharacter) => {
+  // TRPGCharacterはroleプロパティを持たないので、characterTypeで判定
+  if (character.characterType === "PC") {
+    return {
+      color: "#FFD700", // ゴールド
+      emoji: "👑",
+    };
+  } else {
+    // NPC
+    return {
+      color: "#4169E1", // ロイヤルブルー
+      emoji: "🙂",
+    };
   }
 };
 

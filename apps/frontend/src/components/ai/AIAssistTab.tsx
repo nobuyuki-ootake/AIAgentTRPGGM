@@ -15,7 +15,7 @@ import {
   Snackbar,
 } from "@mui/material";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { aiChatContextState, currentProjectState } from "../../store/atoms";
+import { aiChatContextState, currentCampaignState } from "../../store/atoms";
 import { PlotElement } from "@novel-ai-assistant/types";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import {
@@ -152,8 +152,8 @@ export const AIAssistTab: React.FC = () => {
         const message = userInput || assistConfig.defaultMessage;
 
         // ページコンテキストに応じてAPIを呼び出し
-        const projectDataAsRecord = context.projectData
-          ? (context.projectData as unknown as Record<string, unknown>)
+        const campaignDataAsRecord = context.campaignData
+          ? (context.campaignData as unknown as Record<string, unknown>)
           : {};
 
         switch (context.pageContext) {
@@ -161,7 +161,7 @@ export const AIAssistTab: React.FC = () => {
             // あらすじ生成の場合
             result = await generateSynopsisContent(
               message,
-              projectDataAsRecord
+              campaignDataAsRecord
             );
             break;
           case "characters":
@@ -169,12 +169,12 @@ export const AIAssistTab: React.FC = () => {
             console.log("=== AIAssistTab: キャラクター生成開始 ===");
             console.log("メッセージ:", message);
             console.log("バッチ生成設定:", batchGeneration);
-            console.log("プロジェクトデータ:", projectDataAsRecord);
+            console.log("キャンペーンデータ:", campaignDataAsRecord);
 
             // バッチ生成設定に応じて処理
             result = await generateCharacterContent(
               message,
-              projectDataAsRecord,
+              campaignDataAsRecord,
               batchGeneration, // ユーザーの設定値を使用
               assistConfig.onProgress // プログレスコールバックを渡す
             );
@@ -182,8 +182,8 @@ export const AIAssistTab: React.FC = () => {
             console.log("結果:", result);
             break;
           case "plot":
-            // プロット生成の場合
-            result = await generatePlotContent(message, projectDataAsRecord);
+            // クエスト生成の場合
+            result = await generatePlotContent(message, campaignDataAsRecord);
             break;
           case "worldbuilding":
             // 世界観生成の場合
@@ -193,7 +193,7 @@ export const AIAssistTab: React.FC = () => {
               isWorldBuildingBatch = true;
               result = await generateWorldBuildingContent(
                 message,
-                projectDataAsRecord,
+                campaignDataAsRecord,
                 batchGeneration
               );
 
@@ -216,7 +216,7 @@ export const AIAssistTab: React.FC = () => {
               // 単発生成の場合は通常の処理
               result = await generateWorldBuildingContent(
                 message,
-                projectDataAsRecord,
+                campaignDataAsRecord,
                 batchGeneration
               );
             }
@@ -225,12 +225,12 @@ export const AIAssistTab: React.FC = () => {
             // タイムライン生成の場合
             result = await generateTimelineContent(
               message,
-              projectDataAsRecord
+              campaignDataAsRecord
             );
             break;
           default:
             // その他の場合は汎用的なAI応答
-            result = await generateGenericContent(message, projectDataAsRecord);
+            result = await generateGenericContent(message, campaignDataAsRecord);
             break;
         }
 

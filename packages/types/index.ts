@@ -489,6 +489,7 @@ export interface TimelineEvent {
   title: string;
   description: string;
   date: string;
+  dayNumber?: number; // イベント発生日（1日目～X日目）
   relatedCharacters: string[];
   relatedPlaces: string[];
   order: number;

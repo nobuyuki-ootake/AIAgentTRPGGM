@@ -17,9 +17,7 @@ import {
   Grid,
   Tooltip,
 } from "@mui/material";
-import {
-  Casino,
-} from "@mui/icons-material";
+import { DiceD20Icon, DiceD6Icon } from "../icons/TRPGIcons";
 
 export interface DiceRoll {
   dice: string;
@@ -97,7 +95,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Casino />
+          <DiceD20Icon />
           ダイスロール
           {selectedCharacterName && (
             <Chip label={selectedCharacterName} size="small" color="primary" />
@@ -208,7 +206,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
       <DialogActions>
         <Button onClick={handleClose}>キャンセル</Button>
         <Button onClick={resetForm} color="secondary">リセット</Button>
-        <Button onClick={handleRoll} variant="contained" startIcon={<Casino />}>
+        <Button onClick={handleRoll} variant="contained" startIcon={<DiceD20Icon />}>
           ロール実行
         </Button>
       </DialogActions>

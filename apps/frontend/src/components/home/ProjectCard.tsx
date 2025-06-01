@@ -8,10 +8,10 @@ import {
   Box,
 } from "@mui/material";
 import { Delete as DeleteIcon, Book as BookIcon } from "@mui/icons-material";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@novel-ai-assistant/types";
 
 interface ProjectCardProps {
-  project: NovelProject;
+  project: TRPGCampaign;
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
@@ -67,7 +67,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           size="small"
           color="error"
           onClick={onDelete}
-          aria-label="プロジェクトを削除"
+          aria-label="キャンペーンを削除"
         >
           <DeleteIcon />
         </IconButton>

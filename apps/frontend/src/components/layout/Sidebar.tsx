@@ -16,8 +16,6 @@ import {
 } from "@mui/material";
 import {
   ShortText as SynopsisIcon,
-  List as PlotIcon,
-  People as CharactersIcon,
   Public as WorldIcon,
   Timeline as TimelineIcon,
   MenuBook as WritingIcon,
@@ -29,12 +27,13 @@ import {
   PlayArrow as SessionIcon,
   DeveloperMode as DeveloperIcon,
 } from "@mui/icons-material";
+import { QuestScrollIcon, DiceD20Icon, CampaignIcon, PartyIcon } from "../icons/TRPGIcons";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   appModeState,
   AppMode,
   sidebarOpenState,
-  currentProjectState,
+  currentCampaignState,
   developerModeState,
 } from "../../store/atoms";
 
@@ -46,7 +45,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const [appMode, setAppMode] = useRecoilState(appModeState);
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
-  const [, setCurrentProject] = useRecoilState(currentProjectState);
+  const [, setCurrentCampaign] = useRecoilState(currentCampaignState);
   const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
 
   const handleModeChange = (mode: AppMode) => {
@@ -92,11 +91,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
     // イベントがキャンセルされなかった場合はホームに戻る
     if (proceedWithChange) {
-      // 現在のプロジェクトをクリア
-      setCurrentProject(null);
+      // 現在のキャンペーンをクリア
+      setCurrentCampaign(null);
 
-      // ローカルストレージからcurrentProjectIdを削除
-      localStorage.removeItem("currentProjectId");
+      // ローカルストレージからcurrentCampaignIdを削除
+      localStorage.removeItem("currentCampaignId");
 
       // ホーム画面に戻るためにURLを変更
       window.location.href = "/";
@@ -114,13 +113,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     { 
       mode: "plot" as AppMode, 
       text: "クエスト", 
-      icon: <PlotIcon />,
+      icon: <QuestScrollIcon />,
       developerOnly: true 
     },
     {
       mode: "characters" as AppMode,
       text: "パーティー",
-      icon: <CharactersIcon />,
+      icon: <PartyIcon />,
       developerOnly: false
     },
     {
@@ -205,9 +204,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           color: "primary.contrastText",
         }}
       >
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          創作メニュー
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+          <DiceD20Icon sx={{ mr: 1 }} />
+          <Typography variant="h6">
+            キャンペーンメニュー
+          </Typography>
+        </Box>
         <IconButton onClick={toggleSidebar} color="inherit">
           <ChevronLeftIcon />
         </IconButton>
@@ -278,7 +280,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           align="center"
           sx={{ display: "block" }}
         >
-          ※作業中のプロジェクトを閉じます
+          ※作業中のキャンペーンを閉じます
         </Typography>
       </Box>
     </Drawer>

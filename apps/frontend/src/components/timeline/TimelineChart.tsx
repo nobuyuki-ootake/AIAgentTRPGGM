@@ -99,7 +99,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        セッションイベントチャート（日単位）
+        イベントチャート（日単位）
       </Typography>
       <Paper
         elevation={2}

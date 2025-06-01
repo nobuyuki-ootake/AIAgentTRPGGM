@@ -26,21 +26,23 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  Map as MapIcon,
-  Assignment,
   Bolt,
   Save,
-  Casino,
   NavigateNext,
   CalendarToday,
   ShoppingCart,
   Forum,
-  People,
   Backpack,
-  Psychology,
   CheckCircle,
   Cancel,
 } from "@mui/icons-material";
+import {
+  DiceD20Icon,
+  QuestScrollIcon,
+  DungeonIcon,
+  GameMasterIcon,
+  BaseIcon,
+} from "../components/icons/TRPGIcons";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom, developerModeState } from "../store/atoms";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
@@ -194,7 +196,7 @@ const TRPGSessionPage: React.FC = () => {
         type: "move",
         label: "移動",
         description: "他の場所へ移動する",
-        icon: <MapIcon />,
+        icon: <DungeonIcon />,
         requiresTarget: true,
         targetType: "location",
       },
@@ -219,7 +221,7 @@ const TRPGSessionPage: React.FC = () => {
         type: "interact",
         label: "キャラクター交流",
         description: "他のキャラクターと交流する",
-        icon: <People />,
+        icon: <Forum />,
         requiresTarget: true,
         targetType: "character",
       },
@@ -232,7 +234,7 @@ const TRPGSessionPage: React.FC = () => {
         type: "skill",
         label: "探索",
         description: "周囲を探索する",
-        icon: <Psychology />,
+        icon: <DungeonIcon />,
       });
     }
 
@@ -241,7 +243,8 @@ const TRPGSessionPage: React.FC = () => {
 
   // 行動選択処理
   const handleActionChoice = async (action: ActionChoice) => {
-    if (actionCount >= maxActionsPerDay) {
+    // 行動回数チェック（イベント発生時は完了条件をAIが判定するため、単純な上限チェックは削除）
+    if (actionCount >= maxActionsPerDay && !hasActiveEvent()) {
       const confirmNextDay = window.confirm("今日の行動回数が上限に達しました。次の日に進みますか？");
       if (confirmNextDay) {
         handleDayAdvance();
@@ -261,7 +264,7 @@ const TRPGSessionPage: React.FC = () => {
 行動内容: ${action.description}
 
 この行動の結果を描写し、必要に応じてスキルチェックやダイスロールを提案してください。`,
-        onComplete: (result) => {
+        onComplete: async (result) => {
           if (result.content) {
             const actionMessage: ChatMessage = {
               id: uuidv4(),
@@ -272,6 +275,26 @@ const TRPGSessionPage: React.FC = () => {
             };
             setChatMessages(prev => [...prev, actionMessage]);
             setActionCount(prev => prev + 1);
+
+            // AIによるイベント完了条件判定
+            const isEventCompleted = await checkEventCompletionByAI(result.content as string);
+            
+            if (isEventCompleted) {
+              // イベント完了時の自動日進行
+              const completionMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: "本日のイベントが完了しました。次の日に進みます。",
+                timestamp: new Date(),
+              };
+              setChatMessages(prev => [...prev, completionMessage]);
+              
+              // 少し遅延を入れてから日進行
+              setTimeout(() => {
+                handleDayAdvance();
+              }, 2000);
+            }
           }
         },
       },
@@ -280,6 +303,101 @@ const TRPGSessionPage: React.FC = () => {
   };
 
   // 日程進行
+  // AIゲームマスターにセッション開始を依頼
+  const handleStartAIGameMaster = async () => {
+    const startMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "AIゲームマスター",
+      senderType: "gm",
+      message: `${currentDay}日目のセッションを開始します。今日予定されているイベントや状況をご案内しますね。`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, startMessage]);
+
+    // 日付に応じたイベントチェック
+    checkDailyEvents(currentDay);
+    
+    // AIエージェントにセッション開始を依頼
+    await requestAIGameMasterStart();
+  };
+
+  // AIゲームマスター開始リクエスト
+  const requestAIGameMasterStart = async () => {
+    try {
+      const prompt = `
+${currentDay}日目のTRPGセッションを開始してください。
+
+**キャンペーン情報:**
+- タイトル: ${currentCampaign?.title}
+- 現在の日付: ${currentDay}日目
+
+**本日の予定イベント:**
+${currentCampaign?.quests?.filter(q => q.scheduledDay === currentDay)
+  .map(event => `- ${event.title}: ${event.description}`)
+  .join('\n') || '特別なイベントは予定されていません'}
+
+**パーティー状況:**
+${currentCampaign?.characters?.map(char => 
+  `- ${char.name}: ${char.description}`).join('\n') || 'キャラクター情報がありません'}
+
+ゲームマスターとして、今日一日の流れや状況を説明し、プレイヤーが行動を選択できるよう導いてください。
+`;
+
+      // AI統合機能を使用してGMの応答を取得
+      // 実装は既存のAI統合システムを使用
+      console.log("AI GMリクエスト:", prompt);
+      
+    } catch (error) {
+      console.error("AI GM開始エラー:", error);
+    }
+  };
+
+  // アクティブなイベントが存在するかチェック
+  const hasActiveEvent = (): boolean => {
+    const dailyEvents = currentCampaign?.quests?.filter(q => q.scheduledDay === currentDay) || [];
+    return dailyEvents.length > 0;
+  };
+
+  // AIエージェントによるイベント完了条件判定
+  const checkEventCompletionByAI = async (actionResult: string): Promise<boolean> => {
+    if (!hasActiveEvent()) return false;
+
+    try {
+      const activeEvents = currentCampaign?.quests?.filter(q => q.scheduledDay === currentDay) || [];
+      const prompt = `
+以下のTRPGセッションの状況を分析し、今日のイベントが完了したかどうかを判定してください。
+
+**本日のイベント:**
+${activeEvents.map(event => `- ${event.title}: ${event.description}`).join('\n')}
+
+**最新の行動結果:**
+${actionResult}
+
+**これまでの行動履歴:**
+${chatMessages.slice(-5).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
+
+**判定基準:**
+- イベントの目的が達成されたか
+- 重要な結論や決着がついたか
+- プレイヤーが目標を完了したか
+
+回答は "COMPLETED" または "CONTINUE" のみで答えてください。
+`;
+
+      // AI統合機能を使用して判定
+      // 実装は既存のAI統合システムを使用
+      console.log("AI完了判定リクエスト:", prompt);
+      
+      // 仮の実装（実際はAI APIを呼び出し）
+      return false; // デフォルトは継続
+      
+    } catch (error) {
+      console.error("AI完了判定エラー:", error);
+      return false;
+    }
+  };
+
+  // 日進行（自動または手動）
   const handleDayAdvance = () => {
     setCurrentDay(prev => prev + 1);
     setActionCount(0);
@@ -293,7 +411,7 @@ const TRPGSessionPage: React.FC = () => {
     };
     setChatMessages(prev => [...prev, dayMessage]);
 
-    // 日付に応じたイベントチェック
+    // 新しい日のイベントチェック
     checkDailyEvents(currentDay + 1);
   };
 
@@ -402,7 +520,7 @@ ${dailyEvents.map(e => `- ${e.title}: ${e.description}`).join("\n")}
                 variant="outlined"
               />
               <Chip
-                icon={<MapIcon />}
+                icon={<BaseIcon />}
                 label={currentLocation}
                 color="secondary"
                 variant="outlined"
@@ -423,11 +541,11 @@ ${dailyEvents.map(e => `- ${e.title}: ${e.description}`).join("\n")}
             )}
             <Button
               variant="contained"
-              startIcon={<NavigateNext />}
-              onClick={handleDayAdvance}
-              disabled={actionCount === 0}
+              startIcon={<GameMasterIcon />}
+              onClick={handleStartAIGameMaster}
+              disabled={false}
             >
-              次の日へ
+              AIゲームマスターにセッションを始めてもらう
             </Button>
             <Button
               variant="contained"
@@ -620,7 +738,7 @@ ${dailyEvents.map(e => `- ${e.title}: ${e.description}`).join("\n")}
             <Stack spacing={2}>
               <Button
                 variant="contained"
-                startIcon={<Casino />}
+                startIcon={<DiceD20Icon />}
                 onClick={() => setDiceDialog(true)}
                 fullWidth
               >

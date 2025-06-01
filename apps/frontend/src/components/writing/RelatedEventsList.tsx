@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import {
   Visibility as VisibilityIcon,
-  Assignment as AssignmentIcon,
 } from "@mui/icons-material";
+import { QuestScrollIcon } from "../icons/TRPGIcons";
 import { TimelineEvent } from "@novel-ai-assistant/types";
 // import { useWritingContext } from "../../contexts/WritingContext"; // 未使用のためコメントアウト
 
@@ -49,7 +49,7 @@ const RelatedEventsList: React.FC<RelatedEventsListProps> = ({
         <Button
           variant="outlined"
           size="small"
-          startIcon={<AssignmentIcon />}
+          startIcon={<QuestScrollIcon />}
           onClick={onAssignEvents}
         >
           割り当て

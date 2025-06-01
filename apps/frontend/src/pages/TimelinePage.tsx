@@ -7,8 +7,18 @@ import {
   Alert,
   Typography,
   Divider,
+  Switch,
+  FormControlLabel,
+  Chip,
+  Card,
+  CardContent,
 } from "@mui/material";
-import { Settings as SettingsIcon } from "@mui/icons-material";
+import { 
+  Settings as SettingsIcon, 
+  DeveloperMode as DeveloperModeIcon,
+  PlayArrow as PlayIcon,
+  History as HistoryIcon 
+} from "@mui/icons-material";
 import {
   DndContext,
   closestCenter,
@@ -19,8 +29,8 @@ import {
   DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
-import { useRecoilValue } from "recoil";
-import { currentProjectState } from "../store/atoms";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { currentCampaignState, developerModeState } from "../store/atoms";
 import { useTimeline } from "../hooks/useTimeline";
 import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
 import TimelineSettingsDialog from "../components/timeline/TimelineSettingsDialog";
@@ -71,7 +81,8 @@ const convertSeedToTimelineEvent = (
 };
 
 const TimelinePage: React.FC = () => {
-  const currentProject = useRecoilValue(currentProjectState);
+  const currentCampaign = useRecoilValue(currentCampaignState);
+  const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
 
   const {
     timelineItems, // これは TimelineItem[] であり、TimelineChart など表示系で使われる
@@ -159,12 +170,12 @@ const TimelinePage: React.FC = () => {
           .filter((name) => name)
           .join("と");
         if (mainChars) {
-          prompt += `${mainChars}が関わるセッションイベントを3つ提案してください。エンカウンター、NPCとの会話、クエストの進展など。`;
+          prompt += `${mainChars}が関わるイベントを3つ提案してください。エンカウンター、NPCとの会話、クエストの進展など。`;
         } else {
-          prompt += "パーティーが関わるセッションイベントを3つ提案してください。";
+          prompt += "パーティーが関わるイベントを3つ提案してください。";
         }
       } else {
-        prompt += "セッション中のイベントを3つ提案してください。";
+        prompt += "イベントを3つ提案してください。";
       }
       return prompt;
     },
@@ -419,7 +430,7 @@ const TimelinePage: React.FC = () => {
       {
         title: "AIイベント生成アシスト",
         description:
-          "プロットを参照して、タイムラインに必要なイベントを生成します。",
+          "クエストを参照して、タイムラインに必要なイベントを生成します。",
         defaultMessage: dynamicPrompt,
         customControls: {
           plotSelection: true,
@@ -434,7 +445,7 @@ const TimelinePage: React.FC = () => {
           }
         },
       },
-      currentProject // プロジェクトデータを渡す
+      currentCampaign // キャンペーンデータを渡す
     );
   };
 
@@ -457,6 +468,97 @@ const TimelinePage: React.FC = () => {
     definedCharacterStatuses
   );
 
+  // セッション履歴ビューのコンポーネント
+  const SessionHistoryView: React.FC = () => {
+    // 実際のセッション履歴データがある場合の表示
+    const sessionHistory = currentCampaign?.sessions || [];
+    
+    return (
+      <Box>
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <HistoryIcon color="primary" />
+          <Typography variant="h6">セッション履歴</Typography>
+          <Chip 
+            label={`${sessionHistory.length} セッション`} 
+            color="primary" 
+            variant="outlined"
+          />
+        </Box>
+        
+        {sessionHistory.length === 0 ? (
+          <Card>
+            <CardContent>
+              <Typography variant="body1" color="text.secondary" align="center">
+                まだセッションが実行されていません。
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                TRPGセッションを開始すると、ここに履歴が表示されます。
+              </Typography>
+            </CardContent>
+          </Card>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {sessionHistory.map((session, index) => (
+              <Card key={session.id || index}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">
+                      セッション {index + 1}: {session.title || `Session ${index + 1}`}
+                    </Typography>
+                    <Chip 
+                      label={session.status || 'Completed'} 
+                      color={session.status === 'active' ? 'success' : 'default'}
+                      size="small"
+                    />
+                  </Box>
+                  
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    日時: {session.date ? new Date(session.date).toLocaleDateString('ja-JP') : '未設定'}
+                  </Typography>
+                  
+                  {session.description && (
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      {session.description}
+                    </Typography>
+                  )}
+                  
+                  {session.events && session.events.length > 0 && (
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        主要イベント ({session.events.length}件):
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {session.events.slice(0, 3).map((event, eventIndex) => (
+                          <Box key={eventIndex} sx={{ pl: 2, borderLeft: '2px solid #e0e0e0' }}>
+                            <Typography variant="body2" fontWeight="medium">
+                              {event.title || `イベント ${eventIndex + 1}`}
+                            </Typography>
+                            {event.description && (
+                              <Typography variant="caption" color="text.secondary">
+                                {event.description.length > 100 
+                                  ? `${event.description.substring(0, 100)}...` 
+                                  : event.description}
+                              </Typography>
+                            )}
+                          </Box>
+                        ))}
+                        {session.events.length > 3 && (
+                          <Typography variant="caption" color="text.secondary" sx={{ pl: 2 }}>
+                            ...他 {session.events.length - 3} 件
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -475,82 +577,126 @@ const TimelinePage: React.FC = () => {
                 mb: 2,
               }}
             >
-              <Typography variant="h5">タイムライン</Typography>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<SettingsIcon />}
-                onClick={handleOpenSettingsDialog}
-                size="small"
-              >
-                タイムライン設定
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="h5">タイムライン</Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={developerMode}
+                      onChange={(e) => setDeveloperMode(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {developerMode ? <DeveloperModeIcon /> : <PlayIcon />}
+                      {developerMode ? '開発者モード' : 'プレイモード'}
+                    </Box>
+                  }
+                />
+              </Box>
+              
+              {developerMode && (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<SettingsIcon />}
+                  onClick={handleOpenSettingsDialog}
+                  size="small"
+                >
+                  タイムライン設定
+                </Button>
+              )}
             </Box>
+            
+            {/* モード説明 */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                {developerMode 
+                  ? '🛠️ 開発者モード: イベント管理・シナリオ設計を行います'
+                  : '🎮 プレイモード: セッション履歴を閲覧します'
+                }
+              </Typography>
+            </Box>
+            
             <Divider />
           </Box>
 
-          <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-            <TimelineEventList
-              timelineItems={timelineItems}
-              onAddEvent={handleOpenDialog}
-              onAIAssist={handleOpenAIAssistModal}
-              onEditEvent={handleEventClick}
-              hasUnsavedChanges={hasUnsavedChanges}
-              onSave={handleSave}
-              onDeleteEvent={handleDeleteEvent}
-              onResetTimeline={handleResetTimeline}
-              getCharacterNameById={getCharacterName}
-              getPlaceNameById={getPlaceName}
-            />
-          </Paper>
+          {/* 開発者モード: イベント管理・シナリオ設計 */}
+          {developerMode ? (
+            <>
+              <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                <TimelineEventList
+                  timelineItems={timelineItems}
+                  onAddEvent={handleOpenDialog}
+                  onAIAssist={handleOpenAIAssistModal}
+                  onEditEvent={handleEventClick}
+                  hasUnsavedChanges={hasUnsavedChanges}
+                  onSave={handleSave}
+                  onDeleteEvent={handleDeleteEvent}
+                  onResetTimeline={handleResetTimeline}
+                  getCharacterNameById={getCharacterName}
+                  getPlaceNameById={getPlaceName}
+                />
+              </Paper>
 
-          <TimelineSettingsDialog
-            open={settingsDialogOpen}
-            onClose={handleCloseSettingsDialog}
-            timelineSettings={timelineSettings}
-            onSettingsChange={handleSettingsChange}
-            onSave={handleSaveSettings}
-          />
-
-          {dialogOpen && (
-            <TimelineEventDialog
-              open={dialogOpen}
-              onClose={handleCloseDialog}
-              newEvent={newEvent}
-              isEditing={isEditing}
-              characters={characters}
-              definedCharacterStatuses={definedCharacterStatuses}
-              onEventChange={handleEventChange}
-              onSave={handleSaveEvent}
-              onCharactersChange={handleCharactersChange}
-              getCharacterName={getCharacterName}
-              getPlaceName={getPlaceName}
-              onPostEventStatusChange={handlePostEventStatusChange}
-              allPlots={allPlots}
-              onRelatedPlotsChange={handleRelatedPlotsChange}
-            />
+              {places && places.length > 0 && dateArray && dateArray.length > 0 && (
+                <TimelineChart
+                  timelineEvents={timelineEvents}
+                  places={places}
+                  plots={allPlots}
+                  dateArray={dateArray}
+                  safeMinY={safeMinY}
+                  safeMaxY={safeMaxY}
+                  onEventClick={handleEventClick}
+                  onDeleteEvent={handleDeleteEvent}
+                />
+              )}
+            </>
+          ) : (
+            /* プレイモード: セッション履歴閲覧 */
+            <SessionHistoryView />
           )}
 
-          {reviewableEventSeeds.length > 0 && (
-            <EventSeedReviewDialog
-              open={eventSeedReviewDialogOpen}
-              onClose={() => setEventSeedReviewDialogOpen(false)}
-              eventSeeds={reviewableEventSeeds}
-              onConfirm={handleConfirmEventSeeds}
-            />
-          )}
+          {/* 開発者モード専用のダイアログ・モーダル */}
+          {developerMode && (
+            <>
+              <TimelineSettingsDialog
+                open={settingsDialogOpen}
+                onClose={handleCloseSettingsDialog}
+                timelineSettings={timelineSettings}
+                onSettingsChange={handleSettingsChange}
+                onSave={handleSaveSettings}
+              />
 
-          {places && places.length > 0 && dateArray && dateArray.length > 0 && (
-            <TimelineChart
-              timelineEvents={timelineEvents}
-              places={places}
-              plots={allPlots}
-              dateArray={dateArray}
-              safeMinY={safeMinY}
-              safeMaxY={safeMaxY}
-              onEventClick={handleEventClick}
-              onDeleteEvent={handleDeleteEvent}
-            />
+              {dialogOpen && (
+                <TimelineEventDialog
+                  open={dialogOpen}
+                  onClose={handleCloseDialog}
+                  newEvent={newEvent}
+                  isEditing={isEditing}
+                  characters={characters}
+                  definedCharacterStatuses={definedCharacterStatuses}
+                  onEventChange={handleEventChange}
+                  onSave={handleSaveEvent}
+                  onCharactersChange={handleCharactersChange}
+                  getCharacterName={getCharacterName}
+                  getPlaceName={getPlaceName}
+                  onPostEventStatusChange={handlePostEventStatusChange}
+                  allPlots={allPlots}
+                  onRelatedPlotsChange={handleRelatedPlotsChange}
+                />
+              )}
+
+              {reviewableEventSeeds.length > 0 && (
+                <EventSeedReviewDialog
+                  open={eventSeedReviewDialogOpen}
+                  onClose={() => setEventSeedReviewDialogOpen(false)}
+                  eventSeeds={reviewableEventSeeds}
+                  onConfirm={handleConfirmEventSeeds}
+                />
+              )}
+            </>
           )}
 
           <Snackbar

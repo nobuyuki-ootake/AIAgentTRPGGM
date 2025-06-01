@@ -41,6 +41,8 @@ import {
   Security,
   AttachMoney,
   People,
+  ImageNotSupported,
+  Image as ImageIcon,
 } from "@mui/icons-material";
 import { useBases } from "../../hooks/useBases";
 import { BaseLocation } from "@novel-ai-assistant/types";
@@ -197,7 +199,51 @@ const BaseTab: React.FC = () => {
             <ListItem>
               <Card sx={{ width: "100%", my: 1 }}>
                 <CardContent>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
+                    {/* 拠点画像 */}
+                    <Box sx={{ flexShrink: 0, width: 120, height: 90 }}>
+                      {base.imageUrl ? (
+                        <Box
+                          component="img"
+                          src={base.imageUrl}
+                          alt={base.name}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: 1,
+                            border: "2px solid",
+                            borderColor: "divider",
+                          }}
+                          onError={(e) => {
+                            // 画像読み込みエラー時の処理
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.nextElementSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: base.imageUrl ? "none" : "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "action.hover",
+                          borderRadius: 1,
+                          border: "2px dashed",
+                          borderColor: "divider",
+                          flexDirection: "column",
+                          gap: 0.5,
+                        }}
+                      >
+                        <ImageNotSupported color="disabled" />
+                        <Typography variant="caption" color="text.disabled" textAlign="center">
+                          画像なし
+                        </Typography>
+                      </Box>
+                    </Box>
+
                     <Box sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1, flexWrap: "wrap", gap: 1 }}>
                         {getBaseIcon(base.type)}
@@ -552,13 +598,77 @@ const BaseTab: React.FC = () => {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField
-                      label="画像URL"
-                      value={formData.imageUrl || ""}
-                      onChange={(e) => handleFormChange("imageUrl", e.target.value)}
-                      fullWidth
-                    />
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
+                      <TextField
+                        label="画像URL"
+                        value={formData.imageUrl || ""}
+                        onChange={(e) => handleFormChange("imageUrl", e.target.value)}
+                        fullWidth
+                        placeholder="https://example.com/base-image.jpg"
+                        helperText="拠点の画像URLを入力してください（オプション）"
+                      />
+                      <Button
+                        variant="outlined"
+                        startIcon={<ImageIcon />}
+                        onClick={() => {
+                          // TODO: AI画像生成機能を実装
+                          console.log("AI画像生成機能（実装予定）");
+                        }}
+                        sx={{ mb: 2.5, whiteSpace: "nowrap" }}
+                        disabled={!formData.name.trim()}
+                        title={!formData.name.trim() ? "拠点名を入力してください" : "AIで拠点画像を生成"}
+                      >
+                        AI生成
+                      </Button>
+                    </Box>
                   </Grid>
+                  {/* 画像プレビュー */}
+                  {formData.imageUrl && (
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        画像プレビュー:
+                      </Typography>
+                      <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+                        <Box
+                          component="img"
+                          src={formData.imageUrl}
+                          alt="拠点画像プレビュー"
+                          sx={{
+                            maxWidth: "100%",
+                            maxHeight: 200,
+                            objectFit: "contain",
+                            borderRadius: 1,
+                            border: "1px solid",
+                            borderColor: "divider",
+                          }}
+                          onError={(e) => {
+                            // プレビュー画像読み込みエラー時
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.nextElementSibling.style.display = "flex";
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            display: "none",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexDirection: "column",
+                            gap: 1,
+                            p: 2,
+                            border: "1px dashed",
+                            borderColor: "error.main",
+                            borderRadius: 1,
+                            bgcolor: "error.lighter",
+                          }}
+                        >
+                          <ImageNotSupported color="error" />
+                          <Typography variant="caption" color="error.main" textAlign="center">
+                            画像を読み込めません
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  )}
                 </Grid>
               </AccordionDetails>
             </Accordion>
