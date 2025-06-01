@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Container, Fab, Tooltip } from "@mui/material";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { currentProjectState, sidebarOpenState } from "../../store/atoms";
+import { currentProjectState, sidebarOpenState, developerModeState } from "../../store/atoms";
 import Sidebar from "./Sidebar";
 import AIChatPanel from "../ai/AIChatPanel";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -13,6 +13,7 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const currentProject = useRecoilValue(currentProjectState);
   const [sidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
+  const developerMode = useRecoilValue(developerModeState);
 
   // プロジェクトが選択されていない場合はシンプルなレイアウトを表示
   if (!currentProject) {
@@ -79,8 +80,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </Tooltip>
       </Box>
 
-      {/* AIChatPanel */}
-      <AIChatPanel />
+      {/* AIChatPanel - 開発者モード時のみ表示 */}
+      {developerMode && <AIChatPanel />}
     </Box>
   );
 };

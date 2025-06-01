@@ -6,7 +6,7 @@ export interface TRPGCampaign {
   title: string;
   createdAt: Date;
   updatedAt: Date;
-  gameSystem: string; // D&D 5e, Pathfinder, オリジナルなど
+  gameSystem: string; // D&D 5e, Pathfinder, Stormbringer, オリジナルなど
   gamemaster: string;
   players: Player[];
   synopsis: string; // キャンペーンの背景・あらすじ
@@ -17,6 +17,7 @@ export interface TRPGCampaign {
   sessions: GameSession[]; // 章 → セッションに変更
   enemies: EnemyCharacter[];
   npcs: NPCCharacter[];
+  bases: BaseLocation[]; // 拠点システム追加
   rules: CampaignRule[];
   handouts: Handout[];
   feedback: Feedback[];
@@ -30,6 +31,7 @@ export interface TRPGCampaign {
     updatedAt: Date;
     tags?: string[];
   }[];
+  imageUrl?: string; // キャンペーン画像
 }
 
 // 後方互換性のためのエイリアス
@@ -155,70 +157,189 @@ export interface CharacterProgression {
   statChanges?: Partial<CharacterStats>;
 }
 
-// TRPGキャラクター（PC・NPC共通基盤）
+// TRPGキャラクター（Stormbringerベース）
 export interface TRPGCharacter {
   id: string;
   name: string;
-  characterType: "PC" | "NPC" | "Enemy";
-  playerName?: string; // PCの場合のプレイヤー名
+  characterType: "PC" | "NPC";
   
-  // 基本情報
-  race?: string;
-  class?: string;
-  background?: string;
-  alignment?: string;
-  gender?: string;
-  age?: string;
-  appearance?: string;
-  personality?: string;
-  motivation?: string;
+  // 基本情報（Stormbringerベース）
+  profession: string;  // 職業
+  gender: string;      // 性別
+  age: number;         // 年齢
+  nation: string;      // 国籍
+  religion: string;    // 宗教
+  player: string;      // プレイヤー名
   
-  // ゲーム情報
-  stats: CharacterStats;
-  skills: Skill[];
-  equipment: Equipment[];
-  progression: CharacterProgression[];
+  // 身体的特徴と記述
+  description: string; // 外見や特徴の記述
+  scars?: string;      // 傷跡などの自由記述
+  
+  // 能力値（Stormbringer）
+  attributes: {
+    STR: number; // Strength（筋力）
+    CON: number; // Constitution（耐久力）
+    SIZ: number; // Size（体格）
+    INT: number; // Intelligence（知性）
+    POW: number; // Power（魔力・意志力）
+    DEX: number; // Dexterity（器用さ）
+    CHA: number; // Charisma（魅力）
+  };
+  
+  // 派生値
+  derived: {
+    HP: number;  // ヒットポイント
+    MP: number;  // マジックポイント
+    SW: number;  // Strike Rank（先制値）
+    RES: number; // 抵抗値
+  };
+  
+  // 武器
+  weapons: StormbringerWeapon[];
+  
+  // 装甲
+  armor: {
+    head: number;
+    body: number;
+    leftArm: number;
+    rightArm: number;
+    leftLeg: number;
+    rightLeg: number;
+  };
+  
+  // スキル体系（Stormbringer）
+  skills: {
+    AgilitySkills: StormbringerSkill[];      // 敏捷系スキル
+    CommunicationSkills: StormbringerSkill[]; // コミュニケーション系スキル
+    KnowledgeSkills: StormbringerSkill[];     // 知識系スキル
+    ManipulationSkills: StormbringerSkill[];  // 操作系スキル
+    PerceptionSkills: StormbringerSkill[];    // 知覚系スキル
+    StealthSkills: StormbringerSkill[];       // 隠密系スキル
+    MagicSkills: StormbringerSkill[];         // 魔法系スキル
+    WeaponSkills: StormbringerSkill[];        // 武器系スキル
+  };
   
   // その他
-  traits: CharacterTrait[];
-  relationships: Relationship[];
   imageUrl?: string;
-  customFields?: CustomField[];
-  statuses?: CharacterStatus[];
-  notes?: string;
+  campaignId?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Stormbringer武器定義
+export interface StormbringerWeapon {
+  name: string;
+  attack: number;
+  damage: string;
+  hit: number;
+  parry: number;
+  range: string;
+}
+
+// Stormbringerスキル定義
+export interface StormbringerSkill {
+  name: string;
+  value: number; // パーセンテージベース
 }
 
 // PC専用追加情報
 export interface PlayerCharacter extends TRPGCharacter {
   characterType: "PC";
-  playerName: string;
-  backstory: string;
-  goals: string[];
-  bonds: string[];
-  flaws: string[];
-  ideals: string[];
+  backstory: string;     // 背景設定
+  goals: string[];       // 目標
+  bonds: string[];       // 絆
+  flaws: string[];       // 欠点
+  ideals: string[];      // 理想
+  currentHP?: number;    // 現在HP
+  currentMP?: number;    // 現在MP
 }
 
 // NPC専用情報
 export interface NPCCharacter extends TRPGCharacter {
   characterType: "NPC";
   location?: string; // 主な居場所
-  occupation?: string;
+  occupation?: string; // 職業
   attitude: "friendly" | "neutral" | "hostile" | "unknown";
   knowledge?: string[]; // 知っている情報
   services?: string[]; // 提供できるサービス
   questIds?: string[]; // 関連クエスト
+  dialoguePatterns?: string[]; // 会話パターン
 }
 
-// 敵キャラクター専用情報
-export interface EnemyCharacter extends TRPGCharacter {
-  characterType: "Enemy";
-  enemyType: "mob" | "elite" | "boss";
-  challengeRating: number;
-  tactics?: string; // 戦闘戦術
-  loot?: Equipment[]; // ドロップアイテム
-  spawnLocations?: string[]; // 出現場所
-  behaviorPattern?: string; // 行動パターン
+// 敵キャラクター詳細情報（エネミー.md仕様準拠）
+export interface EnemyCharacter {
+  id: string;
+  name: string;
+  rank: "モブ" | "中ボス" | "ボス" | "EXボス";
+  type: string; // アンデッド、魔獣、機械など
+  description: string;
+  level: number;
+  
+  // 能力値（簡略化）
+  attributes: {
+    strength: number;
+    dexterity: number;
+    constitution: number;
+    intelligence: number;
+    wisdom: number;
+  };
+  
+  // 派生値
+  derivedStats: {
+    hp: number;
+    mp: number;
+    attack: number;
+    defense: number;
+    magicAttack: number;
+    magicDefense: number;
+    accuracy: number;
+    evasion: number;
+    criticalRate: number;
+    initiative: number;
+  };
+  
+  // スキル・攻撃手段
+  skills: {
+    basicAttack: string;
+    specialSkills: SpecialSkill[];
+    passives: string[];
+  };
+  
+  // AI行動パターン
+  behavior: {
+    aiPattern: string; // 例：HP50%以下で回復スキル使用
+    targeting: string; // 例：最もHPが低いPCを狙う
+  };
+  
+  // ドロップ情報
+  drops: {
+    exp: number;
+    gold: number;
+    items: string[];
+    rareDrops: string[];
+  };
+  
+  // 現在状態
+  status: {
+    currentHp: number;
+    currentMp: number;
+    statusEffects: string[];
+    location: string;
+  };
+  
+  // その他
+  imageUrl?: string;
+  campaignId?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 特殊スキル定義
+export interface SpecialSkill {
+  name: string;
+  effect: string;
+  cooldown?: number;
+  cost?: string;
 }
 
 // キャラクターの型定義（後方互換性のため維持）
@@ -1033,4 +1154,151 @@ export interface AIError {
   code: string; // 例: "VALIDATION_ERROR", "API_ERROR", "TIMEOUT"
   message: string;
   details?: unknown; // any から unknown へ変更
+}
+
+// 拠点詳細情報（拠点.md仕様準拠）
+export interface BaseLocation {
+  id: string;
+  name: string;
+  type: string; // 村、町、都市、砦、城、神殿、浮遊島など
+  region: string; // 所在地・地域
+  description: string;
+  rank: string; // 小村、中規模都市、大都市、要塞都市
+  importance: "主要拠点" | "サブ拠点" | "隠し拠点";
+  
+  // 施設情報
+  facilities: {
+    inn?: Inn;
+    shops?: Shop[];
+    armory?: Armory;
+    temple?: Temple;
+    guild?: Guild;
+    blacksmith?: Blacksmith;
+    otherFacilities?: OtherFacility[];
+  };
+  
+  // 人物・NPC
+  npcs: LocationNPC[];
+  
+  // 機能・用途
+  features: {
+    fastTravel: boolean; // ファストトラベル可能か
+    playerBase: boolean; // プレイヤー拠点として使えるか
+    questHub: boolean;   // クエスト発生ポイントか
+    defenseEvent: boolean; // 拠点防衛イベントの有無
+  };
+  
+  // 危険・影響要素
+  threats: {
+    dangerLevel: string; // 低、中、高
+    monsterAttackRate: number; // モンスター襲撃率
+    playerReputation: number;   // プレイヤーの評判
+    currentEvents: string[];    // 現在の情勢
+    controllingFaction: string; // 支配勢力
+  };
+  
+  // 経済・流通
+  economy: {
+    currency: string;        // 通貨単位
+    priceModifier: number;   // 物価指数
+    localGoods: string[];    // 特産品
+    tradeGoods: string[];    // 交易品
+  };
+  
+  // メタ情報
+  meta: {
+    locationId: string;
+    unlocked: boolean;
+    lastUpdated: string;
+  };
+  
+  // その他
+  imageUrl?: string;
+  campaignId?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 宿屋情報
+export interface Inn {
+  name: string;
+  pricePerNight: number;
+  description?: string;
+  services?: string[]; // 回復、情報収集など
+}
+
+// 店舗情報
+export interface Shop {
+  name: string;
+  type: string; // 一般商店、武具屋、魔法店など
+  items: string[];
+  priceModifier: number;
+  description?: string;
+}
+
+// 武具屋情報
+export interface Armory {
+  name: string;
+  weaponTypes: string[];
+  armorTypes: string[];
+  specialItems?: string[];
+  description?: string;
+}
+
+// 神殿・僧院情報
+export interface Temple {
+  name: string;
+  deity: string; // 祭られている神
+  functions: string[]; // 蘇生、状態異常回復など
+  donation?: number; // 寄付金額
+  description?: string;
+}
+
+// ギルド情報
+export interface Guild {
+  name: string;
+  type: string; // 冒険者ギルド、商人ギルド、盗賊ギルドなど
+  services: string[];
+  membershipRequired?: boolean;
+  description?: string;
+}
+
+// 鍛冶屋情報
+export interface Blacksmith {
+  name: string;
+  services: string[]; // 修理、強化、作成など
+  specialties?: string[];
+  description?: string;
+}
+
+// その他施設
+export interface OtherFacility {
+  name: string;
+  type: string; // 図書館、牢獄、闘技場、闇市場、温泉など
+  description: string;
+  functions?: string[];
+}
+
+// 拠点NPC情報
+export interface LocationNPC {
+  id: string;
+  name: string;
+  role: string; // 村長、店主、ギルドマスターなど
+  function: string; // メインクエスト提供者、サブクエスト提供者、情報提供者など
+  description?: string;
+  questIds?: string[]; // 提供するクエストID
+}
+
+// キャラクター相互作用システム
+export interface CharacterInteraction {
+  id: string;
+  sourceCharacterId: string;
+  targetCharacterId: string;
+  interactionType: "heal" | "damage" | "statusEffect" | "buff" | "debuff" | "custom";
+  value?: number; // HP変動値など
+  statusEffect?: string; // 付与する状態異常名
+  duration?: number; // 効果持続時間（ターン数）
+  description: string;
+  timestamp: Date;
+  sessionId?: string;
 }

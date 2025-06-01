@@ -244,6 +244,7 @@ const AIChatPanel: React.FC = () => {
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
 
+
   // 設定の読み込み
   const loadSettings = useCallback(async () => {
     setIsSettingsLoading(true);
@@ -371,6 +372,7 @@ const AIChatPanel: React.FC = () => {
     },
     [setActiveTab]
   );
+
 
   // プロバイダータブ一覧をメモ化
   const providerTabs = useMemo(
@@ -595,6 +597,7 @@ const AIChatPanel: React.FC = () => {
           )}
         </Box>
       )}
+
     </Drawer>
   );
 };
