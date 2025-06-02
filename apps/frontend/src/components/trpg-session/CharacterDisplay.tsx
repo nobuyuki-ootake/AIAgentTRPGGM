@@ -92,15 +92,20 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
   };
 
   // キャラクターカードの共通部分
-  const CharacterCard: React.FC<{ character: TRPGCharacter | NPCCharacter | EnemyCharacter }> = ({ character }) => (
-    <Card 
-      sx={{ 
-        mb: 1, 
-        cursor: "pointer",
-        bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper"
-      }}
-      onClick={() => onCharacterSelect(character)}
-    >
+  const CharacterCard: React.FC<{ character: TRPGCharacter | NPCCharacter | EnemyCharacter }> = ({ character }) => {
+    // 戦闘モードでは選択を無効化
+    const isSelectionDisabled = combatMode || !onCharacterSelect;
+    
+    return (
+      <Card 
+        sx={{ 
+          mb: 1, 
+          cursor: !isSelectionDisabled && onCharacterSelect ? "pointer" : "default",
+          bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper",
+          opacity: isSelectionDisabled ? 0.7 : 1
+        }}
+        onClick={() => !isSelectionDisabled && onCharacterSelect && onCharacterSelect(character)}
+      >
       <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
           <Avatar sx={{ width: 32, height: 32 }}>
@@ -209,7 +214,8 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
         )}
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -269,21 +275,21 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           {enemies.length > 0 ? (
             <>
               {enemies.map((enemy) => (
-                <Card 
+                <Box
                   key={enemy.id}
-                  sx={{ 
-                    mb: 1, 
+                  sx={{
+                    position: "relative",
                     cursor: "pointer",
-                    bgcolor: selectedEnemies.includes(enemy.id) ? "error.light" : "background.paper",
-                    borderColor: selectedEnemies.includes(enemy.id) ? "error.main" : "divider",
-                    borderWidth: selectedEnemies.includes(enemy.id) ? 2 : 1,
+                    border: selectedEnemies.includes(enemy.id) ? 2 : 0,
+                    borderColor: selectedEnemies.includes(enemy.id) ? "error.main" : "transparent",
+                    borderStyle: "solid",
+                    borderRadius: 1,
+                    mb: 1,
                   }}
                   onClick={() => onEnemyToggle(enemy.id)}
                 >
-                  <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                    <CharacterCard character={enemy} />
-                  </CardContent>
-                </Card>
+                  <CharacterCard character={enemy} />
+                </Box>
               ))}
               
               {selectedEnemies.length > 0 && !combatMode && (

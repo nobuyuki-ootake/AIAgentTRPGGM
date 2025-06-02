@@ -50,7 +50,7 @@ const isAPIError = (error: unknown): error is APIError => {
 
 export const AIAssistTab: React.FC = () => {
   const [context, setContext] = useRecoilState(aiChatContextState);
-  const currentProject = useRecoilValue(currentProjectState);
+  const currentCampaign = useRecoilValue(currentCampaignState);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -381,7 +381,7 @@ export const AIAssistTab: React.FC = () => {
 
           {/* プロット選択 */}
           {assistConfig.customControls.plotSelection &&
-            currentProject?.plot && (
+            currentCampaign?.plot && (
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel>
                   関連プロット (任意)
@@ -396,7 +396,7 @@ export const AIAssistTab: React.FC = () => {
                   <MenuItem value="">
                     <em>指定なし</em>
                   </MenuItem>
-                  {currentProject.plot.map((plot: PlotElement) => (
+                  {currentCampaign.plot.map((plot: PlotElement) => (
                     <MenuItem key={plot.id} value={plot.id}>
                       {plot.title}
                     </MenuItem>
