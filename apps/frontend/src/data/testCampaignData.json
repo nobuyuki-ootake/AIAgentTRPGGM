@@ -1,0 +1,645 @@
+{
+  "id": "test-campaign-001",
+  "title": "竜の谷の秘宝",
+  "description": "古代竜が眠ると言われる谷に隠された秘宝を求める冒険",
+  "gameSystem": "D&D 5e",
+  "maxDays": 7,
+  "synopsis": "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "characters": [
+    {
+      "id": "char-1",
+      "name": "アレックス・ブレイブハート",
+      "description": "正義感の強い若き戦士。剣術の腕は一流。",
+      "characterType": "PC",
+      "age": 22,
+      "gender": "男性",
+      "race": "人間",
+      "class": "戦士",
+      "level": 3,
+      "background": "騎士団で修行を積み、人々を守るために旅に出た。",
+      "personality": "勇敢で仲間思い。困っている人を見過ごせない。",
+      "stats": {
+        "HP": 40,
+        "MP": 10,
+        "ATK": 15,
+        "DEF": 12,
+        "SPD": 10,
+        "INT": 8
+      },
+      "skills": [
+        { "name": "剣術", "level": 4, "description": "熟練の剣技" },
+        { "name": "盾防御", "level": 3, "description": "盾による防御術" },
+        { "name": "戦術眼", "level": 2, "description": "戦況を見極める" },
+        { "name": "威圧", "level": 1, "description": "敵を萎縮させる" }
+      ],
+      "equipment": [
+        { "name": "鋼の剣", "type": "武器", "description": "よく手入れされた剣" },
+        { "name": "騎士の鎧", "type": "防具", "description": "頑丈な金属鎧" },
+        { "name": "紋章の盾", "type": "盾", "description": "家紋入りの盾" }
+      ],
+      "imageUrl": "/images/human-warrior.jpg"
+    },
+    {
+      "id": "char-2",
+      "name": "エルフィン・シルバーリーフ",
+      "description": "森の国から来た若きエルフの魔法使い。好奇心旺盛で冒険好き。",
+      "characterType": "PC",
+      "age": 120,
+      "gender": "女性",
+      "race": "エルフ",
+      "class": "魔法使い",
+      "level": 3,
+      "background": "森の賢者の弟子として育ち、世界の知識を求めて旅に出た。",
+      "personality": "知的で冷静だが、新しい発見には子供のようにはしゃぐ一面もある。",
+      "stats": {
+        "HP": 25,
+        "MP": 40,
+        "ATK": 5,
+        "DEF": 8,
+        "SPD": 12,
+        "INT": 18
+      },
+      "skills": [
+        { "name": "火球術", "level": 3, "description": "炎の球を放つ攻撃魔法" },
+        { "name": "治癒術", "level": 2, "description": "味方のHPを回復する魔法" },
+        { "name": "魔法感知", "level": 4, "description": "魔法の気配を感じ取る" },
+        { "name": "古代語解読", "level": 3, "description": "古代文字を読み解く" }
+      ],
+      "equipment": [
+        { "name": "賢者の杖", "type": "武器", "description": "魔力を増幅する杖" },
+        { "name": "旅人のローブ", "type": "防具", "description": "魔法防御力のあるローブ" },
+        { "name": "知識の護符", "type": "アクセサリー", "description": "知力を高める護符" }
+      ],
+      "imageUrl": "/images/elf-wizard.jpg"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-innkeeper",
+      "name": "バルトス",
+      "description": "金の竪琴亭の陽気な主人。元冒険者で情報通。",
+      "personality": "豪快で面倒見が良い",
+      "location": "リバーベント街",
+      "npcType": "固定配置",
+      "role": "宿屋の主人",
+      "associatedQuests": ["街での情報収集"],
+      "dialogue": {
+        "greeting": "おう、冒険者か！今日も賑やかだなぁ！",
+        "questHint": "最近、森の方で盗賊が出るって噂だ。気をつけな。",
+        "farewell": "また来いよ！いつでも部屋は空けとくぜ！"
+      },
+      "services": ["宿泊", "情報収集", "食事提供"],
+      "stats": null
+    },
+    {
+      "id": "npc-merchant",
+      "name": "エリザベータ",
+      "description": "エルフの万屋を営む商人。珍しい品物を扱っている。",
+      "personality": "商売上手だが親切",
+      "location": "リバーベント街",
+      "npcType": "固定配置",
+      "role": "商人",
+      "associatedQuests": [],
+      "dialogue": {
+        "greeting": "いらっしゃいませ。何かお探しですか？",
+        "questHint": "遺跡の方に行くなら、松明は多めに持っていきなさいな。",
+        "farewell": "またのお越しを〜"
+      },
+      "services": ["アイテム販売", "アイテム買取"],
+      "stats": null
+    },
+    {
+      "id": "npc-ranger",
+      "name": "ガレス・ストームウィンド",
+      "description": "熟練のレンジャー。森の案内を請け負っている。",
+      "personality": "寡黙だが信頼できる",
+      "location": "リバーベント街",
+      "npcType": "同行可能",
+      "role": "案内人",
+      "associatedQuests": ["森の盗賊団遭遇"],
+      "dialogue": {
+        "greeting": "...森に行くのか？",
+        "questHint": "盗賊団は日没後に動く。昼間なら比較的安全だ。",
+        "farewell": "無事を祈る。",
+        "joinParty": "案内が必要なら同行しよう。",
+        "leaveParty": "ここで別れよう。また会おう。"
+      },
+      "services": ["森の案内", "戦闘支援"],
+      "stats": {
+        "HP": 35,
+        "MP": 15,
+        "ATK": 10,
+        "DEF": 8,
+        "SPD": 14,
+        "INT": 10
+      },
+      "skills": [
+        { "name": "弓術", "level": 4, "description": "正確な遠距離攻撃" },
+        { "name": "追跡", "level": 3, "description": "敵の痕跡を見つける" },
+        { "name": "罠設置", "level": 2, "description": "簡易的な罠を設置" }
+      ],
+      "equipment": [
+        { "name": "狩人の弓", "type": "武器", "description": "使い込まれた長弓" },
+        { "name": "革の鎧", "type": "防具", "description": "動きやすい軽装" }
+      ]
+    },
+    {
+      "id": "npc-scholar",
+      "name": "マーカス老師",
+      "description": "古代遺跡の研究者。遺跡の謎について詳しい。",
+      "personality": "博識だが少し変わり者",
+      "location": "ハーベスト村",
+      "npcType": "固定配置",
+      "role": "学者",
+      "associatedQuests": ["古代遺跡の謎解き"],
+      "dialogue": {
+        "greeting": "おお、若い冒険者よ。古の知識に興味があるのかね？",
+        "questHint": "忘却の遺跡には、月の位相と関係する仕掛けがあるらしい。",
+        "farewell": "知識を大切にするのだよ。"
+      },
+      "services": ["古代語翻訳", "遺跡情報提供"],
+      "stats": null
+    },
+    {
+      "id": "npc-healer",
+      "name": "シスター・ミリア",
+      "description": "村の教会で治療を行う聖職者。優しく献身的。",
+      "personality": "慈悲深く、誰にでも親切",
+      "location": "ハーベスト村",
+      "npcType": "同行可能",
+      "role": "治療師",
+      "associatedQuests": ["村長からの依頼"],
+      "dialogue": {
+        "greeting": "ようこそ。お怪我はありませんか？",
+        "questHint": "村長様がお困りのようです。力になってあげてください。",
+        "farewell": "神のご加護がありますように。",
+        "joinParty": "治療が必要なら、お供いたします。",
+        "leaveParty": "村に戻らなければ。皆様のご無事を祈っています。"
+      },
+      "services": ["治療", "状態異常回復", "祝福"],
+      "stats": {
+        "HP": 20,
+        "MP": 35,
+        "ATK": 3,
+        "DEF": 6,
+        "SPD": 8,
+        "INT": 16
+      },
+      "skills": [
+        { "name": "大治癒", "level": 3, "description": "強力な回復魔法" },
+        { "name": "聖なる盾", "level": 2, "description": "防御力を上げる魔法" },
+        { "name": "解毒", "level": 4, "description": "毒を浄化する" }
+      ],
+      "equipment": [
+        { "name": "聖なる杖", "type": "武器", "description": "祝福された杖" },
+        { "name": "聖職者の法衣", "type": "防具", "description": "清らかな白い法衣" }
+      ]
+    }
+  ],
+  "enemies": [
+    {
+      "id": "bandit-leader",
+      "name": "盗賊団の頭領",
+      "description": "翠の森道を根城にする盗賊団のリーダー。狡猾で剣の腕は確か。",
+      "type": "人間",
+      "location": "翠の森道",
+      "behavior": "待ち伏せ",
+      "stats": {
+        "HP": 45,
+        "MP": 10,
+        "ATK": 12,
+        "DEF": 8,
+        "SPD": 10,
+        "INT": 8
+      },
+      "skills": [
+        { "name": "剣術", "level": 3, "description": "熟練した剣技" },
+        { "name": "隠密", "level": 2, "description": "森での隠れ身" },
+        { "name": "威嚇", "level": 1, "description": "相手を萎縮させる" }
+      ],
+      "equipment": [
+        { "name": "短剣", "type": "武器", "description": "よく手入れされた短剣" },
+        { "name": "革の鎧", "type": "防具", "description": "軽量で動きやすい" }
+      ],
+      "combatBehavior": {
+        "aggressiveness": "中",
+        "preferredRange": "近接",
+        "specialAbilities": ["急所狙い", "煙玉逃走"]
+      },
+      "loot": ["金貨15-25", "盗賊の地図", "治療薬"],
+      "experienceValue": 50,
+      "dangerLevel": 2,
+      "groupSize": "単体",
+      "territoryRadius": 100,
+      "patrolPattern": "定点監視",
+      "hostilityLevel": "中立→敵対（プレイヤー発見時）"
+    },
+    {
+      "id": "bandit-scout-1",
+      "name": "盗賊の斥候A",
+      "description": "頭領に従う盗賊団の見張り役。素早い動きで情報収集を担当。",
+      "type": "人間",
+      "location": "翠の森道",
+      "behavior": "パトロール",
+      "stats": {
+        "HP": 25,
+        "MP": 5,
+        "ATK": 8,
+        "DEF": 5,
+        "SPD": 13,
+        "INT": 6
+      },
+      "skills": [
+        { "name": "弓術", "level": 2, "description": "遠距離攻撃" },
+        { "name": "隠密", "level": 3, "description": "優れた隠れ身術" },
+        { "name": "偵察", "level": 2, "description": "情報収集能力" }
+      ],
+      "equipment": [
+        { "name": "短弓", "type": "武器", "description": "軽量な狩猟弓" },
+        { "name": "革の服", "type": "防具", "description": "動きを妨げない軽装" }
+      ],
+      "combatBehavior": {
+        "aggressiveness": "低",
+        "preferredRange": "遠距離",
+        "specialAbilities": ["警報", "回避行動"]
+      },
+      "loot": ["金貨5-10", "矢束", "縄"],
+      "experienceValue": 25,
+      "dangerLevel": 1,
+      "groupSize": "単体",
+      "territoryRadius": 200,
+      "patrolPattern": "巡回",
+      "hostilityLevel": "警戒→逃走（単独時）"
+    },
+    {
+      "id": "ancient-guardian",
+      "name": "古代の守護者",
+      "description": "忘却の遺跡を守る石造りの自動人形。古代魔法で動いている。",
+      "type": "構築体",
+      "location": "忘却の遺跡",
+      "behavior": "守護",
+      "stats": {
+        "HP": 80,
+        "MP": 30,
+        "ATK": 15,
+        "DEF": 18,
+        "SPD": 5,
+        "INT": 3
+      },
+      "skills": [
+        { "name": "魔法攻撃", "level": 4, "description": "古代魔法による攻撃" },
+        { "name": "物理耐性", "level": 3, "description": "物理攻撃への耐性" },
+        { "name": "再生", "level": 1, "description": "ゆっくりとしたHP回復" }
+      ],
+      "equipment": [
+        { "name": "石の拳", "type": "武器", "description": "巨大な石の腕" },
+        { "name": "古代の外殻", "type": "防具", "description": "魔法で強化された石造り" }
+      ],
+      "combatBehavior": {
+        "aggressiveness": "高",
+        "preferredRange": "近接",
+        "specialAbilities": ["魔法の盾", "大地震動"]
+      },
+      "loot": ["古代の結晶", "魔法の粉末", "石材"],
+      "experienceValue": 100,
+      "dangerLevel": 4,
+      "groupSize": "単体",
+      "territoryRadius": 50,
+      "patrolPattern": "定点守護",
+      "hostilityLevel": "侵入者への即座敵対"
+    },
+    {
+      "id": "giant-eagle",
+      "name": "巨大な鷲",
+      "description": "鷲の峠に住む巨大な猛禽類。知性が高く、時には人と意思疎通も可能。",
+      "type": "魔獣",
+      "location": "鷲の峠",
+      "behavior": "縄張り防衛",
+      "stats": {
+        "HP": 60,
+        "MP": 20,
+        "ATK": 14,
+        "DEF": 10,
+        "SPD": 18,
+        "INT": 12
+      },
+      "skills": [
+        { "name": "飛行", "level": 5, "description": "高速飛行能力" },
+        { "name": "急降下攻撃", "level": 3, "description": "上空からの急襲" },
+        { "name": "野生の直感", "level": 4, "description": "危険感知能力" }
+      ],
+      "equipment": [
+        { "name": "鋭い爪", "type": "武器", "description": "巨大で鋭利な爪" },
+        { "name": "厚い羽毛", "type": "防具", "description": "防御力のある羽毛" }
+      ],
+      "combatBehavior": {
+        "aggressiveness": "可変",
+        "preferredRange": "空中",
+        "specialAbilities": ["威嚇鳴き", "突風攻撃"]
+      },
+      "loot": ["巨鷲の羽", "上質な肉", "空の欠片"],
+      "experienceValue": 75,
+      "dangerLevel": 3,
+      "groupSize": "単体",
+      "territoryRadius": 500,
+      "patrolPattern": "上空旋回",
+      "hostilityLevel": "中立（交渉可能）"
+    },
+    {
+      "id": "village-wolf",
+      "name": "迷子の狼",
+      "description": "ハーベスト村近くをうろつく一匹狼。飢えているが、本来は人を襲わない。",
+      "type": "野生動物",
+      "location": "ハーベスト村",
+      "behavior": "彷徨",
+      "stats": {
+        "HP": 30,
+        "MP": 0,
+        "ATK": 10,
+        "DEF": 6,
+        "SPD": 15,
+        "INT": 4
+      },
+      "skills": [
+        { "name": "噛み付き", "level": 2, "description": "鋭い牙での攻撃" },
+        { "name": "敏捷性", "level": 3, "description": "素早い動き" },
+        { "name": "嗅覚", "level": 4, "description": "優れた嗅覚" }
+      ],
+      "equipment": [
+        { "name": "鋭い牙", "type": "武器", "description": "野生動物の牙" },
+        { "name": "毛皮", "type": "防具", "description": "天然の毛皮" }
+      ],
+      "combatBehavior": {
+        "aggressiveness": "低",
+        "preferredRange": "近接",
+        "specialAbilities": ["遠吠え", "逃走"]
+      },
+      "loot": ["狼の毛皮", "鋭い牙", "野生の肉"],
+      "experienceValue": 20,
+      "dangerLevel": 1,
+      "groupSize": "単体",
+      "territoryRadius": 300,
+      "patrolPattern": "無作為移動",
+      "hostilityLevel": "飢餓時のみ敵対"
+    }
+  ],
+  "quests": [
+    {
+      "id": "test-event-1",
+      "title": "森の盗賊団遭遇",
+      "description": "翠の森道で盗賊団が冒険者を待ち伏せしている。戦闘か交渉かの選択が迫られる。",
+      "scheduledDay": 1,
+      "location": "翠の森道",
+      "status": "未開始",
+      "questType": "サブ",
+      "difficulty": 2,
+      "rewards": ["経験値50", "金貨30", "盗賊の情報"]
+    },
+    {
+      "id": "test-event-2",
+      "title": "村長からの依頼",
+      "description": "ハーベスト村の村長が重要な依頼を持ちかけてくる。古い遺跡に関する情報も得られる。",
+      "scheduledDay": 2,
+      "location": "ハーベスト村",
+      "status": "未開始",
+      "questType": "メイン",
+      "difficulty": 1,
+      "rewards": ["重要な情報", "村人の信頼", "古代の地図の断片"]
+    },
+    {
+      "id": "test-event-3",
+      "title": "古代遺跡の謎解き",
+      "description": "忘却の遺跡で古代文明の謎を解く。魔法の罠と貴重な宝物が待っている。",
+      "scheduledDay": 3,
+      "location": "忘却の遺跡",
+      "status": "未開始",
+      "questType": "サブ",
+      "difficulty": 4,
+      "rewards": ["古代の巻物", "経験値150", "魔法のアミュレット"]
+    },
+    {
+      "id": "test-event-4",
+      "title": "街での情報収集",
+      "description": "リバーベント街の金の竪琴亭で冒険者たちが情報交換を行う。新たな冒険の手がかりが見つかる。",
+      "scheduledDay": 1,
+      "location": "リバーベント街",
+      "status": "未開始",
+      "questType": "サブ",
+      "difficulty": 1,
+      "rewards": ["貴重な情報", "人脈", "無料の宿泊券"]
+    },
+    {
+      "id": "test-event-5",
+      "title": "峠の巨鷲遭遇",
+      "description": "鷲の峠で巨大な鷲と遭遇。友好的になれば空からの偵察情報が得られるかもしれない。",
+      "scheduledDay": 4,
+      "location": "鷲の峠",
+      "status": "未開始",
+      "questType": "サブ",
+      "difficulty": 3,
+      "rewards": ["鷲の羽", "空中偵察情報", "経験値75"]
+    }
+  ],
+  "worldBuilding": {
+    "bases": [
+      {
+        "id": "town-center",
+        "name": "リバーベント街",
+        "type": "都市",
+        "region": "中央平原",
+        "description": "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
+        "rank": "中規模都市",
+        "importance": "主要拠点",
+        "facilities": {
+          "inn": {
+            "name": "金の竪琴亭",
+            "pricePerNight": 50,
+            "description": "評判の良い宿屋。情報収集の拠点としても有名。",
+            "services": ["休息", "情報収集", "装備修理"]
+          },
+          "shops": [
+            {
+              "name": "エルフの万屋",
+              "type": "一般商店",
+              "items": ["日用品", "旅行用品", "薬草"],
+              "priceModifier": 1.0,
+              "description": "何でも揃う便利な店"
+            }
+          ]
+        },
+        "npcs": [],
+        "features": {
+          "fastTravel": true,
+          "playerBase": true,
+          "questHub": true,
+          "defenseEvent": false
+        },
+        "threats": {
+          "dangerLevel": "低",
+          "currentEvents": ["商人祭り開催中"],
+          "controllingFaction": "商人ギルド"
+        },
+        "economy": {
+          "currency": "金貨",
+          "localGoods": ["川魚", "絹織物", "工芸品"],
+          "tradeGoods": ["香辛料", "魔法具", "武器"]
+        },
+        "meta": {
+          "locationId": "town-center",
+          "unlocked": true,
+          "lastUpdated": "2024-01-01T00:00:00.000Z"
+        },
+        "imageUrl": "/images/town-center.jpg"
+      },
+      {
+        "id": "forest-path",
+        "name": "翠の森道",
+        "type": "森林",
+        "region": "翠の大森林",
+        "description": "古い木々に覆われた薄暗い森の小道。時折盗賊が出没するとの噂がある。",
+        "rank": "危険地帯",
+        "importance": "サブ拠点",
+        "facilities": {},
+        "npcs": [],
+        "features": {
+          "fastTravel": false,
+          "playerBase": false,
+          "questHub": false,
+          "defenseEvent": false
+        },
+        "threats": {
+          "dangerLevel": "中",
+          "currentEvents": ["盗賊団の活動報告"],
+          "controllingFaction": "自然"
+        },
+        "economy": {
+          "currency": "物々交換",
+          "localGoods": ["薬草", "木材", "野生動物の毛皮"],
+          "tradeGoods": []
+        },
+        "meta": {
+          "locationId": "forest-path",
+          "unlocked": true,
+          "lastUpdated": "2024-01-01T00:00:00.000Z"
+        },
+        "imageUrl": "/images/forest-path.jpg"
+      },
+      {
+        "id": "small-village",
+        "name": "ハーベスト村",
+        "type": "農村",
+        "region": "穀倉地帯",
+        "description": "麦畑に囲まれた小さな農村。素朴で親切な村人たちが住んでいる。",
+        "rank": "小村",
+        "importance": "サブ拠点",
+        "facilities": {
+          "inn": {
+            "name": "麦の穂亭",
+            "pricePerNight": 20,
+            "description": "質素だが温かい村の宿屋",
+            "services": ["休息", "地元情報"]
+          }
+        },
+        "npcs": [
+          {
+            "id": "village-elder",
+            "name": "村長ガルバン",
+            "role": "村長",
+            "function": "情報提供者",
+            "description": "村の事情に詳しい老人"
+          }
+        ],
+        "features": {
+          "fastTravel": false,
+          "playerBase": false,
+          "questHub": true,
+          "defenseEvent": false
+        },
+        "threats": {
+          "dangerLevel": "低",
+          "currentEvents": ["収穫祭の準備"],
+          "controllingFaction": "村議会"
+        },
+        "economy": {
+          "currency": "銅貨",
+          "localGoods": ["小麦", "野菜", "家畜"],
+          "tradeGoods": ["穀物"]
+        },
+        "meta": {
+          "locationId": "small-village",
+          "unlocked": true,
+          "lastUpdated": "2024-01-01T00:00:00.000Z"
+        },
+        "imageUrl": "/images/small-village.jpg"
+      },
+      {
+        "id": "old-ruins",
+        "name": "忘却の遺跡",
+        "type": "古代遺跡",
+        "region": "荒野",
+        "description": "古代文明の謎に満ちた遺跡。魔法の痕跡と危険な罠が残されている。",
+        "rank": "危険地帯",
+        "importance": "隠し拠点",
+        "facilities": {},
+        "npcs": [],
+        "features": {
+          "fastTravel": false,
+          "playerBase": false,
+          "questHub": false,
+          "defenseEvent": false
+        },
+        "threats": {
+          "dangerLevel": "高",
+          "currentEvents": ["古代の守護者が目覚めた", "魔法の嵐が発生"],
+          "controllingFaction": "古代の魔法"
+        },
+        "economy": {
+          "currency": "なし",
+          "localGoods": ["古代の遺物", "魔法の結晶"],
+          "tradeGoods": []
+        },
+        "meta": {
+          "locationId": "old-ruins",
+          "unlocked": true,
+          "lastUpdated": "2024-01-01T00:00:00.000Z"
+        },
+        "imageUrl": "/images/old-ruins.jpg"
+      },
+      {
+        "id": "mountain-pass",
+        "name": "鷲の峠",
+        "type": "山道",
+        "region": "ドラゴンバック山脈",
+        "description": "険しい山道の峠。風が強く、時々巨大な鳥が現れる。眺望は絶景。",
+        "rank": "険しい地域",
+        "importance": "サブ拠点",
+        "facilities": {},
+        "npcs": [],
+        "features": {
+          "fastTravel": false,
+          "playerBase": false,
+          "questHub": false,
+          "defenseEvent": false
+        },
+        "threats": {
+          "dangerLevel": "中",
+          "currentEvents": ["鷲の群れが巣作り中"],
+          "controllingFaction": "野生動物"
+        },
+        "economy": {
+          "currency": "なし",
+          "localGoods": ["高山植物", "鉱石", "鳥の羽"],
+          "tradeGoods": []
+        },
+        "meta": {
+          "locationId": "mountain-pass",
+          "unlocked": true,
+          "lastUpdated": "2024-01-01T00:00:00.000Z"
+        },
+        "imageUrl": "/images/mountain-pass.jpg"
+      }
+    ]
+  }
+}

@@ -468,6 +468,117 @@ const TimelinePage: React.FC = () => {
     definedCharacterStatuses
   );
 
+  // 🧪 **タイムラインクエスト・イベント表示コンポーネント**
+  const QuestTimelineView: React.FC = () => {
+    const quests = currentCampaign?.quests || [];
+    const questsByDay = quests.reduce((acc, quest) => {
+      const day = quest.scheduledDay || 1;
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(quest);
+      return acc;
+    }, {} as Record<number, typeof quests>);
+
+    const maxDay = Math.max(...Object.keys(questsByDay).map(Number), 7);
+    const daysArray = Array.from({ length: maxDay }, (_, i) => i + 1);
+
+    return (
+      <Box>
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <SettingsIcon color="primary" />
+          <Typography variant="h6">タイムラインイベント管理</Typography>
+          <Chip 
+            label={`${quests.length} イベント`} 
+            color="primary" 
+            variant="outlined"
+          />
+        </Box>
+
+        {quests.length === 0 ? (
+          <Card>
+            <CardContent>
+              <Typography variant="body1" color="text.secondary" align="center">
+                タイムラインイベントが設定されていません。
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                TRPGセッションを開始すると、サンプルイベントが自動で追加されます。
+              </Typography>
+            </CardContent>
+          </Card>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {daysArray.map(day => (
+              <Card key={day} sx={{ border: questsByDay[day] ? '2px solid #1976d2' : '1px solid #e0e0e0' }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">
+                      {day}日目
+                    </Typography>
+                    <Chip 
+                      label={questsByDay[day] ? `${questsByDay[day].length}イベント` : '空き'} 
+                      color={questsByDay[day] ? 'primary' : 'default'}
+                      size="small"
+                    />
+                  </Box>
+                  
+                  {questsByDay[day] ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {questsByDay[day].map(quest => (
+                        <Box key={quest.id} sx={{ 
+                          p: 2, 
+                          border: '1px solid #e0e0e0', 
+                          borderRadius: 1,
+                          bgcolor: quest.difficulty >= 3 ? '#fff3e0' : '#f5f5f5'
+                        }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle1" fontWeight="bold">
+                              {quest.title}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Chip 
+                                label={quest.questType} 
+                                color={quest.questType === 'メイン' ? 'primary' : 'secondary'}
+                                size="small"
+                              />
+                              <Chip 
+                                label={`難易度 ${quest.difficulty}`} 
+                                color={quest.difficulty >= 3 ? 'warning' : 'success'}
+                                size="small"
+                              />
+                            </Box>
+                          </Box>
+                          
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            <strong>場所:</strong> {quest.location}
+                          </Typography>
+                          
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            {quest.description}
+                          </Typography>
+                          
+                          {quest.rewards && quest.rewards.length > 0 && (
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                報酬: {quest.rewards.join(', ')}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                      この日にはイベントが設定されていません
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
   // セッション履歴ビューのコンポーネント
   const SessionHistoryView: React.FC = () => {
     // 実際のセッション履歴データがある場合の表示
@@ -625,6 +736,11 @@ const TimelinePage: React.FC = () => {
           {/* 開発者モード: イベント管理・シナリオ設計 */}
           {developerMode ? (
             <>
+              {/* 🧪 クエスト・タイムラインイベント表示 */}
+              <Box sx={{ mb: 3 }}>
+                <QuestTimelineView />
+              </Box>
+
               <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
                 <TimelineEventList
                   timelineItems={timelineItems}

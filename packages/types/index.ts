@@ -403,21 +403,236 @@ export interface WorldBuilding {
 // ゲームセッション
 export interface GameSession {
   id: string;
+  campaignId: string;
   sessionNumber: number;
   title: string;
   date: Date;
   duration: number; // 分
-  attendees: string[]; // プレイヤーID
-  gamemaster: string;
+  attendees?: string[]; // プレイヤーID
+  gamemaster?: string;
   synopsis?: string;
-  content: Descendant[]; // セッションログ・ノート
-  events: SessionEvent[];
-  combats: CombatEncounter[];
-  questsAdvanced: string[]; // 進行したクエストID
-  questsCompleted: string[]; // 完了したクエストID
-  experienceAwarded: number;
-  status: "planned" | "inProgress" | "completed" | "cancelled";
+  content?: Descendant[]; // セッションログ・ノート
+  events?: SessionEvent[];
+  combats?: CombatEncounter[];
+  questsAdvanced?: string[]; // 進行したクエストID
+  questsCompleted?: string[]; // 完了したクエストID
+  experienceAwarded?: number;
+  status?: "planned" | "inProgress" | "completed" | "cancelled";
   notes?: string;
+  
+  // 🎯 **タイムライン連動遭遇判定用の新規フィールド**
+  currentState: SessionCurrentState;
+  spatialTracking: SpatialTrackingSystem;
+  encounterHistory: EncounterRecord[];
+  
+  // レガシー互換性のためのフィールド
+  summary?: string;
+  npcsEncountered?: string[];
+  combatEncounters?: string[];
+  lootObtained?: string[];
+  questProgress?: Record<string, any>;
+  playerNotes?: Record<string, any>;
+  gmNotes?: string;
+  recordingUrl?: string;
+}
+
+// 🎯 **現在のセッション状態（詳細管理）**
+export interface SessionCurrentState {
+  // 時間管理
+  currentDay: number;           // 現在の日付（1から開始）
+  currentTimeOfDay: TimeOfDay;  // 現在の時刻帯
+  actionCount: number;          // 本日の行動回数
+  maxActionsPerDay: number;     // 1日の最大行動回数
+  
+  // 空間管理
+  currentLocation: string;      // 現在の場所名
+  currentLocationId?: string;   // 場所ID（BaseLocationとの連携）
+  coordinates?: Coordinates;    // 詳細座標（オプション）
+  
+  // パーティー状態
+  activeCharacter: string;      // 現在操作中のキャラクターID
+  partyLocation: PartyLocationState; // パーティー全体の位置情報
+  partyStatus: PartyStatus;     // パーティーの状態
+  
+  // イベント進行
+  activeEvents: string[];       // 現在アクティブなイベントID
+  completedEvents: string[];    // 完了したイベントID
+  triggeredEvents: TriggeredEvent[]; // 発生済みイベント履歴
+}
+
+// 時刻帯定義
+export type TimeOfDay = "morning" | "noon" | "afternoon" | "evening" | "night" | "late_night";
+
+// 座標系
+export interface Coordinates {
+  x: number;
+  y: number;
+  z?: number; // 高度（オプション）
+  region?: string; // 地域名
+}
+
+// パーティー位置状態
+export interface PartyLocationState {
+  groupLocation: string;        // グループ全体の場所
+  memberLocations: {            // 個別メンバーの位置
+    [characterId: string]: {
+      location: string;
+      coordinates?: Coordinates;
+      timeArrived: string;      // 到着時刻
+      isWithGroup: boolean;     // グループと同行中か
+    };
+  };
+  movementHistory: MovementRecord[]; // 移動履歴
+}
+
+// パーティー状態
+export type PartyStatus = "exploring" | "resting" | "combat" | "shopping" | "dialogue" | "traveling";
+
+// 移動記録
+export interface MovementRecord {
+  characterId: string;
+  fromLocation: string;
+  toLocation: string;
+  timestamp: Date;
+  dayNumber: number;
+  timeOfDay: TimeOfDay;
+}
+
+// 発生済みイベント
+export interface TriggeredEvent {
+  eventId: string;
+  triggeredAt: Date;
+  dayNumber: number;
+  timeOfDay: TimeOfDay;
+  location: string;
+  triggerType: "scheduled" | "encounter" | "manual" | "ai_initiated";
+  participants: string[];      // 参加キャラクターID
+  result?: "success" | "failure" | "ongoing" | "cancelled";
+}
+
+// 🎯 **空間追跡システム（衝突判定用）**
+export interface SpatialTrackingSystem {
+  // 現在の位置情報
+  currentPositions: {
+    players: { [characterId: string]: PositionInfo };
+    npcs: { [npcId: string]: PositionInfo };
+    enemies: { [enemyId: string]: PositionInfo };
+  };
+  
+  // 衝突判定設定
+  collisionDetection: CollisionDetectionConfig;
+  
+  // エリア定義
+  definedAreas: GameArea[];
+  
+  // 遭遇ルール
+  encounterRules: EncounterRule[];
+}
+
+// 位置情報
+export interface PositionInfo {
+  location: string;
+  coordinates?: Coordinates;
+  arrivalTime: Date;
+  dayNumber: number;
+  timeOfDay: TimeOfDay;
+  isActive: boolean;           // アクティブ状態（戦闘可能等）
+  visibilityRange?: number;    // 検知範囲
+  movementSpeed?: number;      // 移動速度
+}
+
+// 衝突判定設定
+export interface CollisionDetectionConfig {
+  enableSpatialCollision: boolean;      // 空間衝突判定を有効にするか
+  enableTemporalCollision: boolean;     // 時間衝突判定を有効にするか
+  collisionRadius: number;              // 衝突判定範囲（メートル等）
+  timeWindow: number;                   // 時間窓（分）
+  automaticEncounters: boolean;         // 自動遭遇を有効にするか
+  encounterProbability: {               // 遭遇確率設定
+    npc: number;        // NPC遭遇確率 (0-1)
+    enemy: number;      // エネミー遭遇確率 (0-1)
+    event: number;      // イベント発生確率 (0-1)
+  };
+}
+
+// ゲームエリア定義
+export interface GameArea {
+  id: string;
+  name: string;
+  type: "safe" | "dangerous" | "neutral" | "special";
+  boundaries?: Coordinates[];   // エリア境界
+  encounterModifiers: {         // 遭遇修正
+    npcMultiplier: number;
+    enemyMultiplier: number;
+    eventMultiplier: number;
+  };
+  restrictions?: string[];      // 制限事項
+}
+
+// 遭遇ルール
+export interface EncounterRule {
+  id: string;
+  name: string;
+  conditions: EncounterCondition[];
+  actions: EncounterAction[];
+  priority: number;             // 優先度（高いほど先に処理）
+  isActive: boolean;
+}
+
+// 遭遇条件
+export interface EncounterCondition {
+  type: "location" | "time" | "character" | "event" | "probability";
+  operator: "equals" | "contains" | "greater_than" | "less_than" | "in_range";
+  value: any;
+  characterId?: string;
+}
+
+// 遭遇アクション
+export interface EncounterAction {
+  type: "spawn_enemy" | "trigger_event" | "spawn_npc" | "force_dialogue" | "require_dice_roll";
+  parameters: Record<string, any>;
+  description: string;
+}
+
+// 🎯 **遭遇記録（AI判定用）**
+export interface EncounterRecord {
+  id: string;
+  timestamp: Date;
+  dayNumber: number;
+  timeOfDay: TimeOfDay;
+  location: string;
+  
+  // 遭遇タイプ
+  encounterType: "npc_dialogue" | "enemy_combat" | "event_trigger" | "location_discovery" | "trap_activation";
+  
+  // 参加者
+  participants: {
+    players: string[];          // 参加プレイヤーキャラクターID
+    npcs?: string[];           // 関与NPC ID
+    enemies?: string[];        // 関与エネミーID
+  };
+  
+  // 遭遇結果
+  result: {
+    outcome: "success" | "failure" | "escape" | "negotiation" | "ongoing";
+    damageDealt?: number;
+    damageReceived?: number;
+    itemsGained?: string[];
+    experienceGained?: number;
+    questProgress?: Record<string, any>;
+  };
+  
+  // AI判定データ
+  aiDecisions: {
+    wasAIInitiated: boolean;     // AI主導で発生したか
+    difficultyCalculated: number; // AI計算難易度
+    surpriseRound?: boolean;     // サプライズラウンドの有無
+    tacticalAdvantage?: "player" | "enemy" | "neutral"; // 戦術的優位性
+  };
+  
+  // メタデータ
+  description: string;
+  tags: string[];
 }
 
 // セッションイベント（旧タイムラインイベント）

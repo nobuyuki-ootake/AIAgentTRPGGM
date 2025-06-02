@@ -144,15 +144,21 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Favorite fontSize="small" color={getHPColor(character.stats.hitPoints.current, character.stats.hitPoints.max)} />
+              <Favorite fontSize="small" color={getHPColor(
+                character.stats.hitPoints?.current || character.stats.HP || 10, 
+                character.stats.hitPoints?.max || character.stats.HP || 10
+              )} />
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption">
-                  HP: {character.stats.hitPoints.current}/{character.stats.hitPoints.max}
+                  HP: {character.stats.hitPoints?.current || character.stats.HP || 10}/{character.stats.hitPoints?.max || character.stats.HP || 10}
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={(character.stats.hitPoints.current / character.stats.hitPoints.max) * 100}
-                  color={getHPColor(character.stats.hitPoints.current, character.stats.hitPoints.max)}
+                  value={((character.stats.hitPoints?.current || character.stats.HP || 10) / (character.stats.hitPoints?.max || character.stats.HP || 10)) * 100}
+                  color={getHPColor(
+                    character.stats.hitPoints?.current || character.stats.HP || 10, 
+                    character.stats.hitPoints?.max || character.stats.HP || 10
+                  )}
                   sx={{ height: 4, borderRadius: 2 }}
                 />
               </Box>

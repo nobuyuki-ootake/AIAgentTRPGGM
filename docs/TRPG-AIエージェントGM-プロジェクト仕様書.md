@@ -516,6 +516,11 @@ interface BaseLocation {
   - プレイヤー行動への反応・結果生成
   - 戦闘解決・判定支援
   - ストーリー進行管理
+  - **🎲 AI制御ダイスシステム**: AIが戦術的判断に基づいて強制ダイスロールを要求
+    - タイムライン連動遭遇システム
+    - エネミー主導攻撃・サプライズ判定
+    - 指定ダイス必須実行（ダイアログ強制表示）
+    - ダイスロール妥当性検証
   - **イベント完了条件判定**: 行動結果を分析してイベント達成を自動判定
   - **キャンペーン目的達成監視**: プレイヤーの進行状況を継続的に評価
   - **成功/失敗判定**: 最大日数到達時の最終的なキャンペーン成否判定
@@ -684,19 +689,412 @@ POST   /api/ai-agent/quest-generation        # クエスト生成
 POST   /api/ai-agent/session-gm-assist       # GMアシスト
 POST   /api/ai-agent/character-image-gen     # キャラクター画像生成
 POST   /api/ai-agent/base-image-gen          # 拠点画像生成
+POST   /api/ai-agent/forced-dice-roll        # AI制御ダイスロール要求
+POST   /api/ai-agent/encounter-detection     # タイムライン遭遇判定
+POST   /api/ai-agent/tactical-analysis       # 戦術判断分析
 ```
 
 ##### リアルタイム通信（Socket.IO）
 
 ```
-session:join          # セッション参加
-session:leave         # セッション離脱
-session:chat          # チャットメッセージ
-session:action        # プレイヤー行動
-session:gm-response   # GM応答
-session:dice-roll     # ダイスロール
-session:status-update # ステータス更新
+session:join              # セッション参加
+session:leave             # セッション離脱
+session:chat              # チャットメッセージ
+session:action            # プレイヤー行動
+session:gm-response       # GM応答
+session:dice-roll         # 通常ダイスロール
+session:ai-forced-dice    # AI制御強制ダイスロール
+session:encounter-alert   # 遭遇発生通知
+session:tactical-request  # 戦術判定要求
+session:status-update     # ステータス更新
 ```
+
+## 🎲 AI制御ダイスシステム技術仕様
+
+### システム概要
+
+AIエージェントが戦術的判断に基づいてダイスロールを強制要求し、プレイヤーが指定されたダイスを正確に振るまでダイアログが閉じない仕組み。タイムラインベースの遭遇システムと連動し、エネミーの意図によるダイスロールを実現します。
+
+### 核心技術要件
+
+#### 1. 強制ダイアログシステム
+
+```typescript
+interface AIForcedDiceDialog {
+  // AI指定ダイス仕様
+  requiredDice: {
+    diceType: string;     // "d20", "d6", "d12" など
+    count: number;        // ダイス個数
+    modifier: number;     // 修正値
+    characterStat?: string; // 能力値参照
+  };
+  
+  // 強制制御フラグ
+  forcedMode: true;
+  preventClose: true;
+  preventEscape: true;
+  preventClickAway: true;
+  
+  // 検証システム
+  validationEngine: DiceValidationEngine;
+  onValidationFailed: (error: ValidationError) => void;
+  onValidationSuccess: (result: DiceResult) => void;
+}
+```
+
+#### 2. タイムライン衝突判定エンジン
+
+```typescript
+interface EncounterDetectionEngine {
+  // 空間・時間解析
+  analyzeSpatialTemporal(): {
+    playerPositions: Position[];
+    enemyPositions: Position[];
+    collisionDetected: boolean;
+    collisionType: "ambush" | "patrol" | "trap" | "random";
+  };
+  
+  // AI戦術判断
+  executeAITacticalAnalysis(): {
+    initiativeOrder: string[];
+    surpriseRound: boolean;
+    requiredChecks: DiceCheckRequirement[];
+    tacticalAdvantage: "player" | "enemy" | "neutral";
+  };
+  
+  // 遭遇フロー制御
+  triggerEncounterSequence(): EncounterFlow;
+}
+```
+
+#### 3. ダイス検証システム
+
+```typescript
+class DiceValidationEngine {
+  validateDiceRoll(
+    rolled: DiceResult, 
+    required: DiceSpecification
+  ): ValidationResult {
+    // 1. ダイス種類の検証
+    if (rolled.diceType !== required.diceType) {
+      return {
+        valid: false,
+        error: `AIが指定した${required.diceType}を振ってください`
+      };
+    }
+    
+    // 2. ダイス個数の検証
+    if (rolled.diceCount !== required.count) {
+      return {
+        valid: false,
+        error: `${required.count}個の${required.diceType}を振ってください`
+      };
+    }
+    
+    // 3. 修正値の検証
+    if (rolled.modifier !== required.modifier) {
+      return {
+        valid: false,
+        error: `修正値${required.modifier}を適用してください`
+      };
+    }
+    
+    return { valid: true, result: rolled };
+  }
+}
+```
+
+### 遭遇発生フロー
+
+#### Phase 1: 衝突検出
+1. タイムライン進行監視
+2. PC位置・エネミー位置の継続的チェック
+3. 同一時空間での衝突検出
+
+#### Phase 2: AI戦術分析
+1. 遭遇状況の詳細分析（地形、人数、能力値）
+2. 最適な判定方法の決定
+3. サプライズ・先制攻撃の可能性評価
+
+#### Phase 3: 強制ダイス要求
+1. AI制御ダイアログの強制表示
+2. プレイヤーへの具体的指示表示
+3. 全UI操作の無効化（ダイスロール以外）
+
+#### Phase 4: 結果判定・反映
+1. ダイス結果の戦術的解釈
+2. 遭遇結果のタイムライン反映
+3. 次フェーズへの移行
+
+### セキュリティ・インテグリティ
+
+#### 不正操作防止
+- ブラウザ開発者ツールによる結果操作検出
+- 異常な確率パターンの統計的検出
+- サーバーサイドでの二重検証
+
+#### 公平性保証
+- AIの判断基準の透明性
+- ゲームルールに基づいた厳密な判定
+- プレイヤー能力値の正確な反映
+
+### 実装優先度
+
+**CRITICAL (即座実装)**
+- 強制ダイアログコンポーネント
+- 基本的なダイス検証システム
+- タイムライン衝突判定
+
+**HIGH (1-2週間)**
+- AI戦術判断エンジン
+- エネミー行動パターンAI
+- Socket.IO リアルタイム通信
+
+**MEDIUM (1ヶ月)**
+- 高度な統計的分析
+- 戦術的バランス調整
+- ユーザビリティ改善
+
+## 🎮 TRPGセッション画面ゲームプレイフロー
+
+### セッション全体フロー概要
+
+TRPGセッション画面では、AIゲームマスターが主導する完全自動化されたTRPGゲームプレイが可能です。プレイヤーは選択するだけで、AIが状況に応じて最適な体験を提供します。
+
+### 🔄 メインゲームプレイフロー
+
+```mermaid
+flowchart TD
+    A[セッション画面アクセス] --> B{キャンペーン選択済み?}
+    B -->|No| C[ホーム画面へリダイレクト]
+    B -->|Yes| D[セッション初期化]
+    
+    D --> E[PCキャラクター自動選択]
+    E --> F["「AIゲームマスターにセッション開始」ボタン表示"]
+    F --> G[プレイヤーがボタンクリック]
+    
+    G --> H[AI: ゲーム導入・状況説明生成]
+    H --> I[AI: 現在状況に応じた行動選択肢生成]
+    I --> J[プレイヤーに行動選択肢表示]
+    
+    J --> K{プレイヤーの選択}
+    K -->|行動選択| L[選択した行動を実行]
+    K -->|チャット入力| M[自由発言をチャットに送信]
+    K -->|NPC会話| N[NPC選択→AI会話生成]
+    
+    L --> O[AI: 行動結果生成・描写]
+    M --> P[AI: チャット内容に応答]
+    N --> Q[AI: NPCとして自然な会話応答]
+    
+    O --> R[AIパーティーメンバー自動行動]
+    P --> R
+    Q --> R
+    
+    R --> S[AI: 日進行判定実行]
+    S --> T{日進行が必要?}
+    
+    T -->|No| U[新しい行動選択肢生成]
+    U --> J
+    
+    T -->|Yes| V[次の日へ進行]
+    V --> W[行動回数リセット]
+    W --> X{最終日到達?}
+    
+    X -->|No| Y[新しい日のイベントチェック]
+    Y --> Z[タイムライン連動イベント発生]
+    Z --> I
+    
+    X -->|Yes| AA[AI: キャンペーン完了判定]
+    AA --> BB[成功・失敗・スコア表示]
+    BB --> CC[セッション終了]
+    
+    style A fill:#e1f5fe
+    style CC fill:#c8e6c9
+    style H fill:#fff3e0
+    style I fill:#f3e5f5
+    style AA fill:#fce4ec
+```
+
+### 🎯 AIゲームマスター動作フロー
+
+```mermaid
+sequenceDiagram
+    participant P as プレイヤー
+    participant UI as セッションUI
+    participant AI as AIゲームマスター
+    participant Party as AIパーティー
+    participant NPC as NPCエージェント
+    participant Timeline as タイムライン
+    
+    Note over P, Timeline: セッション開始
+    P->>UI: 「AIにセッション開始してもらう」クリック
+    UI->>AI: セッション開始要求
+    AI->>AI: キャンペーン情報・現在状況分析
+    AI->>UI: ゲーム導入・状況説明
+    
+    Note over P, Timeline: 行動フェーズ
+    AI->>AI: 現在状況に応じた行動選択肢生成
+    AI->>UI: 3-5個の行動選択肢表示
+    UI->>P: 行動選択肢提示
+    
+    P->>UI: 行動選択 OR チャット入力
+    UI->>AI: プレイヤー行動/発言内容
+    AI->>AI: 行動結果・応答生成
+    AI->>UI: 詳細な結果描写
+    
+    Note over P, Timeline: AIパーティー連動
+    AI->>Party: パーティーメンバー自動行動トリガー
+    Party->>Party: キャラクターらしい行動・発言生成
+    Party->>UI: AIキャラクター行動表示
+    
+    Note over P, Timeline: NPC相互作用
+    alt NPCとの会話選択時
+        P->>UI: NPC会話選択
+        UI->>NPC: 会話開始要求
+        NPC->>NPC: NPCらしい応答生成
+        NPC->>UI: 自然な会話表示
+    end
+    
+    Note over P, Timeline: 日進行判定
+    AI->>AI: 行動回数・イベント完了度分析
+    AI->>Timeline: 日進行必要性判定
+    
+    alt 日進行が必要
+        AI->>UI: 日進行理由表示
+        Timeline->>Timeline: 日付更新・行動回数リセット
+        Timeline->>AI: 新しい日のイベント確認
+        AI->>UI: 新日のイベント・状況説明
+    else 継続
+        AI->>AI: 新しい行動選択肢生成
+        AI->>UI: 次の行動選択肢表示
+    end
+    
+    Note over P, Timeline: キャンペーン完了
+    alt 最終日到達
+        AI->>AI: 総合的なキャンペーン評価
+        AI->>UI: 成功/失敗判定・スコア・総評表示
+    end
+```
+
+### 🎲 AI制御ダイス統合フロー
+
+```mermaid
+flowchart LR
+    subgraph セッション進行中
+        A[プレイヤー行動] --> B[AI結果生成]
+        B --> C{ダイス判定必要?}
+    end
+    
+    subgraph AI制御ダイス
+        C -->|Yes| D[AI: 必要ダイス指定]
+        D --> E[強制ダイアログ表示]
+        E --> F[プレイヤー: 指定ダイス実行]
+        F --> G{正しいダイス?}
+        G -->|No| H[エラー表示・継続]
+        H --> F
+        G -->|Yes| I[結果受理・ダイアログ閉じる]
+    end
+    
+    subgraph タイムライン連動
+        I --> J[AI: 判定結果解釈]
+        J --> K[タイムライン状況更新]
+        K --> L[次の状況生成]
+    end
+    
+    C -->|No| M[通常進行継続]
+    L --> M
+    M --> N[新しい行動選択肢生成]
+    
+    style D fill:#ffeb3b
+    style E fill:#ff9800
+    style I fill:#4caf50
+```
+
+### 🏰 キャラクター・NPC管理フロー
+
+```mermaid
+flowchart TD
+    subgraph プレイヤー操作
+        A[キャラクター選択] --> B[選択キャラクターでの行動]
+        B --> C[チャット・行動選択]
+    end
+    
+    subgraph AI自動操作
+        D[非選択キャラクター検出] --> E[30%確率で自動行動]
+        E --> F[キャラクターらしい行動生成]
+        F --> G[パーティー内相互作用]
+    end
+    
+    subgraph NPC自動応答
+        H[NPC接触検出] --> I[NPC情報・性格分析]
+        I --> J[文脈に応じた自然な会話]
+        J --> K[クエスト進行チェック]
+    end
+    
+    C --> L[AI応答生成]
+    G --> L
+    K --> L
+    L --> M[統合された会話表示]
+    M --> N[次の状況生成]
+    
+    style F fill:#e8f5e8
+    style J fill:#e3f2fd
+    style L fill:#fff3e0
+```
+
+### 📅 タイムライン・イベント管理
+
+```mermaid
+timeline
+    title TRPGキャンペーン進行管理
+    
+    section セッション開始
+        キャンペーン選択 : 既存キャンペーンから選択
+        初期設定 : PCキャラクター自動選択
+                 : 開始場所・状況設定
+        AI導入 : ゲーム世界への導入
+               : 背景・目標説明
+    
+    section 日常フェーズ (1-N日目)
+        行動選択 : AI動的選択肢生成
+                : プレイヤー行動実行
+                : AIパーティー自動行動
+        イベント発生 : タイムライン連動
+                   : NPC遭遇・会話
+                   : ダイス判定・スキルチェック
+        日進行判定 : AI完了条件分析
+                  : 自動日送り決定
+    
+    section 最終フェーズ (最終日)
+        最終イベント : クライマックス展開
+                   : 重要判定・戦闘
+        キャンペーン判定 : 成功・失敗評価
+                      : スコア・達成度計算
+        セッション完了 : 総評・感想表示
+                     : 次回プレイ誘導
+```
+
+### 💬 チャット・コミュニケーション仕様
+
+**チャットメッセージタイプ:**
+- `player`: プレイヤーキャラクター発言
+- `gm`: AIゲームマスター応答
+- `npc`: NPC自動応答
+- `system`: システムメッセージ（日進行等）
+
+**AI応答トリガー:**
+1. プレイヤーの自由発言
+2. 行動選択実行
+3. NPC会話選択
+4. ダイス判定結果
+5. イベント発生時
+
+**自動化レベル:**
+- 🤖 **完全自動**: AIが全て判断・実行
+- 🎯 **半自動**: プレイヤー選択 + AI応答
+- 👤 **手動**: プレイヤー主導操作
+
+この設計により、プレイヤーは最小限の操作でAI主導の本格的なTRPG体験を楽しむことができます。
 
 ## デプロイメント・運用
 
