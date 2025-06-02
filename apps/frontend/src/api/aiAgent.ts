@@ -632,6 +632,38 @@ export const aiAgentApi = {
       throw error;
     }
   },
+
+  /**
+   * TRPG拠点画像を生成する
+   * @param baseName 拠点名
+   * @param baseType 拠点タイプ
+   * @param description 拠点の説明
+   * @param style 画像スタイル
+   * @param aspectRatio アスペクト比
+   */
+  generateBaseImage: async (
+    baseName: string,
+    baseType?: string,
+    description?: string,
+    style?: "photographic" | "digital-art" | "anime" | "fantasy" | "realistic",
+    aspectRatio?: "1:1" | "9:16" | "16:9" | "4:3" | "3:4"
+  ) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/base-image-generation`, {
+        baseName,
+        baseType,
+        description,
+        style: style || "fantasy",
+        aspectRatio: aspectRatio || "16:9",
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "拠点画像生成");
+      }
+      throw error;
+    }
+  },
 };
 
 /**

@@ -2308,4 +2308,86 @@ ${progressionType === 'climax' ? 'クライマックスに向けた展開を提�
   }
 });
 
+/**
+ * TRPG拠点画像生成エンドポイント
+ * AI を使用して拠点の画像を生成します
+ */
+router.post('/base-image-generation', async (req, res) => {
+  try {
+    const { baseName, baseType, description, style, aspectRatio } = req.body;
+    
+    console.log('[API] TRPG拠点画像生成リクエスト:', {
+      baseName,
+      baseType,
+      style
+    });
+
+    if (!baseName) {
+      return res.status(400).json({
+        status: 'error',
+        message: '拠点名は必須です',
+      });
+    }
+
+    // Google Cloud Service のインポートと初期化
+    const { GoogleCloudService } = await import('../services/google-cloud.service.js');
+    const googleCloudService = new GoogleCloudService();
+
+    // 拠点画像生成用のプロンプトを構築
+    let imagePrompt = `fantasy TRPG location artwork of ${baseName}`;
+    
+    if (baseType) {
+      imagePrompt += `, a ${baseType}`;
+    }
+    
+    if (description) {
+      imagePrompt += `, ${description}`;
+    }
+    
+    // デフォルトでファンタジー風の詳細を追加
+    imagePrompt += ', detailed fantasy art, atmospheric lighting, medieval fantasy setting, high quality digital art';
+
+    // ネガティブプロンプト（避けたい要素）
+    const negativePrompt = 'modern buildings, cars, contemporary technology, low quality, blurry, distorted';
+
+    // 画像生成リクエストを作成
+    const imageRequest = {
+      prompt: imagePrompt,
+      negativePrompt,
+      aspectRatio: (aspectRatio as '1:1' | '9:16' | '16:9' | '4:3' | '3:4') || '16:9',
+      style: (style as 'photographic' | 'digital-art' | 'anime' | 'fantasy' | 'realistic') || 'fantasy',
+      quality: 'standard' as const,
+    };
+
+    console.log('[API] 画像生成リクエスト:', imageRequest);
+
+    // 画像を生成
+    const result = await googleCloudService.generateImage(imageRequest);
+
+    console.log('[API] 拠点画像生成完了:', result);
+
+    return res.json({
+      status: 'success',
+      data: {
+        imageUrl: result.imageUrl,
+        prompt: result.prompt,
+        cost: result.cost,
+        metadata: result.metadata,
+      },
+      metadata: {
+        requestType: 'base-image-generation',
+        generatedAt: result.generatedAt,
+        baseName,
+        baseType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPG拠点画像生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || '拠点画像生成中にエラーが発生しました',
+    });
+  }
+});
+
 export default router;

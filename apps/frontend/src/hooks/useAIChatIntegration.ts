@@ -61,15 +61,27 @@ export const useAIChatIntegration = () => {
       "plot-item",
     ];
 
-    if (!validContexts.includes(pageContext)) {
-      return {
-        isValid: false,
-        error: "invalid_context",
-        message: `無効なページコンテキスト: ${pageContext}`,
-      };
+    // TRPGセッション関連のコンテキストも許可
+    const sessionContexts = [
+      "session-gm",
+      "action-options", 
+      "day-progression",
+      "encounter-processing",
+      "chat-response",
+      "ai-party-action",
+      "npc-interaction",
+      "campaign-completion"
+    ];
+    
+    if (validContexts.includes(pageContext as PageContext) || sessionContexts.includes(pageContext as any)) {
+      return { isValid: true };
     }
 
-    return { isValid: true };
+    return {
+      isValid: false,
+      error: "invalid_context",
+      message: `無効なページコンテキスト: ${pageContext}`,
+    };
   };
 
   const openAIAssist = (

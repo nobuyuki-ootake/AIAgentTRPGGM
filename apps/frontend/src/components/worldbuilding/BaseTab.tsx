@@ -46,6 +46,7 @@ import {
 } from "@mui/icons-material";
 import { useBases } from "../../hooks/useBases";
 import { BaseLocation } from "@novel-ai-assistant/types";
+import { aiAgentApi } from "../../api/aiAgent";
 
 const BaseTab: React.FC = () => {
   const {
@@ -61,6 +62,7 @@ const BaseTab: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBase, setEditingBase] = useState<BaseLocation | null>(null);
   const [formData, setFormData] = useState<Omit<BaseLocation, "id" | "created_at" | "updated_at">>(createBaseTemplate("村"));
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // ダイアログを開く
   const handleOpenDialog = (base?: BaseLocation) => {
@@ -121,6 +123,43 @@ const BaseTab: React.FC = () => {
       }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  // AI画像生成
+  const handleGenerateAIImage = async () => {
+    if (!formData.name.trim()) {
+      alert("拠点名を入力してから画像を生成してください。");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      console.log('AI画像生成開始:', {
+        baseName: formData.name,
+        baseType: formData.type,
+        description: formData.description
+      });
+
+      const result = await aiAgentApi.generateBaseImage(
+        formData.name,
+        formData.type,
+        formData.description,
+        "fantasy",
+        "16:9"
+      );
+
+      if (result.status === 'success' && result.data.imageUrl) {
+        handleFormChange("imageUrl", result.data.imageUrl);
+        console.log('AI画像生成成功:', result.data.imageUrl);
+      } else {
+        throw new Error(result.message || '画像生成に失敗しました');
+      }
+    } catch (error) {
+      console.error('AI画像生成エラー:', error);
+      alert(`画像生成に失敗しました: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -610,15 +649,12 @@ const BaseTab: React.FC = () => {
                       <Button
                         variant="outlined"
                         startIcon={<ImageIcon />}
-                        onClick={() => {
-                          // TODO: AI画像生成機能を実装
-                          console.log("AI画像生成機能（実装予定）");
-                        }}
+                        onClick={handleGenerateAIImage}
                         sx={{ mb: 2.5, whiteSpace: "nowrap" }}
-                        disabled={!formData.name.trim()}
+                        disabled={!formData.name.trim() || isGeneratingImage}
                         title={!formData.name.trim() ? "拠点名を入力してください" : "AIで拠点画像を生成"}
                       >
-                        AI生成
+                        {isGeneratingImage ? "生成中..." : "AI生成"}
                       </Button>
                     </Box>
                   </Grid>

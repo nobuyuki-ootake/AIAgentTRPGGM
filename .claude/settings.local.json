@@ -15,7 +15,11 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(npm run type-check:*)",
-      "Bash(timeout 30s pnpm dev:frontend)"
+      "Bash(timeout 30s pnpm dev:frontend)",
+      "Bash(npm install)",
+      "Bash(awk:*)",
+      "Bash(git checkout:*)",
+      "Bash(/home/irure/.nvm/versions/node/v18.20.8/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg \"magicPoints\" src/components/trpg-session/CharacterDisplay.tsx)"
     ],
     "deny": []
   }
