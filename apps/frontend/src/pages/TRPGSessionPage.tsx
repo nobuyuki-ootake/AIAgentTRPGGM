@@ -1720,7 +1720,7 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
             
             <Grid container spacing={1}>
               {availableActions.map((action) => (
-                <Grid item xs={6} sm={3} key={action.id}>
+                <Grid size={{ xs: 6, sm: 3 }} key={action.id}>
                   <Button
                     variant="outlined"
                     fullWidth
@@ -1761,7 +1761,7 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
               ))}
               
               {/* 手動日進行ボタン */}
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Button
                   variant="outlined"
                   color="warning"
