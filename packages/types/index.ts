@@ -463,6 +463,35 @@ export interface SessionCurrentState {
 // 時刻帯定義
 export type TimeOfDay = "morning" | "noon" | "afternoon" | "evening" | "night" | "late_night";
 
+// 🌍 世界観構築統合: 遭遇システム関連型定義
+export interface EncounterChance {
+  probability: number; // 0-1の確率
+  type: string; // 遭遇タイプ（戦闘、イベント、発見など）
+  description?: string;
+}
+
+export interface WeatherModifier {
+  condition: string; // 天候条件
+  modifier: number; // 修正値
+  effects: string[]; // 効果の説明
+}
+
+export interface ConditionalEvent {
+  condition: string; // 発生条件
+  event: string; // イベント内容
+  probability: number; // 発生確率
+}
+
+export type ClimateType = "temperate" | "tropical" | "arctic" | "desert" | "mountain" | "coastal" | "magical";
+export type TerrainType = "plains" | "forest" | "mountain" | "desert" | "swamp" | "urban" | "ruins" | "underground" | "aerial";
+
+export interface WeatherPattern {
+  season: string;
+  conditions: string[];
+  temperature: { min: number; max: number };
+  precipitation: number; // 降水量
+}
+
 // 座標系
 export interface Coordinates {
   x: number;
@@ -1419,6 +1448,43 @@ export interface BaseLocation {
     priceModifier: number;   // 物価指数
     localGoods: string[];    // 特産品
     tradeGoods: string[];    // 交易品
+  };
+  
+  // 🌍 世界観構築統合: 遭遇ルール
+  encounterRules?: {
+    timeOfDay: Record<TimeOfDay, EncounterChance>;
+    weatherEffects?: WeatherModifier[];
+    specialEvents?: ConditionalEvent[];
+  };
+  
+  // 🌍 世界観構築統合: NPCスケジュール
+  npcSchedule?: {
+    [npcId: string]: {
+      availability: TimeOfDay[];
+      services: string[];
+      questTriggers: string[];
+    };
+  };
+  
+  // 🌍 世界観構築統合: 文化的修正値
+  culturalModifiers?: {
+    negotiationDC: number;
+    priceModifier: number;
+    reputationImpact: number;
+  };
+  
+  // 🌍 世界観構築統合: 環境要因
+  environmentalFactors?: {
+    climate: ClimateType;
+    terrain: TerrainType;
+    weatherPatterns: WeatherPattern[];
+    naturalHazards?: string[];
+  };
+
+  // 🗺️ マップ座標
+  coordinates?: {
+    lat: number;
+    lng: number;
   };
   
   // メタ情報

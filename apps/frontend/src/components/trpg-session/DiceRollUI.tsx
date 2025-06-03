@@ -16,8 +16,14 @@ import {
   Chip,
   Grid,
   Tooltip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { DiceD20Icon, DiceD6Icon } from "../icons/TRPGIcons";
+import UnifiedDiceInterface from "../dice/UnifiedDiceInterface";
+import DiceDisplay from "../dice/DiceDisplay";
+import { useRecoilValue } from "recoil";
+import { currentCampaignState } from "../../store/atoms";
 
 export interface DiceRoll {
   dice: string;
@@ -39,10 +45,21 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
   onRoll,
   selectedCharacterName,
 }) => {
+  const currentCampaign = useRecoilValue(currentCampaignState);
+  const [useUnifiedInterface, setUseUnifiedInterface] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
+  
+  // 旧システム用
   const [diceCount, setDiceCount] = useState(1);
   const [diceType, setDiceType] = useState(20);
   const [modifier, setModifier] = useState(0);
   const [purpose, setPurpose] = useState("");
+  
+  // ダイス可視化用
+  const [showDiceVisualization, setShowDiceVisualization] = useState(false);
+  const [isRolling, setIsRolling] = useState(false);
+  const [rollResults, setRollResults] = useState<number[]>([]);
+  const [totalResult, setTotalResult] = useState<number | null>(null);
 
   // よく使われるダイス組み合わせのプリセット
   const presets = [
@@ -62,6 +79,53 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
   };
 
   const handleRoll = () => {
+    if (showDiceVisualization) {
+      // 可視化モードの場合
+      setIsRolling(true);
+      setActiveTab(1); // 可視化タブに切り替え
+      setRollResults([]);
+      setTotalResult(null);
+      
+      // 複数ダイスの場合は順次ロール
+      rollDiceSequentially();
+    } else {
+      // 通常モードの場合
+      performInstantRoll();
+    }
+  };
+
+  const rollDiceSequentially = async () => {
+    const results: number[] = [];
+    
+    for (let i = 0; i < diceCount; i++) {
+      const result = Math.floor(Math.random() * diceType) + 1;
+      results.push(result);
+      setRollResults([...results]);
+      
+      // 各ダイスのロール間に少し時間を置く
+      if (i < diceCount - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    const total = results.reduce((sum, roll) => sum + roll, 0) + modifier;
+    setTotalResult(total);
+    setIsRolling(false);
+    
+    // 結果をメインシステムに送信
+    const diceRoll: DiceRoll = {
+      dice: `${diceCount}d${diceType}${modifier !== 0 ? (modifier > 0 ? `+${modifier}` : modifier) : ""}`,
+      rolls: results,
+      total,
+      purpose: purpose || (selectedCharacterName ? `${selectedCharacterName}のロール` : "ダイスロール"),
+    };
+    
+    setTimeout(() => {
+      onRoll(diceRoll);
+    }, 1500); // 結果表示後に自動送信
+  };
+
+  const performInstantRoll = () => {
     const rolls: number[] = [];
     for (let i = 0; i < diceCount; i++) {
       rolls.push(Math.floor(Math.random() * diceType) + 1);
@@ -84,6 +148,11 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
     setDiceType(20);
     setModifier(0);
     setPurpose("");
+    setActiveTab(0);
+    setShowDiceVisualization(false);
+    setIsRolling(false);
+    setRollResults([]);
+    setTotalResult(null);
   };
 
   const handleClose = () => {
@@ -91,8 +160,8 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
     onClose();
   };
 
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+  const legacyInterface = (
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <DiceD20Icon />
@@ -104,7 +173,17 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
       </DialogTitle>
       
       <DialogContent>
-        <Stack spacing={3} sx={{ pt: 1 }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, newValue) => setActiveTab(newValue)}
+          sx={{ mb: 2 }}
+        >
+          <Tab label="設定" />
+          <Tab label="ダイス可視化" />
+        </Tabs>
+
+        {activeTab === 0 && (
+          <Stack spacing={3} sx={{ pt: 1 }}>
           {/* プリセット */}
           <Box>
             <Typography variant="subtitle2" gutterBottom>
@@ -200,18 +279,89 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
               最小値: {diceCount + modifier}, 最大値: {diceCount * diceType + modifier}
             </Typography>
           </Box>
+
+          {/* ダイス可視化モード切り替え */}
+          <Box>
+            <Tooltip title="ダイスの転がりアニメーションを表示します">
+              <Button
+                variant={showDiceVisualization ? "contained" : "outlined"}
+                onClick={() => setShowDiceVisualization(!showDiceVisualization)}
+                fullWidth
+              >
+                {showDiceVisualization ? "可視化モード ON" : "可視化モード OFF"}
+              </Button>
+            </Tooltip>
+          </Box>
         </Stack>
+        )}
+
+        {activeTab === 1 && (
+          <Box sx={{ minHeight: 400 }}>
+            {diceCount <= 3 && diceType !== 100 ? (
+              <Grid container spacing={2}>
+                {Array.from({ length: Math.max(1, rollResults.length || diceCount) }, (_, index) => (
+                  <Grid item xs={12 / Math.min(3, diceCount)} key={index}>
+                    <DiceDisplay
+                      diceType={`d${diceType}` as any}
+                      result={rollResults[index]}
+                      isRolling={isRolling && index <= rollResults.length}
+                      size={120}
+                      showModeToggle={index === 0}
+                      defaultMode="2d"
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" gutterBottom>
+                  {isRolling ? '転がっています...' : `${diceCount}d${diceType}`}
+                </Typography>
+                {rollResults.length > 0 && (
+                  <Typography variant="body1">
+                    個別結果: {rollResults.join(', ')}
+                  </Typography>
+                )}
+                {totalResult !== null && (
+                  <Typography variant="h4" color="primary" sx={{ mt: 2 }}>
+                    合計: {totalResult}
+                  </Typography>
+                )}
+              </Box>
+            )}
+            
+            {totalResult !== null && modifier !== 0 && (
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  ダイス合計: {totalResult - modifier}, 修正値: {modifier > 0 ? `+${modifier}` : modifier}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
       </DialogContent>
       
       <DialogActions>
-        <Button onClick={handleClose}>キャンセル</Button>
-        <Button onClick={resetForm} color="secondary">リセット</Button>
-        <Button onClick={handleRoll} variant="contained" startIcon={<DiceD20Icon />}>
-          ロール実行
+        <Button onClick={handleClose} disabled={isRolling}>
+          {totalResult !== null ? '完了' : 'キャンセル'}
+        </Button>
+        <Button onClick={resetForm} color="secondary" disabled={isRolling}>
+          リセット
+        </Button>
+        <Button 
+          onClick={handleRoll} 
+          variant="contained" 
+          startIcon={<DiceD20Icon />}
+          disabled={isRolling}
+        >
+          {isRolling ? '転がっています...' : 'ロール実行'}
         </Button>
       </DialogActions>
     </Dialog>
   );
+
+  // 拡張されたダイス可視化インターフェースを使用
+  return legacyInterface;
 };
 
 export default DiceRollUI;

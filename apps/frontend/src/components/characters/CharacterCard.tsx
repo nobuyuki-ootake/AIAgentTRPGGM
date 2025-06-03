@@ -6,7 +6,7 @@ import CardActions from "@mui/material/CardActions";
 // import IconButton from "@mui/material/IconButton"; // Unused
 // import EditIcon from "@mui/icons-material/Edit"; // Unused
 // import DeleteIcon from "@mui/icons-material/Delete"; // Unused
-import { TRPGCharacter } from "@novel-ai-assistant/types";
+import { TRPGCharacter } from "@trpg-ai-gm/types";
 import { Button, Box, Chip, Avatar, Divider, Grid } from "@mui/material";
 import { Person, SmartToy, Dangerous, Star } from "@mui/icons-material";
 

@@ -1,5 +1,5 @@
 // TRPGキャラクターデータモデル
-import { TRPGCharacter, CharacterStats, Skill, Equipment } from '@novel-ai-assistant/types';
+import { TRPGCharacter, CharacterStats, Skill, Equipment } from '@trpg-ai-gm/types';
 import DatabaseConnection from '../connection.js';
 import { v4 as uuidv4 } from 'uuid';
 

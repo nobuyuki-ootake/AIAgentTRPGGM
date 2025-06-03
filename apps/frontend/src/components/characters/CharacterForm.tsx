@@ -28,7 +28,7 @@ import {
   CharacterStatus,
   CharacterTrait,
   QuestElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import CharacterStatusList from "./CharacterStatusList";
 import CharacterStatusEditorDialog from "./CharacterStatusEditorDialog";
 import { useAIChatIntegration } from "../../hooks/useAIChatIntegration";

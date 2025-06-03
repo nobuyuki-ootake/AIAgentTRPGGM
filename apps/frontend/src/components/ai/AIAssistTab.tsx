@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { aiChatContextState, currentCampaignState } from "../../store/atoms";
-import { PlotElement } from "@novel-ai-assistant/types";
+import { PlotElement } from "@trpg-ai-gm/types";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import {
   generateSynopsisContent,
@@ -101,7 +101,7 @@ export const AIAssistTab: React.FC = () => {
     return (
       <Box sx={{ p: 2, textAlign: "center" }}>
         <Typography color="text.secondary">
-          アシスト機能を使用するには、各画面のAIアシストボタンをクリックしてください。
+          TRPG AI アシスト機能を使用するには、各画面のAIアシストボタンをクリックしてください。
         </Typography>
       </Box>
     );
@@ -158,7 +158,7 @@ export const AIAssistTab: React.FC = () => {
 
         switch (context.pageContext) {
           case "synopsis":
-            // あらすじ生成の場合
+            // キャンペーン背景生成の場合
             result = await generateSynopsisContent(
               message,
               campaignDataAsRecord
@@ -182,7 +182,7 @@ export const AIAssistTab: React.FC = () => {
             console.log("結果:", result);
             break;
           case "plot":
-            // クエスト生成の場合
+            // シナリオ・クエスト生成の場合
             result = await generatePlotContent(message, campaignDataAsRecord);
             break;
           case "worldbuilding":
@@ -222,14 +222,14 @@ export const AIAssistTab: React.FC = () => {
             }
             break;
           case "timeline":
-            // タイムライン生成の場合
+            // セッション履歴・イベント生成の場合
             result = await generateTimelineContent(
               message,
               campaignDataAsRecord
             );
             break;
           default:
-            // その他の場合は汎用的なAI応答
+            // その他の場合は汎用的なTRPG AI応答
             result = await generateGenericContent(message, campaignDataAsRecord);
             break;
         }
@@ -384,15 +384,15 @@ export const AIAssistTab: React.FC = () => {
             currentCampaign?.plot && (
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel>
-                  関連プロット (任意)
+                  関連シナリオ (任意)
                   <HelpTooltip
-                    title="特定のプロット要素に関連する内容を生成したい場合に選択してください。&#10;選択したプロットの内容を参考にして、より一貫性のある生成を行います。"
+                    title="特定のシナリオ要素に関連する内容を生成したい場合に選択してください。&#10;選択したシナリオの内容を参考にして、より一貫性のある生成を行います。"
                     placement="right"
                     inline
                     size="small"
                   />
                 </InputLabel>
-                <Select label="関連プロット (任意)" disabled={isLoading}>
+                <Select label="関連シナリオ (任意)" disabled={isLoading}>
                   <MenuItem value="">
                     <em>指定なし</em>
                   </MenuItem>
@@ -499,7 +499,7 @@ export const AIAssistTab: React.FC = () => {
           severity="success"
           sx={{ width: "100%" }}
         >
-          AI生成が完了しました！
+          TRPG AI生成が完了しました！
         </Alert>
       </Snackbar>
     </Box>

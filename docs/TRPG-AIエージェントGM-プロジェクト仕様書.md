@@ -447,12 +447,100 @@ interface BaseLocation {
 
 #### WorldBuildingPage.tsx（ワールド設定）
 
-- **目的**: 世界観・拠点設定
-- **機能**:
-  - 世界設定概要
-  - 拠点情報詳細管理
-  - 施設・経済・NPC 配置
-  - AI による拠点画像生成
+- **目的**: 世界観データとゲームプレイの完全統合
+- **統合ビジョン**: 世界観構築データをセッションプレイに直接反映させ、AIゲームマスターの判断材料として活用
+
+##### 🌍 世界観構築統合システム
+
+###### **1. 場所中心の再設計**
+
+```typescript
+interface IntegratedLocation extends Base {
+  // 既存の拠点データに加えて
+  encounterRules: {
+    timeOfDay: Record<TimeOfDay, EncounterChance>;
+    weatherEffects: WeatherModifier[];
+    specialEvents: ConditionalEvent[];
+  };
+  
+  npcSchedule: {
+    [npcId: string]: {
+      availability: TimeOfDay[];
+      services: string[];
+      questTriggers: string[];
+    };
+  };
+  
+  culturalModifiers: {
+    negotiationDC: number;
+    priceModifier: number;
+    reputationImpact: number;
+  };
+}
+```
+
+###### **2. インタラクティブマップUI**
+
+- **視覚的世界管理**: 
+  - クリッカブルな場所マーカー
+  - リアルタイムパーティー位置表示
+  - 移動ルートの可視化
+  - 危険度ヒートマップ表示
+- **統合情報表示**:
+  - 場所クリックで詳細情報ポップアップ
+  - 利用可能施設・NPC・クエスト一覧
+  - 移動時間・コスト計算
+  - 遭遇確率の可視化
+
+###### **3. AIコンテキスト自動構築**
+
+```typescript
+// 世界観データからAIプロンプトを自動生成
+const buildAIContext = (location: Base, worldData: WorldBuilding) => {
+  return {
+    currentLocation: {
+      name: location.name,
+      description: location.description,
+      culture: worldData.cultures.find(c => c.regions.includes(location.id)),
+      history: worldData.history.filter(h => h.locations.includes(location.id)),
+      politics: worldData.settings.politicalSituation,
+    },
+    availableActions: generateLocationActions(location),
+    environmentalFactors: {
+      weather: getCurrentWeather(location),
+      timeOfDay: getTimeOfDay(),
+      season: getCurrentSeason(),
+    },
+  };
+};
+```
+
+###### **4. 必要最小限の画面構成**
+
+**残すタブ（ゲームプレイ直結）**:
+- **場所管理**: 拠点、ダンジョン、野外エリアの詳細設定
+- **NPC配置**: 場所ごとのNPC配置と役割定義
+- **遭遇設定**: 場所×時間×条件での自動遭遇ルール
+- **クエスト連携**: 場所とクエストの紐付け管理
+
+**AIに委ねるタブ（動的生成）**:
+- 詳細な歴史年表（必要時にAI生成）
+- 複雑な政治体制（AIが文脈に応じて説明）
+- 技術レベル詳細（ゲームシステムに準拠）
+
+###### **5. セッションプレイへの反映**
+
+- **場所移動時の自動処理**:
+  - 施設の即座利用可能化
+  - 配置NPCの自動表示
+  - 文化的修正値の適用
+  - 遭遇チェックの実行
+
+- **AI応答への統合**:
+  - 場所の歴史・文化を反映した描写
+  - NPCの地域性を考慮した会話
+  - 環境要因による判定修正
+  - 世界観に基づくイベント生成
 
 ### 5. TRPG セッション実行
 
@@ -507,11 +595,12 @@ interface BaseLocation {
 
 ### AI エージェント役割
 
-#### ゲームマスター（GM）エージェント
+#### 実装済みMastraエージェント
 
+##### 1. TRPGゲームマスター（trpgGameMaster）
 - **役割**: セッション進行、シナリオ展開、NPC 演技、ゲーム管理
+- **システムメッセージ**: TRPGセッションを進行するAIゲームマスターとして、公平で楽しめる体験を提供
 - **機能**:
-
   - ゲーム導入・状況説明
   - プレイヤー行動への反応・結果生成
   - 戦闘解決・判定支援
@@ -525,17 +614,149 @@ interface BaseLocation {
   - **キャンペーン目的達成監視**: プレイヤーの進行状況を継続的に評価
   - **成功/失敗判定**: 最大日数到達時の最終的なキャンペーン成否判定
 
-  #### キャラクター操作エージェント
+##### 2. シナリオデザイナー（scenarioDesigner）
+- **役割**: TRPGシナリオの設計と改善を行うデザイナー
+- **システムメッセージ**: シナリオ構造の分析、イベント配置の最適化、プレイヤー選択の多様化を支援
+- **出力形式**: イベント生成時は「タイトル: [イベント名]」「詳細: [発生条件、展開、選択肢]」形式
 
-- **役割**: シングル/マルチプレイ時、ユーザーキャラクターを操作
+##### 3. TRPGキャラクタークリエイター（trpgCharacterCreator）
+- **役割**: PC、NPC、敵キャラクターの作成支援
+- **システムメッセージ**: ゲームシステムに適した能力値配分、背景設定、成長方向の提案
+- **出力形式**: 標準キャラクターシート形式（名前、種族、クラス、能力値、スキル等）
+
+##### 4. セッションナレーター（sessionNarrator）
+- **役割**: TRPGセッションの情景描写と進行ナレーション
+- **システムメッセージ**: 五感に訴える臨場感ある描写、NPCの個性的な会話表現
+
+##### 5. キャンペーン世界構築（campaignWorldBuilder）
+- **役割**: TRPGキャンペーンの世界観構築
+- **システムメッセージ**: 地理、政治、文化、歴史の設定とプレイへの影響を考慮した提案
+
+##### 6. 🎮 AIパーティーメンバーコントローラー（aiPartyMemberController）
+- **役割**: プレイヤー不足時にPCを操作するAIエージェント
+- **システムメッセージ**: キャラクターの性格・背景に忠実に行動し、人間プレイヤーを立てる
 - **機能**:
-  - シングルプレイ時、1agent 一人操作を行う
-  - マルチプレイ時、キャンペーンが指定する人数にユーザーが不足している際、代わりに実行(ユーザーの接続が切れた際に代理実行する)
-  - 基本的に GM 視点での動きはしない(先のシナリオやイベントに付加されたフラグを読まない)
+  - シングルプレイ時、非選択PCを自動操作
+  - マルチプレイ時、不足人数分のPCを代理操作
+  - 戦闘・非戦闘両方の適切な行動選択
+  - パーティーの生存と目標達成を優先
+  - GM視点の情報は使用しない（メタゲーミング防止）
+- **出力形式**: 「[キャラクター名]は[行動]します」+ 簡潔な理由や台詞
+
+##### 7. ⚔️ エネミーAIコントローラー（enemyAIController）
+- **役割**: モンスターやエネミーの戦術的行動を制御
+- **システムメッセージ**: 知能レベルに応じた適切な戦術選択、プレイヤーに適度な挑戦を提供
+- **知能レベル別行動**:
+  - 低知能（野獣等）: 本能的・単純な行動パターン
+  - 中知能（ゴブリン等）: 基本戦術理解、弱った敵優先
+  - 高知能（ドラゴン等）: 高度な戦術、弱点分析、罠使用
+- **出力形式**: 「[エネミー名]は[行動]を実行！」+ 効果音や描写
+
+##### 8. 🤝 AI協調行動コーディネーター（aiCooperationCoordinator）
+- **役割**: 複数のAI制御キャラクター間の連携を調整
+- **システムメッセージ**: 自然で戦術的な連携、不自然な完璧さを避ける
+- **連携パターン**: 挟み撃ち、コンボ攻撃、役割分担、戦術的撤退
+
+### 🎮 セッションモード分離システム
+
+#### 概要
+
+AIセッションマスター機能において、**シングルモード**と**マルチプレイモード**を明確に分離し、それぞれに最適化された TRPG 体験を提供します。
+
+#### モード選択フロー
+
+```mermaid
+flowchart TD
+    A[TRPGセッション開始] --> B{AIセッションマスター}
+    B -->|有効| C[セッションモード選択]
+    B -->|無効| D[手動GMモード]
+    
+    C --> E[シングルモード]
+    C --> F[マルチプレイモード]
+    
+    E --> G[一人プレイ専用セッション]
+    F --> H[協力マルチプレイセッション]
+    
+    style E fill:#e1f5fe
+    style F fill:#f3e5f5
+    style G fill:#c8e6c9
+    style H fill:#c8e6c9
+```
+
+#### シングルモード仕様
+
+**特徴**:
+- プレイヤー1人専用セッション
+- 他の全キャラクターをAIが自動操作
+- プライベートセッション（他者参加不可）
+- いつでも中断・再開可能
+
+**実装詳細**:
+```typescript
+interface SingleModeSession {
+  mode: 'single';
+  maxPlayers: 1;
+  isPrivate: true;
+  aiControlledCharacters: TRPGCharacter[]; // AI操作キャラクター
+  playerCharacter: TRPGCharacter; // プレイヤー操作キャラクター
+  pauseSupport: boolean; // 一時停止機能
+}
+```
+
+**AI動作**:
+- パーティーメンバーの戦術的判断
+- 自然な会話・相互作用
+- プレイヤーの意図を汲んだ支援行動
+- ゲーム進行の自動管理
+
+#### マルチプレイモード仕様
+
+**特徴**:
+- 2-6人の協力プレイ
+- リアルタイム同期機能
+- プライベート・パブリック選択可能
+- 招待コードによる参加制御
+
+**実装詳細**:
+```typescript
+interface MultiplayerModeSession {
+  mode: 'multiplayer';
+  maxPlayers: number; // 2-6
+  isPrivate: boolean;
+  inviteCode?: string;
+  realTimeSync: {
+    chat: boolean;
+    diceRolls: boolean;
+    gameState: boolean;
+    characterActions: boolean;
+  };
+}
+```
+
+**Socket.IO通信**:
+- `create_session`: セッション作成（モード指定）
+- `join_session`: セッション参加（招待コード）
+- `chat_message`: リアルタイムチャット
+- `dice_roll`: 同期ダイスロール
+- `game_state_update`: ゲーム状態同期
+
+#### 技術実装
+
+**フロントエンド**:
+- `SessionModeSelector.tsx`: モード選択UI
+- `SocketService.ts`: Socket.IO クライアント
+- リアルタイム状態管理
+
+**バックエンド**:
+- `socket.service.ts`: セッション管理サーバー
+- モード別セッション制御
+- 招待コード管理
+- リアルタイム通信処理
 
 #### 創作支援エージェント
 
 - **役割**: キャンペーン設計支援
+- **実装エージェント**: scenarioDesigner, trpgCharacterCreator, campaignWorldBuilder
 - **機能**:
   - キャラクター・敵・NPC 生成
   - クエスト・エンカウンター生成
@@ -681,17 +902,49 @@ DELETE /api/characters/:id               # キャラクター削除
 
 ##### AI エージェント
 
+###### 世界観構築関連
 ```
-POST   /api/ai-agent/character-generation    # キャラクター生成
+POST   /api/ai-agent/worldbuilding-detail-generation    # 世界観要素詳細生成
+POST   /api/ai-agent/worldbuilding-list-generation      # 世界観要素リスト生成
+POST   /api/ai-agent/worldbuilding-context-generation   # コンテキスト認識型世界観生成（🌍 WorldContextBuilder統合）
+```
+
+###### キャラクター・エンティティ生成
+```
+POST   /api/ai-agent/character-generation    # キャラクター生成（trpgCharacterCreator使用）
 POST   /api/ai-agent/enemy-generation        # 敵キャラクター生成
 POST   /api/ai-agent/npc-generation          # NPC生成
-POST   /api/ai-agent/quest-generation        # クエスト生成
-POST   /api/ai-agent/session-gm-assist       # GMアシスト
-POST   /api/ai-agent/character-image-gen     # キャラクター画像生成
-POST   /api/ai-agent/base-image-gen          # 拠点画像生成
+POST   /api/ai-agent/quest-generation        # クエスト生成（scenarioDesigner使用）
+```
+
+###### セッション実行支援
+```
+POST   /api/ai-agent/session-gm-assist       # GMアシスト（trpgGameMaster使用）
+POST   /api/ai-agent/plot-advice            # プロットアドバイス（scenarioDesigner使用）
+POST   /api/ai-agent/timeline-event-generation # タイムラインイベント生成
+POST   /api/ai-agent/chapter-generation      # 章本文生成（sessionNarrator使用）
+```
+
+###### AI制御システム（未実装・次期実装予定）
+```
+POST   /api/ai-agent/ai-party-member-action  # AIパーティーメンバー行動決定（aiPartyMemberController使用）
+POST   /api/ai-agent/enemy-ai-action         # エネミーAI行動決定（enemyAIController使用）
+POST   /api/ai-agent/ai-coordination         # AI連携行動調整（aiCooperationCoordinator使用）
 POST   /api/ai-agent/forced-dice-roll        # AI制御ダイスロール要求
 POST   /api/ai-agent/encounter-detection     # タイムライン遭遇判定
 POST   /api/ai-agent/tactical-analysis       # 戦術判断分析
+```
+
+###### 画像生成
+```
+POST   /api/ai-agent/character-image-gen     # キャラクター画像生成（Google Imagen 3）
+POST   /api/ai-agent/base-image-gen          # 拠点画像生成（Google Imagen 3）
+```
+
+###### その他のユーティリティ
+```
+POST   /api/ai-agent/test-connection         # AI接続テスト
+POST   /api/ai-agent/test-key                # APIキーテスト
 ```
 
 ##### リアルタイム通信（Socket.IO）
@@ -854,6 +1107,150 @@ class DiceValidationEngine {
 - 高度な統計的分析
 - 戦術的バランス調整
 - ユーザビリティ改善
+
+## 🌍 世界観構築統合システム
+
+### 統合ビジョン
+
+世界観構築データを単なる設定資料ではなく、実際のゲームプレイに直接影響を与える「生きたデータ」として活用します。プレイヤーが入力した全ての世界観情報が、AIゲームマスターの判断基準となり、セッション体験を豊かにします。
+
+### 実装フェーズ
+
+#### Phase 1: 拠点データ統合（1週間）
+
+```typescript
+// TRPGSessionPageでの拠点データ完全活用
+const handleLocationChange = (newLocation: string) => {
+  const base = bases.find(b => b.name === newLocation);
+  if (base) {
+    // 施設の自動表示
+    setAvailableServices(base.facilities);
+    // NPCの自動配置
+    setLocationNPCs(base.npcs);
+    // 文化的修正値の適用
+    applyCulturalModifiers(base.culturalModifiers);
+    // 遭遇チェック
+    checkForEncounters(base);
+  }
+};
+```
+
+**実装項目**：
+- [ ] BaseLocation型の拡張（encounterRules, npcSchedule, culturalModifiers追加）
+- [ ] TRPGSessionPageでの拠点データ読み込み・適用
+- [ ] 場所移動時の自動処理フロー
+- [ ] 施設利用UIの動的生成
+
+#### Phase 2: インタラクティブマップUI（2-3週間）
+
+```typescript
+// インタラクティブワールドマップコンポーネント
+<InteractiveWorldMap
+  locations={worldBuilding.bases}
+  currentPartyLocation={currentLocation}
+  onLocationClick={(location) => {
+    showLocationDetails(location);
+    calculateTravelRoute(currentLocation, location);
+    displayEncounterProbability(location);
+  }}
+  overlays={{
+    dangerLevel: true,
+    questMarkers: true,
+    npcLocations: true,
+    partyPosition: true,
+  }}
+/>
+```
+
+**実装項目**：
+- [ ] react-leafletまたはreact-simple-mapsの導入
+- [ ] カスタムマップコンポーネントの開発
+- [ ] 場所マーカー・インタラクション実装
+- [ ] リアルタイム位置追跡システム
+- [ ] 移動ルート計算・表示機能
+
+#### Phase 3: AI統合（2週間）
+
+```typescript
+// AI用世界観コンテキストビルダー
+class WorldContextBuilder {
+  static buildForLocation(location: Base, worldData: WorldBuilding): AIContext {
+    return {
+      // 場所固有の情報
+      location: {
+        name: location.name,
+        description: location.description,
+        facilities: location.facilities,
+        dangers: location.threats,
+      },
+      
+      // 文化・歴史コンテキスト
+      cultural: {
+        dominantCulture: worldData.cultures.find(c => c.regions.includes(location.id)),
+        historicalEvents: worldData.history.filter(h => h.locations.includes(location.id)),
+        localCustoms: location.culturalModifiers,
+      },
+      
+      // 環境要因
+      environmental: {
+        climate: location.climate,
+        currentWeather: WeatherSystem.getWeather(location),
+        timeOfDay: TimeSystem.getCurrentTime(),
+        season: TimeSystem.getCurrentSeason(),
+      },
+      
+      // ゲームメカニクス修正値
+      mechanics: {
+        priceModifier: location.culturalModifiers.priceModifier,
+        negotiationDC: location.culturalModifiers.negotiationDC,
+        encounterChance: location.encounterRules[TimeSystem.getCurrentTime()],
+      },
+    };
+  }
+}
+```
+
+**実装項目**：
+- [ ] WorldContextBuilderクラスの実装
+- [ ] AIエージェントAPIへのコンテキスト統合
+- [ ] 場所別AI応答カスタマイズ
+- [ ] 環境要因システムの実装
+
+### 期待される効果
+
+1. **没入感の向上**: 世界観設定が実際のゲームプレイに反映され、より深い没入感を提供
+2. **AIの質向上**: 豊富なコンテキストによりAIがより適切で世界観に合った応答を生成
+3. **プレイの多様性**: 場所ごとの特色により、同じキャンペーンでも異なる体験が可能
+4. **設定作業の価値向上**: 入力した世界観データが無駄にならず、実際のプレイ体験を豊かにする
+
+### 技術的実装詳細
+
+#### データフロー
+
+```mermaid
+flowchart LR
+    A[世界観構築画面] --> B[(世界観データ)]
+    B --> C[セッション画面]
+    C --> D[AIコンテキスト生成]
+    D --> E[AIエージェント]
+    E --> F[カスタマイズされた応答]
+    
+    B --> G[インタラクティブマップ]
+    G --> H[視覚的フィードバック]
+    
+    C --> I[遭遇システム]
+    I --> J[場所別イベント発生]
+    
+    style A fill:#e3f2fd
+    style F fill:#c8e6c9
+    style H fill:#fff3e0
+```
+
+#### パフォーマンス最適化
+
+- **遅延読み込み**: マップデータは必要時のみロード
+- **キャッシュ戦略**: 訪問済み場所のデータをローカルキャッシュ
+- **差分更新**: 世界観データの変更を効率的に反映
 
 ## 🎮 TRPGセッション画面ゲームプレイフロー
 

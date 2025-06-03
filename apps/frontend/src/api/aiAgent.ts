@@ -7,7 +7,10 @@ import {
   WorldBuildingElement,
   TimelineEvent,
   StandardAIResponse,
-} from "@novel-ai-assistant/types";
+  BaseLocation,
+  TRPGCampaign,
+  TRPGCharacter,
+} from "@trpg-ai-gm/types";
 
 // APIのベースURL
 const buildApiBaseUrl = () => {
@@ -660,6 +663,70 @@ export const aiAgentApi = {
     } catch (error) {
       if (error instanceof AxiosError || error instanceof Error) {
         return handleApiError(error, "拠点画像生成");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * 🌍 WorldContextBuilder統合・コンテキスト認識型世界観生成
+   * 
+   * 現在のゲーム状況、場所、キャラクター、セッション情報を考慮した
+   * 高度にコンテキスト化された世界観要素を生成します
+   */
+  generateContextAwareWorldBuilding: async (params: {
+    // 基本情報
+    elementType?: WorldBuildingElementType;
+    elementName?: string;
+    userMessage?: string;
+    model?: string;
+    format?: 'json' | 'yaml';
+    
+    // 🌍 WorldContextBuilder用の詳細コンテキスト
+    currentLocation?: BaseLocation;      // 現在地情報
+    activeCharacters?: TRPGCharacter[];  // アクティブなキャラクター
+    timeOfDay?: string;                  // 時間帯
+    sessionDay?: number;                 // セッション日数
+    situation?: 'encounter' | 'conversation' | 'exploration' | 'general';
+    
+    // キャンペーン全体の情報
+    campaign?: TRPGCampaign;             // キャンペーン情報
+    worldBuildingData?: any;             // 既存の世界観データ
+    sessionHistory?: any[];              // セッション履歴
+    
+    // AI生成オプション
+    temperature?: number;
+    maxTokens?: number;
+  }): Promise<{
+    status: string;
+    data: any;
+    metadata: {
+      model: string;
+      requestType: string;
+      elementType?: string;
+      situation?: string;
+      hasContext: boolean;
+      processingTime?: number;
+    };
+  }> => {
+    try {
+      console.log('[AI Agent API] コンテキスト認識型世界観生成リクエスト:', {
+        elementName: params.elementName,
+        elementType: params.elementType,
+        situation: params.situation,
+        hasLocation: !!params.currentLocation,
+        hasCharacters: !!params.activeCharacters,
+      });
+
+      const response = await axios.post(
+        `${API_BASE_URL}/worldbuilding-context-generation`,
+        params
+      );
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "コンテキスト認識型世界観生成");
       }
       throw error;
     }

@@ -16,6 +16,8 @@ import {
   Card,
   CardContent,
   IconButton,
+  Fade,
+  Divider,
 } from "@mui/material";
 import {
   PersonOutline,
@@ -27,8 +29,17 @@ import {
   Bolt,
   Visibility,
   Edit,
+  Warning,
+  CheckCircle,
+  LocalHospital,
+  SentimentVeryDissatisfied,
+  SentimentSatisfied,
+  SentimentVerySatisfied,
+  Whatshot,
+  AcUnit,
+  WbSunny,
 } from "@mui/icons-material";
-import { TRPGCharacter, NPCCharacter, EnemyCharacter } from "@novel-ai-assistant/types";
+import { TRPGCharacter, NPCCharacter, EnemyCharacter } from "@trpg-ai-gm/types";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -91,10 +102,56 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     return "error";
   };
 
+  // キャラクターの状態を判定
+  const getCharacterStatus = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
+    const hp = character.stats.hitPoints || 0;
+    const maxHp = character.stats.maxHitPoints || 100;
+    const percentage = (hp / maxHp) * 100;
+    
+    if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
+    if (percentage <= 25) return { status: 'critical', icon: Warning, color: 'error', label: '重傷' };
+    if (percentage <= 50) return { status: 'wounded', icon: LocalHospital, color: 'warning', label: '負傷' };
+    if (percentage <= 75) return { status: 'injured', icon: SentimentSatisfied, color: 'warning', label: '軽傷' };
+    return { status: 'healthy', icon: CheckCircle, color: 'success', label: '健康' };
+  };
+
+  // 状態異常の視覚的表現
+  const getStatusEffects = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
+    const effects = [];
+    
+    // キャラクターのstatusEffectsがある場合
+    if ('statusEffects' in character && character.statusEffects) {
+      character.statusEffects.forEach(effect => {
+        switch (effect.type) {
+          case 'poison':
+            effects.push({ icon: Whatshot, color: 'success', label: '毒' });
+            break;
+          case 'fire':
+            effects.push({ icon: Whatshot, color: 'error', label: '炎上' });
+            break;
+          case 'ice':
+            effects.push({ icon: AcUnit, color: 'info', label: '氷結' });
+            break;
+          case 'blessing':
+            effects.push({ icon: WbSunny, color: 'warning', label: '祝福' });
+            break;
+          default:
+            effects.push({ icon: CheckCircle, color: 'primary', label: effect.name });
+        }
+      });
+    }
+    
+    return effects;
+  };
+
   // キャラクターカードの共通部分
   const CharacterCard: React.FC<{ character: TRPGCharacter | NPCCharacter | EnemyCharacter }> = ({ character }) => {
     // 戦闘モードでは選択を無効化
     const isSelectionDisabled = combatMode || !onCharacterSelect;
+    const status = getCharacterStatus(character);
+    const statusEffects = getStatusEffects(character);
+    const hp = character.stats.hitPoints || 0;
+    const maxHp = character.stats.maxHitPoints || 100;
     
     return (
       <Card 
@@ -102,15 +159,44 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           mb: 1, 
           cursor: !isSelectionDisabled && onCharacterSelect ? "pointer" : "default",
           bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper",
-          opacity: isSelectionDisabled ? 0.7 : 1
+          opacity: isSelectionDisabled ? 0.7 : 1,
+          border: status.status === 'critical' || status.status === 'dead' ? '2px solid' : '1px solid',
+          borderColor: status.status === 'critical' || status.status === 'dead' ? 'error.main' : 'divider',
         }}
         onClick={() => !isSelectionDisabled && onCharacterSelect && onCharacterSelect(character)}
       >
       <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <Avatar sx={{ width: 32, height: 32 }}>
-            {character.name[0]}
-          </Avatar>
+          <Badge
+            badgeContent={
+              <Tooltip title={status.label}>
+                <status.icon 
+                  sx={{ 
+                    fontSize: 16, 
+                    color: `${status.color}.main`,
+                    animation: status.status === 'critical' ? 'pulse 1.5s infinite' : 'none',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 1 },
+                      '50%': { opacity: 0.5 },
+                      '100%': { opacity: 1 },
+                    }
+                  }} 
+                />
+              </Tooltip>
+            }
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32,
+                bgcolor: status.status === 'dead' ? 'grey.500' : 'primary.main',
+                filter: status.status === 'dead' ? 'grayscale(1)' : 'none',
+              }}
+            >
+              {character.name[0]}
+            </Avatar>
+          </Badge>
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" noWrap>
               {character.name}
@@ -149,25 +235,79 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Favorite fontSize="small" color={getHPColor(
-                character.stats.hitPoints?.current || character.stats.HP || 10, 
-                character.stats.hitPoints?.max || character.stats.HP || 10
-              )} />
+              <Favorite 
+                fontSize="small" 
+                color={getHPColor(hp, maxHp)}
+                sx={{
+                  animation: status.status === 'critical' ? 'heartbeat 1.5s infinite' : 'none',
+                  '@keyframes heartbeat': {
+                    '0%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.2)' },
+                    '100%': { transform: 'scale(1)' },
+                  }
+                }}
+              />
               <Box sx={{ flex: 1 }}>
-                <Typography variant="caption">
-                  HP: {character.stats.hitPoints?.current || character.stats.HP || 10}/{character.stats.hitPoints?.max || character.stats.HP || 10}
+                <Typography 
+                  variant="caption"
+                  sx={{ 
+                    fontWeight: status.status === 'critical' ? 'bold' : 'normal',
+                    color: status.status === 'dead' ? 'error.main' : 'text.primary'
+                  }}
+                >
+                  HP: {hp}/{maxHp}
+                  {status.status === 'dead' && ' (死亡)'}
+                  {status.status === 'critical' && ' (危険)'}
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={((character.stats.hitPoints?.current || character.stats.HP || 10) / (character.stats.hitPoints?.max || character.stats.HP || 10)) * 100}
-                  color={getHPColor(
-                    character.stats.hitPoints?.current || character.stats.HP || 10, 
-                    character.stats.hitPoints?.max || character.stats.HP || 10
-                  )}
-                  sx={{ height: 4, borderRadius: 2 }}
+                  value={(hp / maxHp) * 100}
+                  color={getHPColor(hp, maxHp)}
+                  sx={{ 
+                    height: 6, 
+                    borderRadius: 3,
+                    transition: 'all 0.3s ease-in-out',
+                    '& .MuiLinearProgress-bar': {
+                      transition: 'transform 0.5s ease-in-out',
+                      animation: status.status === 'critical' ? 'pulse 2s infinite' : 'none',
+                    }
+                  }}
                 />
               </Box>
             </Box>
+
+            {/* 状態異常表示 */}
+            {statusEffects.length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary" gutterBottom>
+                  状態異常:
+                </Typography>
+                <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                  {statusEffects.map((effect, index) => (
+                    <Fade in key={index}>
+                      <Tooltip title={effect.label}>
+                        <Chip
+                          icon={<effect.icon />}
+                          label={effect.label}
+                          size="small"
+                          color={effect.color as any}
+                          variant="filled"
+                          sx={{ 
+                            fontSize: '0.6rem',
+                            height: 20,
+                            animation: 'fadeIn 0.5s ease-in-out',
+                            '@keyframes fadeIn': {
+                              '0%': { opacity: 0, transform: 'scale(0.8)' },
+                              '100%': { opacity: 1, transform: 'scale(1)' },
+                            }
+                          }}
+                        />
+                      </Tooltip>
+                    </Fade>
+                  ))}
+                </Stack>
+              </Box>
+            )}
 
             {/* その他のステータス */}
             <Stack direction="row" spacing={1} flexWrap="wrap">

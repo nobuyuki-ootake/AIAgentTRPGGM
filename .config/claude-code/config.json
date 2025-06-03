@@ -15,6 +15,9 @@
         "command": "npx",
         "args": ["@playwright/mcp@latest"]
       }
+    },
+    "mastra Docs": {
+      "url": "https://gitmcp.io/mastra-ai/mastra/"
     }
   }
 }

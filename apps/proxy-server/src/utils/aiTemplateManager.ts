@@ -9,7 +9,7 @@ import yaml from 'js-yaml';
 import {
   StandardAIRequest,
   StandardAIResponse,
-} from '@novel-ai-assistant/types';
+} from '@trpg-ai-gm/types';
 import { buildStandardSystemPrompt } from './aiRequestStandard.js';
 
 // テンプレートタイプの定義
@@ -490,9 +490,9 @@ ${userMessage}
 以下の厳密なJSONフォーマットで出力してください:
 
 [
-  {"name": "キャラクター名1", "role": "主人公/敵役/脇役", "brief": "簡単な説明"},
-  {"name": "キャラクター名2", "role": "主人公/敵役/脇役", "brief": "簡単な説明"},
-  {"name": "キャラクター名3", "role": "主人公/敵役/脇役", "brief": "簡単な説明"}
+  {"name": "キャラクター名1", "role": "PC/NPC/エネミー", "brief": "簡単な説明"},
+  {"name": "キャラクター名2", "role": "PC/NPC/エネミー", "brief": "簡単な説明"},
+  {"name": "キャラクター名3", "role": "PC/NPC/エネミー", "brief": "簡単な説明"}
 ]
 
 重要な注意:
@@ -511,13 +511,13 @@ ${userMessage}
 
 ---
 - name: キャラクター名1
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 - name: キャラクター名2
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 - name: キャラクター名3
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 ...
 
@@ -536,9 +536,9 @@ ${userMessage}
 以下の内容を正確なJSONフォーマットで出力してください。最終的な出力は有効なJSON配列のみにしてください。
 
 [
-  {"name": "キャラクター名1", "role": "主人公/敵役/脇役", "brief": "簡単な説明"},
-  {"name": "キャラクター名2", "role": "主人公/敵役/脇役", "brief": "簡単な説明"},
-  {"name": "キャラクター名3", "role": "主人公/敵役/脇役", "brief": "簡単な説明"}
+  {"name": "キャラクター名1", "role": "PC/NPC/エネミー", "brief": "簡単な説明"},
+  {"name": "キャラクター名2", "role": "PC/NPC/エネミー", "brief": "簡単な説明"},
+  {"name": "キャラクター名3", "role": "PC/NPC/エネミー", "brief": "簡単な説明"}
 ]
 
 制約条件:
@@ -562,13 +562,13 @@ ${userMessage}
 
 ---
 - name: キャラクター名1
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 - name: キャラクター名2
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 - name: キャラクター名3
-  role: 主人公/敵役/脇役
+  role: PC/NPC/エネミー
   brief: 簡単な説明
 ...
 

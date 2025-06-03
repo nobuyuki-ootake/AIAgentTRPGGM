@@ -1,7 +1,7 @@
 // キャンペーン管理API
 import express from 'express';
 import { CampaignModel } from '../db/models/Campaign.js';
-import { TRPGCampaign, CampaignMetadata } from '@novel-ai-assistant/types';
+import { TRPGCampaign, CampaignMetadata } from '@trpg-ai-gm/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();

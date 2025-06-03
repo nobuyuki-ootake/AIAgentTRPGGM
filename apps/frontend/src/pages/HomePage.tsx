@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -17,6 +17,10 @@ import {
   IconButton,
   Chip,
   CircularProgress,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -24,10 +28,15 @@ import {
   Group as GroupIcon,
   Security as EnemyIcon,
   Groups as NPCIcon,
+  AutoAwesome,
+  Create,
+  ExpandMore,
 } from "@mui/icons-material";
 import { CampaignIcon, DiceD20Icon } from "../components/icons/TRPGIcons";
 import { styled } from "@mui/material/styles";
 import { useTRPGHome } from "../hooks/useTRPGHome";
+import CampaignCreationWizard from "../components/campaign/CampaignCreationWizard";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -54,6 +63,32 @@ const HomePage: React.FC = () => {
     handleCloseDeleteDialog,
     handleDeleteCampaign,
   } = useTRPGHome();
+
+  // ウィザード関連の状態
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [createMenuAnchor, setCreateMenuAnchor] = useState<null | HTMLElement>(null);
+
+  // キャンペーン作成方法選択メニュー
+  const handleCreateMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setCreateMenuAnchor(event.currentTarget);
+  };
+
+  const handleCreateMenuClose = () => {
+    setCreateMenuAnchor(null);
+  };
+
+  // ウィザードでのキャンペーン作成完了
+  const handleWizardComplete = (campaign: TRPGCampaign) => {
+    // 作成されたキャンペーンをTRPGHomeフックに渡して保存
+    // キャンペーンデータを一時的に設定
+    setNewCampaignTitle(campaign.title);
+    setNewCampaignSummary(campaign.synopsis || '');
+    
+    // 詳細データを含むキャンペーンとして作成実行
+    handleCreateCampaign();
+    setWizardOpen(false);
+    handleCreateMenuClose();
+  };
 
   if (isLoading) {
     return (
@@ -88,14 +123,49 @@ const HomePage: React.FC = () => {
               AIがゲームマスターをサポートする次世代TRPGキャンペーン管理システム
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenDialog}
-            size="large"
-          >
-            新規キャンペーン
-          </Button>
+          <Box>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              endIcon={<ExpandMore />}
+              onClick={handleCreateMenuOpen}
+              size="large"
+            >
+              新規キャンペーン
+            </Button>
+            <Menu
+              anchorEl={createMenuAnchor}
+              open={Boolean(createMenuAnchor)}
+              onClose={handleCreateMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem onClick={() => { setWizardOpen(true); handleCreateMenuClose(); }}>
+                <ListItemIcon>
+                  <AutoAwesome />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="ウィザードで作成" 
+                  secondary="AI支援による段階的作成"
+                />
+              </MenuItem>
+              <MenuItem onClick={() => { handleOpenDialog(); handleCreateMenuClose(); }}>
+                <ListItemIcon>
+                  <Create />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="簡易作成" 
+                  secondary="タイトルのみで素早く作成"
+                />
+              </MenuItem>
+            </Menu>
+          </Box>
         </Box>
 
         <StyledPaper>
@@ -328,6 +398,13 @@ const HomePage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* キャンペーン作成ウィザード */}
+        <CampaignCreationWizard
+          open={wizardOpen}
+          onClose={() => setWizardOpen(false)}
+          onComplete={handleWizardComplete}
+        />
       </Box>
     </Container>
   );
