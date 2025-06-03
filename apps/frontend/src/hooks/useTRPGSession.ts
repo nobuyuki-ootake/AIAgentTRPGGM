@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom } from "../store/atoms";
-import { TRPGCharacter, EnemyCharacter, NPCCharacter, BaseLocation, GameSession } from "@novel-ai-assistant/types";
+import { TRPGCharacter, TRPGEnemy, TRPGNpc, BaseLocation, GameSession } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
+import { trpgEncounterDetection, EncounterInfo, EncounterContext } from "../utils/TRPGEncounterDetection";
+import { aiTacticalEngine, TacticalDecision } from "../utils/AITacticalEngine";
 
 // セッション用の追加型定義
 export interface SessionAction {
@@ -28,6 +30,16 @@ export interface DiceRollResult {
   rolls: number[];
   total: number;
   purpose: string;
+  modifier?: number;
+}
+
+export interface AIControlledDiceRequest {
+  dice: string;
+  reason: string;
+  difficulty?: number;
+  characterId?: string;
+  skillName?: string;
+  tacticalDecision?: TacticalDecision;
 }
 
 export const useTRPGSession = () => {
@@ -45,6 +57,9 @@ export const useTRPGSession = () => {
   const [sessionMessages, setSessionMessages] = useState<SessionMessage[]>([]);
   const [combatMode, setCombatMode] = useState(false);
   const [initiativeOrder, setInitiativeOrder] = useState<string[]>([]);
+  const [pendingEncounters, setPendingEncounters] = useState<EncounterInfo[]>([]);
+  const [aiDiceRequest, setAiDiceRequest] = useState<AIControlledDiceRequest | null>(null);
+  const [partyStatus, setPartyStatus] = useState({ averageHP: 100, resources: 100, morale: 100 });
 
   // データ取得
   const playerCharacters = currentCampaign?.characters?.filter(c => c.characterType === "PC") || [];
@@ -298,14 +313,14 @@ export const useTRPGSession = () => {
   }, [currentDay, currentCampaign]);
 
   // ダイスロール実行
-  const rollDice = useCallback((dice: string, purpose: string): DiceRollResult => {
+  const rollDice = useCallback(async (dice: string, purpose?: string): Promise<DiceRollResult & { modifier: number }> => {
     // 簡単なダイスロール実装（実際にはより複雑なパーサーが必要）
-    const diceMatch = dice.match(/^(\d+)d(\d+)(?:\+(\d+))?$/);
+    const diceMatch = dice.match(/^(\d*)d(\d+)([+-]\d+)?$/);
     if (!diceMatch) {
       throw new Error("無効なダイス表記です");
     }
 
-    const count = parseInt(diceMatch[1]);
+    const count = parseInt(diceMatch[1] || "1");
     const sides = parseInt(diceMatch[2]);
     const modifier = parseInt(diceMatch[3] || "0");
 
@@ -316,23 +331,26 @@ export const useTRPGSession = () => {
 
     const total = rolls.reduce((sum, roll) => sum + roll, 0) + modifier;
 
-    const result: DiceRollResult = {
+    const result = {
       dice,
       rolls,
       total,
-      purpose,
+      modifier,
+      purpose: purpose || "ダイスロール",
     };
 
     // ダイスロール結果をメッセージに追加
-    const diceMessage: SessionMessage = {
-      id: uuidv4(),
-      sender: selectedCharacter?.name || "システム",
-      senderType: "system",
-      message: `${purpose}: ${dice} = [${rolls.join(", ")}] + ${modifier} = ${total}`,
-      timestamp: new Date(),
-    };
+    if (purpose) {
+      const diceMessage: SessionMessage = {
+        id: uuidv4(),
+        sender: selectedCharacter?.name || "システム",
+        senderType: "system",
+        message: `${purpose}: ${dice} = [${rolls.join(", ")}] + ${modifier} = ${total}`,
+        timestamp: new Date(),
+      };
 
-    setSessionMessages(prev => [...prev, diceMessage]);
+      setSessionMessages(prev => [...prev, diceMessage]);
+    }
 
     return result;
   }, [selectedCharacter]);
@@ -425,12 +443,233 @@ export const useTRPGSession = () => {
     }
   }, [sessionState, currentCampaign, setCurrentCampaign, setSessionState]);
 
+  // 遭遇チェック - 場所変更や時間経過時に呼び出す
+  const checkForEncounters = useCallback(() => {
+    if (!currentCampaign || !currentLocation) return;
+
+    const currentBase = bases.find(b => b.name === currentLocation);
+    if (!currentBase) return;
+
+    // 現在の時間帯を判定
+    const timeOfDay = actionCount < 2 ? 'morning' : 
+                      actionCount < 3 ? 'afternoon' : 
+                      actionCount < 4 ? 'evening' : 'night';
+
+    const encounterContext: EncounterContext = {
+      location: currentBase,
+      time: { day: currentDay, timeOfDay },
+      playerCharacters,
+      npcs,
+      enemies,
+      events: currentCampaign.timeline || [],
+    };
+
+    const { encounters, immediateAction } = trpgEncounterDetection.detectEncounters(encounterContext);
+
+    if (encounters.length > 0) {
+      setPendingEncounters(encounters);
+
+      // 最優先の遭遇を処理
+      if (immediateAction) {
+        const aiRequest: AIControlledDiceRequest = {
+          dice: immediateAction.requiredCheck.dice,
+          reason: immediateAction.requiredCheck.reason,
+          difficulty: immediateAction.requiredCheck.difficulty,
+          skillName: immediateAction.requiredCheck.skillName,
+          tacticalDecision: {
+            action: encounters[0].type === 'combat' ? 'combat' : 
+                   encounters[0].type === 'trap' ? 'trap' : 'dialogue',
+            priority: encounters[0].priority === 'high' ? 'critical' : 'medium',
+            consequences: {
+              success: immediateAction.possibleOutcomes.success,
+              failure: immediateAction.possibleOutcomes.failure,
+            },
+          },
+        };
+
+        setAiDiceRequest(aiRequest);
+
+        // GMメッセージ追加
+        addMessage(
+          "ゲームマスター",
+          "gm",
+          immediateAction.tacticalAdvice || `${immediateAction.encounterType}が発生しました！`
+        );
+      }
+    }
+  }, [currentCampaign, currentLocation, currentDay, actionCount, playerCharacters, npcs, enemies, bases, addMessage]);
+
+  // パーティーステータス更新
+  const updatePartyStatus = useCallback((modifiers: {
+    hpModifier?: number;
+    resourcesModifier?: number;
+    moraleModifier?: number;
+  }) => {
+    setPartyStatus(prev => {
+      const newStatus = {
+        averageHP: Math.max(0, Math.min(100, prev.averageHP + (modifiers.hpModifier || 0))),
+        resources: Math.max(0, Math.min(100, prev.resources + (modifiers.resourcesModifier || 0))),
+        morale: Math.max(0, Math.min(100, prev.morale + (modifiers.moraleModifier || 0))),
+      };
+
+      // ステータス変化をメッセージで通知
+      const changes: string[] = [];
+      if (modifiers.hpModifier) {
+        changes.push(`HP: ${modifiers.hpModifier > 0 ? '+' : ''}${modifiers.hpModifier}`);
+      }
+      if (modifiers.resourcesModifier) {
+        changes.push(`資源: ${modifiers.resourcesModifier > 0 ? '+' : ''}${modifiers.resourcesModifier}`);
+      }
+      if (modifiers.moraleModifier) {
+        changes.push(`士気: ${modifiers.moraleModifier > 0 ? '+' : ''}${modifiers.moraleModifier}`);
+      }
+
+      if (changes.length > 0) {
+        addMessage(
+          "システム",
+          "system",
+          `パーティーステータス変化: ${changes.join(', ')}`
+        );
+      }
+
+      return newStatus;
+    });
+  }, [addMessage]);
+
+  // AI戦術判断に基づくダイスリクエスト処理
+  const handleAIDiceRequest = useCallback((request: AIControlledDiceRequest) => {
+    if (!request.tacticalDecision) {
+      // 通常のダイスロール
+      return rollDice(request.dice, request.reason);
+    }
+
+    const context: EncounterContext = {
+      location: getCurrentBase() || bases[0],
+      timeOfDay: actionCount < 2 ? 'morning' : 
+                 actionCount < 3 ? 'afternoon' : 
+                 actionCount < 4 ? 'evening' : 'night',
+      weather: undefined, // 天候システムは後で実装
+      playerCharacters,
+      enemies: enemies.filter(e => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === e.id)
+      )),
+      npcs: npcs.filter(n => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === n.id)
+      )),
+      currentEvent: undefined,
+      partyStatus,
+    };
+
+    // 戦術エンジンで最適なダイスチェックを選択
+    const optimalCheck = aiTacticalEngine.selectOptimalDiceCheck(context, request.tacticalDecision);
+    
+    // 難易度クラスを計算
+    const dc = aiTacticalEngine.calculateDifficultyClass(
+      request.difficulty || optimalCheck.difficulty,
+      context
+    );
+
+    // ダイスロールをリクエスト
+    const updatedRequest: AIControlledDiceRequest = {
+      ...request,
+      dice: optimalCheck.dice,
+      difficulty: dc,
+      skillName: optimalCheck.skillName,
+      reason: optimalCheck.reason,
+    };
+
+    setAiDiceRequest(updatedRequest);
+
+    // メッセージ追加
+    addMessage(
+      "システム",
+      "system",
+      `${optimalCheck.skillName}判定が必要です。難易度: ${dc}`
+    );
+
+    return updatedRequest;
+  }, [getCurrentBase, actionCount, playerCharacters, enemies, npcs, pendingEncounters, partyStatus, bases, rollDice, addMessage]);
+
+  // ダイスロール結果の処理
+  const processDiceResult = useCallback((result: DiceRollResult, request: AIControlledDiceRequest) => {
+    if (!request.tacticalDecision || !request.difficulty) return;
+
+    const context: EncounterContext = {
+      location: getCurrentBase() || bases[0],
+      timeOfDay: actionCount < 2 ? 'morning' : 
+                 actionCount < 3 ? 'afternoon' : 
+                 actionCount < 4 ? 'evening' : 'night',
+      weather: undefined,
+      playerCharacters,
+      enemies: enemies.filter(e => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === e.id)
+      )),
+      npcs: npcs.filter(n => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === n.id)
+      )),
+      currentEvent: undefined,
+      partyStatus,
+    };
+
+    // 結果を判定
+    const outcome = aiTacticalEngine.determineConsequences(
+      result.total,
+      request.difficulty,
+      request.tacticalDecision
+    );
+
+    // 結果に応じたメッセージを追加
+    addMessage(
+      "ゲームマスター",
+      "gm",
+      outcome.description
+    );
+
+    // 戦闘開始の処理
+    if (request.tacticalDecision.action === 'combat' && 
+        (outcome.outcome === 'failure' || outcome.outcome === 'critical_failure')) {
+      const enemyIds = pendingEncounters[0].participants
+        .filter(p => 'enemyType' in p)
+        .map(e => e.id);
+      
+      if (enemyIds.length > 0) {
+        startCombat(enemyIds);
+      }
+    }
+
+    // パーティーステータスの更新
+    if (outcome.outcome === 'critical_failure') {
+      updatePartyStatus({ hpModifier: -10, moraleModifier: -5 });
+    } else if (outcome.outcome === 'failure') {
+      updatePartyStatus({ hpModifier: -5, moraleModifier: -2 });
+    } else if (outcome.outcome === 'critical_success') {
+      updatePartyStatus({ moraleModifier: 5 });
+    }
+
+    // AIダイスリクエストをクリア
+    setAiDiceRequest(null);
+  }, [getCurrentBase, actionCount, playerCharacters, enemies, npcs, pendingEncounters, partyStatus, bases, addMessage, startCombat, updatePartyStatus]);
+
   // 初期化時の処理
   useEffect(() => {
     if (currentCampaign && !sessionState) {
       initializeSession();
     }
   }, [currentCampaign, sessionState, initializeSession]);
+
+  // 場所変更時の遭遇チェック
+  useEffect(() => {
+    if (currentLocation && sessionState) {
+      checkForEncounters();
+    }
+  }, [currentLocation, checkForEncounters]);
+
+  // 時間経過時の遭遇チェック
+  useEffect(() => {
+    if (actionCount > 0 && sessionState) {
+      checkForEncounters();
+    }
+  }, [actionCount, checkForEncounters]);
 
   return {
     // セッション状態
@@ -443,6 +682,9 @@ export const useTRPGSession = () => {
     sessionMessages,
     combatMode,
     initiativeOrder,
+    pendingEncounters,
+    aiDiceRequest,
+    partyStatus,
     isLoading,
     error,
 
@@ -464,6 +706,10 @@ export const useTRPGSession = () => {
     addMessage,
     saveSession,
     initializeSession,
+    checkForEncounters,
+    handleAIDiceRequest,
+    processDiceResult,
+    updatePartyStatus,
 
     // ヘルパー
     getCurrentBase,

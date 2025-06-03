@@ -18,7 +18,7 @@ import {
   StandardAIRequest,
   StandardAIResponse,
   AIError,
-} from '@novel-ai-assistant/types';
+} from '@trpg-ai-gm/types';
 import {
   AIErrorType,
   handleAIResponseParsing,
@@ -223,7 +223,7 @@ async function callOpenAI(
   const systemPrompt =
     request.systemPrompt ||
     WORLD_BUILDER ||
-    'あなたは小説作成を支援するAIアシスタントです。';
+    'あなたはTRPGキャンペーン管理を支援するAIアシスタントです。';
 
   // JSON応答を強制する設定
   const openAIResponseFormat =

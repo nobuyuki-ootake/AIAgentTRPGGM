@@ -19,7 +19,12 @@
       "Bash(npm install)",
       "Bash(awk:*)",
       "Bash(git checkout:*)",
-      "Bash(/home/irure/.nvm/versions/node/v18.20.8/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg \"magicPoints\" src/components/trpg-session/CharacterDisplay.tsx)"
+      "Bash(/home/irure/.nvm/versions/node/v18.20.8/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg \"magicPoints\" src/components/trpg-session/CharacterDisplay.tsx)",
+      "Bash(npx tsx:*)",
+      "Bash(npm ls:*)",
+      "Bash(node:*)",
+      "Bash(npm --version)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }

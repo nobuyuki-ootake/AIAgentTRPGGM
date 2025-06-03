@@ -1,7 +1,7 @@
 // セッション管理API
 import express from 'express';
 import DatabaseConnection from '../db/connection.js';
-import { GameSession, SessionEvent, CombatEncounter } from '@novel-ai-assistant/types';
+import { GameSession, SessionEvent, CombatEncounter } from '@trpg-ai-gm/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();

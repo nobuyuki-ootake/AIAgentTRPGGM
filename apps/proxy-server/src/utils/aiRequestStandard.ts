@@ -4,7 +4,7 @@ import type {
   StandardAIRequest,
   StandardAIResponse,
   AIError,
-} from '@novel-ai-assistant/types';
+} from '@trpg-ai-gm/types';
 
 /**
  * AI リクエスト・レスポンスの標準形式定義
@@ -79,9 +79,9 @@ export function buildStandardSystemPrompt(
 function buildWorldBuildingPrompt(context: Record<string, any>): string {
   const { elementName, elementType } = context;
 
-  return `あなたは創造的で詳細な世界構築のエキスパートです。
+  return `あなたはTRPGキャンペーンの世界構築エキスパートです。
 質問された${elementType || '要素'}「${elementName || ''}」に関する詳細な情報を提供してください。
-可能な限り具体的で、物語の一貫性を保つのに役立つ詳細を含めてください。
+可能な限り具体的で、TRPGキャンペーンの一貫性を保つのに役立つ詳細を含めてください。
 指示に従って、指定された形式（JSONまたはYAML）で回答してください。`;
 }
 
@@ -89,32 +89,32 @@ function buildWorldBuildingPrompt(context: Record<string, any>): string {
 function buildCharacterPrompt(context: Record<string, any>): string {
   const { characterName, characterRole } = context;
 
-  return `あなたは経験豊富なキャラクター作成のエキスパートです。
+  return `あなたは経験豊富なTRPGキャラクター作成のエキスパートです。
 「${characterName || ''}」という名前の「${characterRole || '役割'}」のキャラクターの詳細な情報を提供してください。
-キャラクターの性格、外見、背景、動機などを含め、魅力的で立体的なキャラクターを作成してください。
+能力値、スキル、背景、動機、装備などを含め、魅力的で実用的なTRPGキャラクターを作成してください。
 指示に従って、指定された形式（JSONまたはYAML）で回答してください。`;
 }
 
 // プロット構築プロンプト
 function buildPlotPrompt(context: Record<string, any>): string {
-  return `あなたは創造的なストーリーテリングと物語構造のエキスパートです。
-魅力的で一貫性のあるプロットやプロット要素を作成するのを手伝ってください。
-起承転結を意識し、キャラクターの動機と展開の論理性を確保してください。
+  return `あなたは創造的なTRPGシナリオとクエスト設計のエキスパートです。
+魅力的で一貫性のあるシナリオやクエスト要素を作成するのを手伝ってください。
+起承転結を意識し、プレイヤーの選択と展開の論理性を確保してください。
 指示に従って、指定された形式（JSONまたはYAML）で回答してください。`;
 }
 
 // シーン構築プロンプト
 function buildScenePrompt(context: Record<string, any>): string {
-  return `あなたは物語のシーン作成のスペシャリストです。
-指示に基づいて、魅力的で臨場感のあるシーンを作成してください。
-環境描写、キャラクターの行動、感情、対話などを適切に含めてください。
+  return `あなたはTRPGセッションのシーン作成のスペシャリストです。
+指示に基づいて、魅力的で臨場感のあるセッションシーンを作成してください。
+環境描写、NPCの行動、状況説明、プレイヤーの選択肢などを適切に含めてください。
 指示に従って、指定された形式（JSONまたはYAML）で回答してください。`;
 }
 
 // 汎用プロンプト
 function buildGenericPrompt(): string {
-  return `あなたは創造的な小説創作のアシスタントです。
-質問に対して、明確で詳細な回答を提供し、物語創作に役立つ情報を提供してください。
+  return `あなたは創造的なTRPGキャンペーン管理のアシスタントです。
+質問に対して、明確で詳細な回答を提供し、TRPGキャンペーン運営に役立つ情報を提供してください。
 指示に従って、指定された形式（JSONまたはYAML）で回答してください。`;
 }
 

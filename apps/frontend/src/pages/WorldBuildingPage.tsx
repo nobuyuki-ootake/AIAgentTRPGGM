@@ -26,6 +26,7 @@ import PlacesTab from "../components/worldbuilding/PlacesTab";
 import FreeFieldsTab from "../components/worldbuilding/FreeFieldsTab";
 import CharacterStatusList from "../components/characters/CharacterStatusList";
 import BaseTab from "../components/worldbuilding/BaseTab";
+import InteractiveMapTab from "../components/worldbuilding/InteractiveMapTab";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { useRecoilValue } from "recoil";
 import { currentCampaignState } from "../store/atoms";
@@ -481,6 +482,18 @@ ${
             }
             sx={{ fontWeight: tabValue === 10 ? "bold" : "normal" }}
           />
+          <Tab
+            label={
+              updatedTabs[11] ? (
+                <Badge color="secondary" variant="dot">
+                  🗺️ インタラクティブマップ
+                </Badge>
+              ) : (
+                "🗺️ インタラクティブマップ"
+              )
+            }
+            sx={{ fontWeight: tabValue === 11 ? "bold" : "normal" }}
+          />
         </Tabs>
 
         {/* ワールドマップタブ */}
@@ -564,6 +577,11 @@ ${
         {/* 拠点タブ */}
         <TabPanel value={tabValue} index={10}>
           <BaseTab />
+        </TabPanel>
+
+        {/* インタラクティブマップタブ */}
+        <TabPanel value={tabValue} index={11}>
+          <InteractiveMapTab />
         </TabPanel>
       </Paper>
 

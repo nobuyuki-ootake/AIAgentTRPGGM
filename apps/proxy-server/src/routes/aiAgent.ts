@@ -1,6 +1,6 @@
 import express from 'express';
 import { processAIRequest } from '../services/aiIntegration.js';
-import { StandardAIRequest } from '@novel-ai-assistant/types';
+import { StandardAIRequest } from '@trpg-ai-gm/types';
 import templateManager from '../utils/aiTemplateManager.js';
 import { 
   PLOT_DEVELOPER, 
@@ -21,14 +21,20 @@ import {
   Chapter,
   TimelineEvent,
   Character,
-} from '@novel-ai-assistant/types';
+} from '@trpg-ai-gm/types';
 import { generateElementPrompt } from '../utils/worldBuildingSchemas.js';
+import { GoogleCloudStorageService } from '../services/google-cloud.service.js';
 
 const router = express.Router();
 
 /**
- * 世界観要素の詳細生成エンドポイント
- * 特定の世界観要素（場所、文化、ルールなど）の詳細を生成します
+ * TRPG世界観要素の詳細生成エンドポイント
+ * TRPGキャンペーンの世界観要素（場所、文化、ルールなど）の詳細を生成します
+ * 
+ * 🌍 WorldContextBuilder統合版
+ * - 既存の世界観データを考慮した生成
+ * - BaseLocationの拡張プロパティ対応
+ * - コンテキスト認識型の詳細生成
  */
 router.post('/worldbuilding-detail-generation', async (req, res) => {
   try {
@@ -38,6 +44,9 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
       message,
       plotElements,
       charactersElements,
+      currentLocation,      // 現在の場所情報
+      worldBuildingData,    // 既存の世界観データ
+      campaignContext,      // キャンペーン全体のコンテキスト
     } = req.body;
     const format = req.body.format || 'json'; // デフォルトをJSONに変更
     const model = req.body.model || 'gemini-1.5-pro';
@@ -67,17 +76,53 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
       normalizedElementType,
     );
 
-    // AIリクエストを作成
+    // コンテキストビルダー用の追加情報を構築
+    let contextualPrompt = enhancedMessage;
+    
+    // 既存の世界観データがある場合、コンテキストを追加
+    if (worldBuildingData) {
+      contextualPrompt += `\n\n## 既存の世界観設定\n`;
+      if (worldBuildingData.setting?.length) {
+        contextualPrompt += `\n### 世界の設定\n`;
+        worldBuildingData.setting.slice(0, 3).forEach((s: any) => {
+          contextualPrompt += `- ${s.name}: ${s.description}\n`;
+        });
+      }
+      if (worldBuildingData.rules?.length) {
+        contextualPrompt += `\n### 世界のルール\n`;
+        worldBuildingData.rules.slice(0, 3).forEach((r: any) => {
+          contextualPrompt += `- ${r.name}: ${r.description}\n`;
+        });
+      }
+    }
+    
+    // 現在の場所情報がある場合、場所固有のコンテキストを追加
+    if (currentLocation && normalizedElementType === WorldBuildingElementType.PLACE) {
+      contextualPrompt += `\n\n## 関連する場所情報\n`;
+      contextualPrompt += `地域: ${currentLocation.region || '不明'}\n`;
+      if (currentLocation.environmentalFactors) {
+        contextualPrompt += `気候: ${currentLocation.environmentalFactors.climate || '不明'}\n`;
+        contextualPrompt += `地形: ${currentLocation.environmentalFactors.terrain || '不明'}\n`;
+      }
+      if (currentLocation.culturalModifiers) {
+        contextualPrompt += `\nこの地域の文化的特徴を考慮して、関連する世界観要素を生成してください。\n`;
+      }
+    }
+    
+    // 拡張されたコンテキストでAIリクエストを作成
     const aiRequest: StandardAIRequest = {
       requestType: 'worldbuilding-detail',
       model: model,
       systemPrompt,
-      userPrompt: enhancedMessage,
+      userPrompt: contextualPrompt,
       context: {
         elementName,
         elementType: normalizedElementType,
         plotElements,
         charactersElements,
+        currentLocation,      // 追加：現在の場所情報
+        worldBuildingData,    // 追加：既存の世界観データ
+        campaignContext,      // 追加：キャンペーンコンテキスト
       },
       options: {
         temperature: 0.7,
@@ -138,6 +183,23 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
           type: normalizedElementType,
           originalType: elementType || normalizedElementType,
         };
+        
+        // 🌍 BaseLocation拡張プロパティの追加（場所タイプの場合）
+        if (normalizedElementType === WorldBuildingElementType.PLACE && currentLocation) {
+          responseData = {
+            ...responseData,
+            // 既存の場所情報を基に、関連する要素を追加
+            environmentalFactors: parsedData.environmentalFactors || {
+              climate: currentLocation.environmentalFactors?.climate || 'temperate',
+              terrain: currentLocation.environmentalFactors?.terrain || 'plains',
+              weatherPatterns: parsedData.weatherPatterns || [],
+              naturalHazards: parsedData.naturalHazards || [],
+            },
+            culturalModifiers: parsedData.culturalModifiers || currentLocation.culturalModifiers,
+            // 遇遇ルールをAIが生成した場合はそれを使用
+            encounterRules: parsedData.encounterRules,
+          };
+        }
 
         console.log(
           `[API] 世界観要素データ処理完了: ${elementName} (${normalizedElementType})`,
@@ -201,12 +263,23 @@ router.post('/worldbuilding-detail-generation', async (req, res) => {
 });
 
 /**
- * 世界観要素のリスト生成エンドポイント
- * 小説世界の場所や文化などのリストを生成します
+ * TRPG世界観要素のリスト生成エンドポイント
+ * TRPGキャンペーンの世界観要素（場所、文化、組織など）のリストを生成します
+ * 
+ * 🌍 WorldContextBuilder統合版
+ * - キャンペーン全体のコンテキストを考慮
+ * - 既存の世界観要素との関連性を重視
  */
 router.post('/worldbuilding-list-generation', async (req, res) => {
   try {
-    const { elementType, userMessage, model } = req.body;
+    const { 
+      elementType, 
+      userMessage, 
+      model,
+      worldBuildingData,    // 既存の世界観データ
+      campaignContext,      // キャンペーン情報
+      currentSession,       // 現在のセッション情報
+    } = req.body;
     const format = req.body.format || 'json'; // デフォルトをJSONに変更
 
     console.log(
@@ -245,16 +318,50 @@ router.post('/worldbuilding-list-generation', async (req, res) => {
       modelSpecific,
     );
 
-    // ユーザープロンプトを構築（ユーザーの意図を優先し、フォーマット指示を後に配置）
-    // ユーザーメッセージがない場合のみデフォルトのプロンプトを使用
-    const enhancedUserMessage =
-      userMessage ||
-      `現在の物語設定から、適切な世界観構築設定を行うための要素リストを生成してください。`;
+    // コンテキスト情報を含む拡張プロンプトを構築
+    let contextEnhancedMessage = userMessage || 
+      `現在のTRPGキャンペーン設定から、適切な世界観構築設定を行うための要素リストを生成してください。`;
+    
+    // 🌍 既存の世界観データをコンテキストとして追加
+    if (worldBuildingData) {
+      contextEnhancedMessage += `\n\n## 既存の世界観設定\n`;
+      
+      // 関連する要素タイプの既存データを列挙
+      if (elementType === 'places' && worldBuildingData.places?.length) {
+        contextEnhancedMessage += `\n### 既存の場所\n`;
+        worldBuildingData.places.slice(0, 5).forEach((p: any) => {
+          contextEnhancedMessage += `- ${p.name}: ${p.description || p.location || ''}、${p.culturalFeatures || ''}\n`;
+        });
+      } else if (elementType === 'cultures' && worldBuildingData.cultures?.length) {
+        contextEnhancedMessage += `\n### 既存の文化\n`;
+        worldBuildingData.cultures.slice(0, 5).forEach((c: any) => {
+          contextEnhancedMessage += `- ${c.name}: ${c.description || c.beliefs || ''}\n`;
+        });
+      }
+      
+      // 全体的な世界観設定
+      if (worldBuildingData.setting?.length) {
+        contextEnhancedMessage += `\n### 世界の基本設定\n`;
+        worldBuildingData.setting.slice(0, 3).forEach((s: any) => {
+          contextEnhancedMessage += `- ${s.name}: ${s.description}\n`;
+        });
+      }
+      
+      contextEnhancedMessage += `\n上記の既存設定と一貫性を保ち、それらを補完・拡張する新しい要素を生成してください。\n`;
+    }
+    
+    // キャンペーンコンテキストがある場合
+    if (campaignContext) {
+      contextEnhancedMessage += `\n## キャンペーン情報\n`;
+      contextEnhancedMessage += `タイトル: ${campaignContext.title || '未設定'}\n`;
+      contextEnhancedMessage += `あらすじ: ${campaignContext.synopsis || '未設定'}\n`;
+      contextEnhancedMessage += `ゲームシステム: ${campaignContext.gameSystem || '未設定'}\n`;
+    }
 
     // ユーザーメッセージを最初に配置し、フォーマット指示を後に追加
-    const userPrompt = `${enhancedUserMessage}\n\n以下のフォーマットで回答してください:\n${formatTemplate}`;
+    const userPrompt = `${contextEnhancedMessage}\n\n以下のフォーマットで回答してください:\n${formatTemplate}`;
 
-    // AIリクエストを作成
+    // AIリクエストを作成（コンテキスト情報を含む）
     const aiRequest: StandardAIRequest = {
       requestType: 'worldbuilding-list',
       model: model || determineModelByElementType(validatedElementType),
@@ -262,6 +369,9 @@ router.post('/worldbuilding-list-generation', async (req, res) => {
       userPrompt,
       context: {
         elementType: validatedElementType,
+        worldBuildingData,    // 🌍 追加：既存の世界観データ
+        campaignContext,      // 🌍 追加：キャンペーンコンテキスト
+        currentSession,       // 🌍 追加：現在のセッション情報
       },
       options: {
         temperature: 0.7,
@@ -398,8 +508,8 @@ router.post('/worldbuilding-list-generation', async (req, res) => {
 });
 
 /**
- * キャラクター詳細生成エンドポイント
- * 小説のキャラクターの詳細情報を生成します
+ * TRPGキャラクター詳細生成エンドポイント
+ * TRPGキャラクター（PC/NPC/敵）の詳細情報を生成します
  */
 router.post('/character-detail-generation', async (req, res) => {
   try {
@@ -481,8 +591,8 @@ router.post('/character-detail-generation', async (req, res) => {
 });
 
 /**
- * プロット開発エンドポイント
- * 物語のプロット作成や改善に関するアドバイスを提供します
+ * TRPGシナリオ開発エンドポイント
+ * TRPGシナリオの作成や改善に関するアドバイスを提供します
  */
 router.post('/plot-development', async (req, res) => {
   try {
@@ -491,31 +601,31 @@ router.post('/plot-development', async (req, res) => {
 
     console.log('[API] プロット開発リクエスト');
 
-    // プロット生成専用のシステムプロンプト
+    // TRPGシナリオ生成専用のシステムプロンプト
     const plotGenerationSystemPrompt = `
-あなたは小説作成を支援するAIアシスタントで、プロット開発の専門家です。
-ユーザーの指示に従って、魅力的で一貫性のある物語の構造を作成します。
+あなたはTRPGシナリオ作成を支援するAIアシスタントで、シナリオ開発の専門家です。
+ユーザーの指示に従って、魅力的で一貫性のあるTRPGシナリオの構造を作成します。
 
 【重要：出力形式について】
-プロットアイテムを生成する場合は、必ず以下の形式で応答してください：
+シナリオイベントを生成する場合は、必ず以下の形式で応答してください：
 
-プロットアイテム1
-タイトル: [プロットのタイトル]
+シナリオイベント1
+タイトル: [イベントのタイトル]
 詳細: [具体的な説明]
 
-プロットアイテム2
-タイトル: [プロットのタイトル]
+シナリオイベント2
+タイトル: [イベントのタイトル]
 詳細: [具体的な説明]
 
-プロットアイテム3
-タイトル: [プロットのタイトル]
+シナリオイベント3
+タイトル: [イベントのタイトル]
 詳細: [具体的な説明]
 
 ※マークダウンの装飾（**太字**など）は使用しないでください
-※解説や分析は不要です。プロットアイテムのみを上記形式で提示してください
-※各プロットアイテムは空行で区切ってください
+※解説や分析は不要です。シナリオイベントのみを上記形式で提示してください
+※各シナリオイベントは空行で区切ってください
 
-起承転結を意識し、キャラクターの動機に基づいた説得力のある展開を提案してください。
+TRPGセッションの流れを意識し、プレイヤーの選択が意味を持つ説得力のある展開を提案してください。
 `;
 
     // プロジェクトデータを含むコンテキストを構築
@@ -987,8 +1097,8 @@ ${lengthInstruction}
 });
 
 /**
- * あらすじ生成エンドポイント
- * 小説のあらすじを生成します
+ * TRPGキャンペーンあらすじ生成エンドポイント
+ * TRPGキャンペーンのあらすじを生成します
  */
 router.post('/synopsis-generation', async (req, res) => {
   try {
@@ -1018,16 +1128,16 @@ router.post('/synopsis-generation', async (req, res) => {
     }
 
     // システムプロンプトを構築
-    const systemPrompt = `あなたは優秀な小説のあらすじ作成専門家です。
-以下の要件に従って、魅力的で読者の興味を引くあらすじを作成してください：
+    const systemPrompt = `あなたは優秀なTRPGキャンペーンのあらすじ作成専門家です。
+以下の要件に従って、魅力的でプレイヤーの興味を引くキャンペーンあらすじを作成してください：
 
-1. 読者が作品の魅力を理解できる内容
-2. 主要な登場人物と設定を含む
-3. 物語の核となる葛藤や謎を示唆
-4. ネタバレを避けつつ、興味を引く内容
+1. プレイヤーがキャンペーンの魅力を理解できる内容
+2. 主要なNPCと世界設定を含む
+3. キャンペーンの核となる脅威や謎を示唆
+4. ネタバレを避けつつ、冒険心を掻き立てる内容
 5. 適切な長さ（200-500文字程度）
 
-作品の雰囲気やジャンルに合った文体で執筆してください。`;
+キャンペーンの雰囲気やゲームシステムに合った表現で執筆してください。`;
 
     // ユーザープロンプトを構築
     let userPrompt = '';
@@ -1038,7 +1148,7 @@ router.post('/synopsis-generation', async (req, res) => {
       userPrompt += `\n追加の指示：\n${userMessage}`;
     }
     if (!userPrompt) {
-      userPrompt = '魅力的な小説のあらすじを作成してください。';
+      userPrompt = '魅力的なTRPGキャンペーンのあらすじを作成してください。';
     }
 
     // AIリクエストを作成
@@ -1189,8 +1299,8 @@ router.post('/test-key', async (req, res) => {
 });
 
 /**
- * キャラクター生成エンドポイント（単発生成用）
- * 単一のキャラクターまたは複数キャラクターを一括で生成します
+ * TRPGキャラクター生成エンドポイント（単発生成用）
+ * 単一のTRPGキャラクターまたは複数キャラクターを一括で生成します
  */
 router.post('/character-generation', async (req, res) => {
   try {
@@ -1233,8 +1343,8 @@ router.post('/character-generation', async (req, res) => {
     }
 
     // システムプロンプト
-    const systemPrompt = `あなたは小説作成のプロフェッショナルです。
-ユーザーのリクエストに基づいて、魅力的なキャラクターを生成してください。
+    const systemPrompt = `あなたはTRPG作成のプロフェッショナルです。
+ユーザーのリクエストに基づいて、魅力的なTRPGキャラクターを生成してください。
 
 ${
   plotContext
@@ -1279,18 +1389,18 @@ ${existingCharacterContext}
 【動機・目標】
 [キャラクターの行動原理、達成したい目標、内面的な葛藤など]
 
-- 物語の世界観に合致したキャラクター設定
+- TRPGキャンペーンの世界観に合致したキャラクター設定
 - 既存キャラクターとの差別化
-- 読者が感情移入できる魅力的な人物像
-- プロットに対して意味のある役割を持つ`;
+- プレイヤーが感情移入できる魅力的な人物像
+- キャンペーンに対して意味のある役割を持つ`;
 
     // ユーザープロンプトを構築
     let userPrompt =
       message ||
-      'プロットに基づいて、物語に適したキャラクターを生成してください。';
+      'シナリオに基づいて、TRPGに適したキャラクターを生成してください。';
 
     if (plotContext) {
-      userPrompt += `\n\n【プロット情報】\n${plotContext}`;
+      userPrompt += `\n\n【シナリオ情報】\n${plotContext}`;
     }
 
     if (existingCharacterContext) {
@@ -1441,7 +1551,7 @@ ${existingCharacterContext}
       'プロットに基づいて、物語に必要なキャラクターのリストを作成してください。';
 
     if (plotContext) {
-      userPrompt += `\n\n【プロット情報】\n${plotContext}`;
+      userPrompt += `\n\n【シナリオ情報】\n${plotContext}`;
     }
 
     if (existingCharacterContext) {
@@ -2309,6 +2419,138 @@ ${progressionType === 'climax' ? 'クライマックスに向けた展開を提�
 });
 
 /**
+ * 🎨 AI画像生成エンドポイント（汎用）
+ * Google Imagen 3を使用して様々なTRPG画像を生成します
+ */
+router.post('/generate-image', async (req, res) => {
+  try {
+    const { 
+      prompt, 
+      negativePrompt, 
+      aspectRatio, 
+      style, 
+      quality,
+      dimensions,
+      seed,
+      guidanceScale,
+      steps,
+      imageType 
+    } = req.body;
+    
+    console.log('[API] AI画像生成リクエスト:', {
+      imageType,
+      style,
+      quality,
+      aspectRatio
+    });
+
+    if (!prompt) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'プロンプトは必須です',
+      });
+    }
+
+    // Google Cloud Service のインポートと初期化
+    const { GoogleCloudService } = await import('../services/google-cloud.service.js');
+    const googleCloudService = new GoogleCloudService();
+
+    // 画像生成リクエストを作成
+    const imageRequest = {
+      prompt: prompt.trim(),
+      negativePrompt: negativePrompt || '',
+      aspectRatio: aspectRatio || '1:1',
+      style: style || 'fantasy',
+      quality: quality || 'standard',
+      dimensions: dimensions || { width: 1024, height: 1024 },
+      seed,
+      guidanceScale: guidanceScale || 10,
+      steps: steps || 50,
+      imageType: imageType || 'general'
+    };
+
+    console.log('[API] 画像生成パラメータ:', imageRequest);
+
+    // 画像を生成
+    const result = await googleCloudService.generateImage(imageRequest);
+
+    console.log('[API] AI画像生成完了');
+
+    return res.json({
+      status: 'success',
+      images: [{
+        url: result.imageUrl,
+        thumbnailUrl: result.thumbnailUrl,
+        dimensions: result.dimensions || imageRequest.dimensions,
+        metadata: result.metadata
+      }],
+      model: 'imagen-3',
+      cost: result.cost,
+      generationTime: result.generationTime,
+      remainingCredits: result.remainingCredits,
+      metadata: {
+        requestType: 'generate-image',
+        generatedAt: result.generatedAt,
+        imageType,
+        parameters: imageRequest
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] AI画像生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || '画像生成中にエラーが発生しました',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 🧪 AI画像生成接続テスト
+ */
+router.post('/test-image-generation', async (req, res) => {
+  try {
+    // API キーの存在確認
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        status: 'error',
+        error: 'APIキーが設定されていません'
+      });
+    }
+
+    // Google Cloud Service の初期化テスト
+    const { GoogleCloudService } = await import('../services/google-cloud.service.js');
+    const googleCloudService = new GoogleCloudService();
+
+    // 簡単なテスト画像生成
+    const testRequest = {
+      prompt: 'simple test image, fantasy art style',
+      negativePrompt: 'low quality, blurry',
+      aspectRatio: '1:1' as const,
+      style: 'fantasy' as const,
+      quality: 'draft' as const,
+    };
+
+    const result = await googleCloudService.testConnection();
+
+    return res.json({
+      status: 'success',
+      message: 'API接続テスト成功',
+      connectionStatus: result.success,
+      availableModels: ['imagen-3', 'vertex-ai'],
+      estimatedCost: 0.02
+    });
+  } catch (error: any) {
+    console.error('[API] 画像生成接続テストエラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      error: error.message || '接続テストに失敗しました'
+    });
+  }
+});
+
+/**
  * TRPG拠点画像生成エンドポイント
  * AI を使用して拠点の画像を生成します
  */
@@ -2386,6 +2628,566 @@ router.post('/base-image-generation', async (req, res) => {
     return res.status(500).json({
       status: 'error',
       message: error.message || '拠点画像生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * 🌍 WorldContextBuilder統合・コンテキスト認識型世界観生成エンドポイント
+ * 
+ * このエンドポイントは、WorldContextBuilderの機能を最大限活用して、
+ * 現在のゲーム状況、場所、キャラクター、セッション情報を考慮した
+ * 高度にコンテキスト化された世界観要素を生成します。
+ */
+router.post('/worldbuilding-context-generation', async (req, res) => {
+  try {
+    const {
+      // 基本情報
+      elementType,
+      elementName,
+      userMessage,
+      model,
+      format = 'json',
+      
+      // 🌍 WorldContextBuilder用の詳細コンテキスト
+      currentLocation,      // BaseLocation型の現在地情報
+      activeCharacters,     // アクティブなキャラクター情報
+      timeOfDay,           // 時間帯情報
+      sessionDay,          // セッション日数
+      situation,           // 状況（'encounter', 'conversation', 'exploration', 'general'）
+      
+      // キャンペーン全体の情報
+      campaign,            // TRPGCampaign型のキャンペーン情報
+      worldBuildingData,   // 既存の世界観データ
+      sessionHistory,      // セッション履歴
+      
+      // AI生成オプション
+      temperature = 0.8,
+      maxTokens = 3000,
+    } = req.body;
+
+    console.log(`[API] コンテキスト認識型世界観生成リクエスト: ${elementName || elementType}`);
+    console.log(`[API] 状況: ${situation || 'general'}, 場所: ${currentLocation?.name || '未設定'}`);
+
+    // WorldContextBuilderスタイルのコンテキスト構築
+    let contextualSystemPrompt = WORLD_BUILDER + '\n\n';
+    contextualSystemPrompt += '## 🌍 WorldContextBuilder統合モード\n';
+    contextualSystemPrompt += 'あなたは現在のゲーム状況を深く理解し、それに基づいて世界観要素を生成します。\n';
+    contextualSystemPrompt += '生成する要素は、現在の場所、時間、キャラクター、セッション状況と完全に調和する必要があります。\n\n';
+
+    // 詳細なコンテキストプロンプトの構築
+    let detailedUserPrompt = userMessage || `${elementName || elementType}に関する世界観要素を生成してください。\n\n`;
+    
+    // 現在地情報の統合
+    if (currentLocation) {
+      detailedUserPrompt += `## 📍 現在の場所コンテキスト\n`;
+      detailedUserPrompt += `場所: ${currentLocation.name} (${currentLocation.type})\n`;
+      detailedUserPrompt += `地域: ${currentLocation.region}\n`;
+      detailedUserPrompt += `説明: ${currentLocation.description}\n`;
+      
+      if (currentLocation.environmentalFactors) {
+        detailedUserPrompt += `気候: ${currentLocation.environmentalFactors.climate}\n`;
+        detailedUserPrompt += `地形: ${currentLocation.environmentalFactors.terrain}\n`;
+      }
+      
+      if (currentLocation.culturalModifiers) {
+        detailedUserPrompt += `\n文化的特徴:\n`;
+        detailedUserPrompt += `- 交渉難易度: DC${currentLocation.culturalModifiers.negotiationDC}\n`;
+        detailedUserPrompt += `- 物価修正: ${currentLocation.culturalModifiers.priceModifier * 100}%\n`;
+      }
+      
+      if (currentLocation.encounterRules && timeOfDay) {
+        const encounter = currentLocation.encounterRules.timeOfDay[timeOfDay];
+        if (encounter) {
+          detailedUserPrompt += `\n現在時間帯(${timeOfDay})の遭遇情報:\n`;
+          detailedUserPrompt += `- 遭遇確率: ${encounter.probability * 100}%\n`;
+          detailedUserPrompt += `- タイプ: ${encounter.type}\n`;
+        }
+      }
+      
+      detailedUserPrompt += '\n';
+    }
+    
+    // アクティブキャラクター情報
+    if (activeCharacters && activeCharacters.length > 0) {
+      detailedUserPrompt += `## 👥 関連キャラクター\n`;
+      activeCharacters.forEach((char: any) => {
+        detailedUserPrompt += `- ${char.name} (${char.characterType}): ${char.description || ''}\n`;
+      });
+      detailedUserPrompt += '\n';
+    }
+    
+    // セッション状況
+    if (sessionDay) {
+      detailedUserPrompt += `## 📅 セッション状況\n`;
+      detailedUserPrompt += `セッション日数: ${sessionDay}日目\n`;
+      if (timeOfDay) detailedUserPrompt += `時間帯: ${timeOfDay}\n`;
+      if (situation) detailedUserPrompt += `現在の状況: ${situation}\n`;
+      detailedUserPrompt += '\n';
+    }
+    
+    // 既存の世界観データとの整合性指示
+    if (worldBuildingData) {
+      detailedUserPrompt += `## 🌐 既存世界観との整合性\n`;
+      detailedUserPrompt += `この世界観要素は、既存の設定と完全に調和し、それらを拡張・深化させるものでなければなりません。\n`;
+      
+      // 要素タイプに応じた具体的な指示
+      if (elementType === WorldBuildingElementType.PLACE) {
+        detailedUserPrompt += `- 地理的な整合性を保ち、既存の場所との関係性を明確にしてください\n`;
+        detailedUserPrompt += `- 気候、地形、文化的特徴は周辺地域と調和させてください\n`;
+        detailedUserPrompt += `- encounterRules, npcSchedule, culturalModifiersなどの拡張プロパティも含めてください\n`;
+      } else if (elementType === WorldBuildingElementType.CULTURE) {
+        detailedUserPrompt += `- 既存の文化との相互関係、交流、対立を考慮してください\n`;
+        detailedUserPrompt += `- 地理的条件がもたらす文化的特徴を反映してください\n`;
+      }
+      
+      detailedUserPrompt += '\n';
+    }
+    
+    // 状況別の生成指示
+    detailedUserPrompt += `## 🎯 生成指示\n`;
+    switch (situation) {
+      case 'encounter':
+        detailedUserPrompt += `遭遇・戦闘に関連する要素を重視して生成してください。\n`;
+        detailedUserPrompt += `危険度、防御設備、戦術的価値などを詳細に記述してください。\n`;
+        break;
+      case 'conversation':
+        detailedUserPrompt += `会話・社交に関連する要素を重視して生成してください。\n`;
+        detailedUserPrompt += `NPCの性格、文化的背景、交渉の余地などを詳細に記述してください。\n`;
+        break;
+      case 'exploration':
+        detailedUserPrompt += `探索・発見に関連する要素を重視して生成してください。\n`;
+        detailedUserPrompt += `隠された要素、秘密、探索可能な場所などを詳細に記述してください。\n`;
+        break;
+      default:
+        detailedUserPrompt += `バランスの取れた、多面的な世界観要素を生成してください。\n`;
+    }
+
+    // AIリクエストの作成
+    const aiRequest: StandardAIRequest = {
+      requestType: 'worldbuilding-context-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: contextualSystemPrompt,
+      userPrompt: detailedUserPrompt,
+      context: {
+        elementType,
+        elementName,
+        currentLocation,
+        activeCharacters,
+        timeOfDay,
+        sessionDay,
+        situation,
+        campaign,
+        worldBuildingData,
+        sessionHistory,
+      },
+      options: {
+        temperature,
+        maxTokens,
+        expectedFormat: format,
+        responseFormat: format,
+      },
+    };
+
+    console.log(`[API] コンテキスト認識型AIリクエスト実行`);
+    console.log(`[API] コンテキストキー: ${Object.keys(aiRequest.context || {}).join(', ')}`);
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error(`[API] コンテキスト認識型生成エラー:`, aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        error: aiResponse.error?.message || 'コンテキスト認識型世界観生成中にエラーが発生しました',
+      });
+    }
+
+    // レスポンスの整形（BaseLocation拡張プロパティの確認）
+    let responseData = aiResponse.content;
+    
+    if (format === 'json' && typeof responseData === 'string') {
+      try {
+        responseData = JSON.parse(responseData);
+      } catch (e) {
+        console.warn('[API] JSONパース失敗、生データを返します');
+      }
+    }
+    
+    // BaseLocation型の場合、拡張プロパティが含まれているか確認
+    if (elementType === WorldBuildingElementType.PLACE && responseData) {
+      console.log(`[API] BaseLocation拡張プロパティチェック:`);
+      console.log(`- encounterRules: ${responseData.encounterRules ? '✓' : '✗'}`);
+      console.log(`- npcSchedule: ${responseData.npcSchedule ? '✓' : '✗'}`);
+      console.log(`- culturalModifiers: ${responseData.culturalModifiers ? '✓' : '✗'}`);
+      console.log(`- environmentalFactors: ${responseData.environmentalFactors ? '✓' : '✗'}`);
+    }
+
+    res.json({
+      status: 'success',
+      data: responseData,
+      metadata: {
+        model: aiRequest.model,
+        requestType: 'worldbuilding-context-generation',
+        elementType,
+        situation,
+        hasContext: !!currentLocation || !!activeCharacters || !!worldBuildingData,
+        processingTime: aiResponse.debug?.processingTime,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] コンテキスト認識型世界観生成エラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'コンテキスト認識型世界観生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * 🎮 AIパーティーメンバー行動決定エンドポイント
+ * 
+ * プレイヤー不足時やシングルプレイモードで、AIがPCキャラクターの行動を決定します。
+ * TRPGセッション画面でプレイヤー以外のキャラクターの手番が回ってきた時に使用します。
+ */
+router.post('/ai-party-member-action', async (req, res) => {
+  try {
+    const {
+      characterId,            // 行動するキャラクターのID
+      character,              // TRPGCharacter型のキャラクター情報
+      currentSituation,       // 現在の状況説明
+      sessionContext,         // セッション全体のコンテキスト
+      partyMembers,          // パーティー全体の情報
+      availableActions,      // 利用可能な行動選択肢
+      locationInfo,          // 現在地の情報
+      combatState,           // 戦闘状況（戦闘中の場合）
+      model = 'gemini-1.5-pro',
+      temperature = 0.7,
+    } = req.body;
+
+    console.log(`[API] AIパーティーメンバー行動決定リクエスト: ${character?.name || characterId}`);
+
+    // aiPartyMemberControllerエージェントを使用
+    const aiRequest: StandardAIRequest = {
+      requestType: 'ai-party-member-action',
+      model,
+      systemPrompt: `あなたはTRPGセッションでプレイヤーキャラクター（PC）を操作するAIエージェントです。
+      
+キャラクター情報:
+名前: ${character?.name}
+職業: ${character?.profession}
+性格的特徴: ${character?.description}
+
+【重要: 行動決定の原則】
+- キャラクターの性格、背景、動機に忠実に行動する
+- パーティーの目標達成に協力的である
+- 他のプレイヤーの楽しみを奪わない控えめな行動
+- 戦闘では効率的だが、人間プレイヤーに主役を譲る
+- 危機的状況では積極的に仲間を助ける
+
+行動を決定する際は、簡潔に「${character?.name}は[行動]します」という形式で応答してください。`,
+      userPrompt: `現在の状況: ${currentSituation}
+
+現在地: ${locationInfo?.name || '不明'}
+${locationInfo?.description || ''}
+
+パーティー状況:
+${partyMembers?.map((member: any) => `- ${member.name} (HP: ${member.currentHP || member.derived?.HP}/${member.derived?.HP})`).join('\n') || '情報なし'}
+
+${combatState ? `
+戦闘状況:
+- 戦闘ラウンド: ${combatState.round}
+- イニシアチブ順: ${combatState.initiative?.map((i: any) => i.characterId).join(' → ') || '不明'}
+- 現在のHP: ${character?.currentHP || character?.derived?.HP}/${character?.derived?.HP}
+` : ''}
+
+利用可能な行動:
+${availableActions?.map((action: any, index: number) => `${index + 1}. ${action.name || action}: ${action.description || ''}`).join('\n') || '標準的な行動（移動、攻撃、スキル使用など）'}
+
+${character?.name}の性格と状況を考慮して、最も適切な行動を1つ選択し、その理由も簡潔に説明してください。`,
+      context: {
+        characterId,
+        character,
+        currentSituation,
+        sessionContext,
+        partyMembers,
+        locationInfo,
+        combatState,
+      },
+      options: {
+        temperature,
+        maxTokens: 500,
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error(`[API] AIパーティーメンバー行動決定エラー:`, aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        error: aiResponse.error?.message || 'AIパーティーメンバー行動決定中にエラーが発生しました',
+      });
+    }
+
+    res.json({
+      status: 'success',
+      characterId,
+      characterName: character?.name,
+      action: aiResponse.content,
+      actionType: combatState ? 'combat' : 'general',
+      metadata: {
+        model: aiRequest.model,
+        requestType: 'ai-party-member-action',
+        processingTime: aiResponse.debug?.processingTime,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] AIパーティーメンバー行動決定エラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'AIパーティーメンバー行動決定中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * ⚔️ エネミーAI行動決定エンドポイント
+ * 
+ * モンスターやエネミーの戦術的な行動を決定します。
+ * TRPGセッション画面でエネミーの手番が回ってきた時に使用します。
+ */
+router.post('/enemy-ai-action', async (req, res) => {
+  try {
+    const {
+      enemyId,               // 行動するエネミーのID
+      enemy,                 // EnemyCharacter型のエネミー情報
+      combatSituation,       // 戦闘状況の詳細
+      targetOptions,         // 攻撃可能なターゲット一覧
+      availableSkills,       // 使用可能なスキル・能力
+      environmentalFactors,  // 地形・環境要因
+      alliesInfo,           // 味方エネミー情報
+      model = 'gemini-1.5-pro',
+      temperature = 0.8,
+    } = req.body;
+
+    console.log(`[API] エネミーAI行動決定リクエスト: ${enemy?.name || enemyId}`);
+
+    // 知能レベルの判定
+    const intelligenceLevel = enemy?.attributes?.intelligence || 10;
+    let aiIntelligenceType = 'medium';
+    if (intelligenceLevel <= 3) aiIntelligenceType = 'low';
+    else if (intelligenceLevel >= 15) aiIntelligenceType = 'high';
+
+    // enemyAIControllerエージェントを使用
+    const aiRequest: StandardAIRequest = {
+      requestType: 'enemy-ai-action',
+      model,
+      systemPrompt: `あなたはTRPGセッションでエネミー（敵キャラクター、モンスター）を操作するAIエージェントです。
+
+エネミー情報:
+名前: ${enemy?.name}
+ランク: ${enemy?.rank}
+タイプ: ${enemy?.type}
+知能レベル: ${intelligenceLevel} (${aiIntelligenceType})
+現在HP: ${enemy?.status?.currentHp}/${enemy?.derivedStats?.hp}
+
+【知能レベル別行動指針: ${aiIntelligenceType}】
+${aiIntelligenceType === 'low' ? `
+- 本能的・反射的な行動
+- 最も近い敵を攻撃
+- 単純な行動パターン
+- 罠や戦術を理解しない` : aiIntelligenceType === 'high' ? `
+- 高度な戦術と魔法の使用
+- プレイヤーの弱点を分析し標的化
+- 複雑な罠や策略の実行
+- 長期的な計画に基づく行動` : `
+- 基本的な戦術理解
+- 弱った敵を優先的に狙う
+- 簡単な連携行動
+- 明らかに不利な場合は撤退`}
+
+行動を決定する際は、「${enemy?.name}は[行動]を実行！」という形式で応答し、
+必要に応じて効果音や短い描写を付け加えてください。`,
+      userPrompt: `戦闘状況:
+ラウンド: ${combatSituation?.round || 1}
+${enemy?.name}の位置: ${combatSituation?.enemyPosition || '不明'}
+
+攻撃可能なターゲット:
+${targetOptions?.map((target: any, index: number) => 
+  `${index + 1}. ${target.name} (HP: ${target.currentHP}/${target.maxHP}, 距離: ${target.distance || '近接'})`
+).join('\n') || 'ターゲット情報なし'}
+
+使用可能なスキル・能力:
+${availableSkills?.map((skill: any, index: number) => 
+  `${index + 1}. ${skill.name}: ${skill.description} (コスト: ${skill.cost || 'なし'})`
+).join('\n') || '基本攻撃のみ'}
+
+${alliesInfo?.length ? `
+味方エネミー:
+${alliesInfo.map((ally: any) => `- ${ally.name} (HP: ${ally.currentHP}/${ally.maxHP})`).join('\n')}
+` : ''}
+
+環境要因:
+${environmentalFactors?.description || '特別な環境要因なし'}
+
+現在のHP状況: ${enemy?.status?.currentHp}/${enemy?.derivedStats?.hp} (${Math.round((enemy?.status?.currentHp / enemy?.derivedStats?.hp) * 100)}%)
+
+知能レベル ${intelligenceLevel} (${aiIntelligenceType}) のエネミーとして、最も効果的な行動を選択してください。`,
+      context: {
+        enemyId,
+        enemy,
+        combatSituation,
+        targetOptions,
+        availableSkills,
+        environmentalFactors,
+        alliesInfo,
+        intelligenceLevel,
+        aiIntelligenceType,
+      },
+      options: {
+        temperature,
+        maxTokens: 400,
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error(`[API] エネミーAI行動決定エラー:`, aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        error: aiResponse.error?.message || 'エネミーAI行動決定中にエラーが発生しました',
+      });
+    }
+
+    res.json({
+      status: 'success',
+      enemyId,
+      enemyName: enemy?.name,
+      action: aiResponse.content,
+      intelligenceType: aiIntelligenceType,
+      hpPercentage: Math.round((enemy?.status?.currentHp / enemy?.derivedStats?.hp) * 100),
+      metadata: {
+        model: aiRequest.model,
+        requestType: 'enemy-ai-action',
+        processingTime: aiResponse.debug?.processingTime,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] エネミーAI行動決定エラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'エネミーAI行動決定中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * 🤝 AI協調行動コーディネートエンドポイント
+ * 
+ * 複数のAI制御キャラクター間の連携行動を調整します。
+ * 複雑な戦闘や協調が必要な場面で使用します。
+ */
+router.post('/ai-coordination', async (req, res) => {
+  try {
+    const {
+      coordinationType,      // 'party' | 'enemy' | 'mixed'
+      characters,           // 調整対象のキャラクター一覧
+      currentSituation,     // 現在の状況
+      objectiveType,        // 目標タイプ ('combat', 'exploration', 'puzzle', 'social')
+      constraints,          // 制約条件
+      availableResources,   // 利用可能なリソース
+      model = 'gemini-1.5-pro',
+      temperature = 0.6,
+    } = req.body;
+
+    console.log(`[API] AI協調行動コーディネートリクエスト: ${coordinationType}, ${characters?.length || 0}キャラクター`);
+
+    // aiCooperationCoordinatorエージェントを使用
+    const aiRequest: StandardAIRequest = {
+      requestType: 'ai-coordination',
+      model,
+      systemPrompt: `あなたは複数のAI制御キャラクター（味方PC、エネミー）の協調行動を調整するコーディネーターです。
+戦闘や複雑な状況で、AI同士が自然で戦術的な連携を取れるよう支援します。
+
+【協調行動の原則】
+- 各キャラクターの個性を保ちつつ効果的な連携
+- プレイヤーに予測可能だが挑戦的な体験を提供
+- 不自然な完璧さを避ける（時には失敗も）
+
+複数キャラクターの行動を調整する際は、各キャラクターの行動を順番に提示し、
+連携の意図を簡潔に説明してください。`,
+      userPrompt: `連携タイプ: ${coordinationType}
+目標: ${objectiveType}
+状況: ${currentSituation}
+
+参加キャラクター:
+${characters?.map((char: any, index: number) => 
+  `${index + 1}. ${char.name} (${char.characterType || char.type}) - HP: ${char.currentHP || char.status?.currentHp}/${char.maxHP || char.derivedStats?.hp || char.derived?.HP}`
+).join('\n') || 'キャラクター情報なし'}
+
+制約条件:
+${constraints?.map((constraint: string, index: number) => `- ${constraint}`).join('\n') || '特別な制約なし'}
+
+利用可能なリソース:
+${availableResources?.map((resource: string, index: number) => `- ${resource}`).join('\n') || 'リソース情報なし'}
+
+これらのキャラクターの協調行動を企画し、以下の形式で回答してください:
+
+【連携プラン】
+(連携の概要と狙い)
+
+【個別行動】
+1. [キャラクター名]: [具体的な行動]
+2. [キャラクター名]: [具体的な行動]
+...
+
+【期待される効果】
+(連携によって得られる戦術的・戦略的効果)`,
+      context: {
+        coordinationType,
+        characters,
+        currentSituation,
+        objectiveType,
+        constraints,
+        availableResources,
+      },
+      options: {
+        temperature,
+        maxTokens: 800,
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error(`[API] AI協調行動コーディネートエラー:`, aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        error: aiResponse.error?.message || 'AI協調行動コーディネート中にエラーが発生しました',
+      });
+    }
+
+    res.json({
+      status: 'success',
+      coordinationType,
+      participantCount: characters?.length || 0,
+      coordinationPlan: aiResponse.content,
+      objectiveType,
+      metadata: {
+        model: aiRequest.model,
+        requestType: 'ai-coordination',
+        processingTime: aiResponse.debug?.processingTime,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] AI協調行動コーディネートエラー:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'AI協調行動コーディネート中にエラーが発生しました',
     });
   }
 });

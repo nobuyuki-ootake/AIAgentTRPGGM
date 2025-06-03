@@ -12,9 +12,17 @@ import {
   Tab,
   Chip,
 } from "@mui/material";
-import { Add as AddIcon, Close as CloseIcon, Group, PersonOutline, Dangerous } from "@mui/icons-material";
+import { 
+  Add as AddIcon, 
+  Close as CloseIcon, 
+  Group, 
+  PersonOutline, 
+  Dangerous,
+  FileUpload 
+} from "@mui/icons-material";
 import CharacterCard from "../components/characters/CharacterCard";
 import CharacterForm from "../components/characters/CharacterForm";
+import CharacterImportDialog from "../components/characters/CharacterImportDialog";
 import {
   CharactersProvider,
   useCharactersContext,
@@ -22,7 +30,7 @@ import {
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { TRPGCharacter } from "@novel-ai-assistant/types";
+import { TRPGCharacter } from "@trpg-ai-gm/types";
 import TabPanel from "../components/ui/TabPanel";
 import ExportMenu from "../components/export/ExportMenu";
 
@@ -62,6 +70,9 @@ const CharactersPageContent: React.FC = () => {
   const [characterToDelete, setCharacterToDelete] = React.useState<
     string | null
   >(null);
+
+  // インポートダイアログの状態
+  const [isImportDialogOpen, setIsImportDialogOpen] = React.useState(false);
 
   // プログレスバーの状態
   const [showProgressSnackbar, setShowProgressSnackbar] = React.useState(false);
@@ -202,6 +213,12 @@ const CharactersPageContent: React.FC = () => {
     }
   };
 
+  // インポートハンドラ
+  const handleImportCharacter = (importedCharacter: TRPGCharacter) => {
+    addCharacter(importedCharacter);
+    setIsImportDialogOpen(false);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
@@ -235,6 +252,13 @@ const CharactersPageContent: React.FC = () => {
             characters={characters}
             disabled={!currentProject || characters.length === 0}
           />
+          <Button
+            variant="outlined"
+            startIcon={<FileUpload />}
+            onClick={() => setIsImportDialogOpen(true)}
+          >
+            インポート
+          </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -394,6 +418,14 @@ const CharactersPageContent: React.FC = () => {
           </Button>
         </Box>
       </Dialog>
+
+      {/* インポートダイアログ */}
+      <CharacterImportDialog
+        open={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        onImport={handleImportCharacter}
+        existingCharacterNames={characters.map((c: TRPGCharacter) => c.name)}
+      />
 
       {/* プログレスバー */}
       <ProgressSnackbar

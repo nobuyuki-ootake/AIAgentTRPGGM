@@ -1,7 +1,7 @@
 // エネミー管理API
 import express from 'express';
 import { CharacterModel } from '../db/models/Character.js';
-import { TRPGCharacter, CharacterStats, Equipment } from '@novel-ai-assistant/types';
+import { TRPGCharacter, CharacterStats, Equipment } from '@trpg-ai-gm/types';
 
 const router = express.Router();
 const characterModel = new CharacterModel();

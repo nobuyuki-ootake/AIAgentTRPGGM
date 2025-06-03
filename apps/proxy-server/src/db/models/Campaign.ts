@@ -1,5 +1,5 @@
 // キャンペーンデータモデル
-import { TRPGCampaign, CampaignMetadata, CampaignStatus } from '@novel-ai-assistant/types';
+import { TRPGCampaign, CampaignMetadata, CampaignStatus } from '@trpg-ai-gm/types';
 import DatabaseConnection from '../connection.js';
 import { v4 as uuidv4 } from 'uuid';
 

@@ -23,7 +23,13 @@ interface GameSessionRoom {
   gamemaster: string;
   participants: Map<string, SessionUser>;
   status: 'waiting' | 'active' | 'paused' | 'ended';
+  mode: 'single' | 'multiplayer'; // セッションモード
+  maxPlayers: number;
+  isPrivate: boolean;
+  inviteCode?: string;
+  aiGMEnabled: boolean; // AIセッションマスター有効フラグ
   startTime?: Date;
+  lastActivity: Date;
 }
 
 export class SocketService {
@@ -86,8 +92,27 @@ export class SocketService {
         this.userSockets.set(socket.userId, socket.id);
       }
 
+      // セッション作成
+      socket.on('create_session', async (data: {
+        campaignId: string;
+        sessionName: string;
+        mode: 'single' | 'multiplayer';
+        isPrivate: boolean;
+        maxPlayers?: number;
+        inviteCode?: string;
+        aiGMEnabled: boolean;
+      }) => {
+        try {
+          const session = await this.handleCreateSession(socket, data);
+          socket.emit('session_created', { success: true, session });
+        } catch (error) {
+          console.error('Create session error:', error);
+          socket.emit('session_creation_failed', { error: (error as Error).message });
+        }
+      });
+
       // セッション参加
-      socket.on('join_session', async (data: { sessionId: string; characterId?: string }) => {
+      socket.on('join_session', async (data: { sessionId: string; characterId?: string; inviteCode?: string }) => {
         try {
           await this.handleJoinSession(socket, data);
         } catch (error) {
@@ -224,34 +249,100 @@ export class SocketService {
     });
   }
 
-  private async handleJoinSession(socket: AuthenticatedSocket, data: { sessionId: string; characterId?: string }) {
-    const { sessionId, characterId } = data;
+  private async handleCreateSession(socket: AuthenticatedSocket, data: {
+    campaignId: string;
+    sessionName: string;
+    mode: 'single' | 'multiplayer';
+    isPrivate: boolean;
+    maxPlayers?: number;
+    inviteCode?: string;
+    aiGMEnabled: boolean;
+  }): Promise<GameSessionRoom> {
+    const userId = socket.userId!;
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    // ユーザー情報を取得
+    const user = await this.authService.getUserById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // セッションを作成
+    const session: GameSessionRoom = {
+      sessionId,
+      campaignId: data.campaignId,
+      gamemaster: userId,
+      participants: new Map(),
+      status: 'waiting',
+      mode: data.mode,
+      maxPlayers: data.maxPlayers || (data.mode === 'single' ? 1 : 6),
+      isPrivate: data.isPrivate,
+      inviteCode: data.inviteCode,
+      aiGMEnabled: data.aiGMEnabled,
+      lastActivity: new Date(),
+    };
+
+    // 作成者をセッションに追加
+    session.participants.set(userId, {
+      userId,
+      username: user.name!,
+      role: data.aiGMEnabled ? 'player' : 'gamemaster', // AI GMが有効な場合はプレイヤーとして参加
+    });
+
+    this.activeSessions.set(sessionId, session);
+
+    // ソケットをセッションルームに参加
+    socket.join(sessionId);
+    socket.campaignId = session.campaignId;
+
+    console.log(`Session ${sessionId} created by ${user.name} (mode: ${data.mode}, AI GM: ${data.aiGMEnabled})`);
+    
+    return session;
+  }
+
+  private async handleJoinSession(socket: AuthenticatedSocket, data: { sessionId: string; characterId?: string; inviteCode?: string }) {
+    const { sessionId, characterId, inviteCode } = data;
     const userId = socket.userId!;
 
-    // セッション情報を取得または作成
-    let session = this.activeSessions.get(sessionId);
+    // セッション情報を取得
+    const session = this.activeSessions.get(sessionId);
     if (!session) {
-      // TODO: データベースからセッション情報を取得
-      session = {
-        sessionId,
-        campaignId: 'temp-campaign', // 実際のキャンペーンIDを取得
-        gamemaster: 'temp-gm', // 実際のGMを取得
-        participants: new Map(),
-        status: 'waiting'
-      };
-      this.activeSessions.set(sessionId, session);
+      throw new Error('セッションが見つかりません');
+    }
+
+    // セッション参加可能性チェック
+    if (session.status === 'ended') {
+      throw new Error('セッションは終了しています');
+    }
+
+    if (session.participants.size >= session.maxPlayers) {
+      throw new Error('セッションは満員です');
+    }
+
+    // プライベートセッションの場合、招待コードをチェック
+    if (session.isPrivate && session.inviteCode !== inviteCode) {
+      throw new Error('招待コードが正しくありません');
+    }
+
+    // シングルモードの場合、作成者以外は参加不可
+    if (session.mode === 'single' && session.gamemaster !== userId) {
+      throw new Error('シングルモードセッションには参加できません');
     }
 
     // ユーザーをセッションに追加
     const user = await this.authService.getUserById(userId);
-    if (user) {
-      session.participants.set(userId, {
-        userId,
-        username: user.name!,
-        role: user.role!,
-        characterId
-      });
+    if (!user) {
+      throw new Error('ユーザーが見つかりません');
     }
+
+    session.participants.set(userId, {
+      userId,
+      username: user.name!,
+      role: session.aiGMEnabled ? 'player' : user.role!, // AI GMが有効な場合は全員プレイヤー
+      characterId
+    });
+
+    session.lastActivity = new Date();
 
     // ソケットをセッションルームに参加
     socket.join(sessionId);
@@ -260,17 +351,22 @@ export class SocketService {
     // 参加成功を通知
     socket.emit('session_joined', {
       sessionId,
+      session,
       participants: Array.from(session.participants.values()),
-      status: session.status
+      status: session.status,
+      mode: session.mode,
+      aiGMEnabled: session.aiGMEnabled
     });
 
-    // 他の参加者に新規参加を通知
-    socket.to(sessionId).emit('participant_joined', {
-      user: session.participants.get(userId),
-      sessionId
-    });
+    // 他の参加者に新規参加を通知（マルチプレイの場合のみ）
+    if (session.mode === 'multiplayer') {
+      socket.to(sessionId).emit('participant_joined', {
+        user: session.participants.get(userId),
+        sessionId
+      });
+    }
 
-    console.log(`User ${userId} joined session ${sessionId}`);
+    console.log(`User ${userId} joined ${session.mode} session ${sessionId} (AI GM: ${session.aiGMEnabled})`);
   }
 
   private async handleLeaveSession(socket: AuthenticatedSocket, sessionId: string) {

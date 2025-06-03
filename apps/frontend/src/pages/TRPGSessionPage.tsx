@@ -48,6 +48,8 @@ import { currentCampaignState, sessionStateAtom, developerModeState } from "../s
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { v4 as uuidv4 } from "uuid";
+import WorldContextDemo from "../components/ai/WorldContextDemo";
+import FacilityInteractionPanel from "../components/worldbuilding/FacilityInteractionPanel";
 import { 
   TRPGCharacter, 
   GameSession, 
@@ -64,6 +66,8 @@ import DiceRollUI from "../components/trpg-session/DiceRollUI";
 import CharacterDisplay from "../components/trpg-session/CharacterDisplay";
 import SkillCheckUI, { SkillCheckResult } from "../components/trpg-session/SkillCheckUI";
 import PowerCheckUI, { PowerCheckResult } from "../components/trpg-session/PowerCheckUI";
+import AIControlledDiceDialog from "../components/trpg-session/AIControlledDiceDialog";
+import { useTRPGSession } from "../hooks/useTRPGSession";
 import { 
   loadTestCampaignData, 
   applyTestDataToLocalStorage, 
@@ -107,29 +111,50 @@ function TabPanel(props: TabPanelProps) {
 
 const TRPGSessionPage: React.FC = () => {
   const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
-  const [sessionState, setSessionState] = useRecoilState(sessionStateAtom);
   const developerMode = useRecoilValue(developerModeState);
+  
+  // useTRPGSessionフックを使用
+  const {
+    sessionState,
+    sessionMessages,
+    selectedCharacter,
+    setSelectedCharacter,
+    currentDay,
+    actionCount,
+    maxActionsPerDay,
+    currentLocation,
+    setCurrentLocation,
+    combatMode,
+    initiativeOrder,
+    pendingEncounters,
+    aiDiceRequest,
+    partyStatus,
+    initializeSession,
+    getAvailableActions,
+    executeAction,
+    advanceDay,
+    rollDice,
+    startCombat,
+    endCombat,
+    addMessage,
+    saveSession,
+    checkForEncounters,
+    processDiceResult,
+    updatePartyStatus
+  } = useTRPGSession();
   
   // UI状態
   const [tabValue, setTabValue] = useState(0);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [selectedCharacter, setSelectedCharacter] = useState<TRPGCharacter | null>(null);
   const [diceDialog, setDiceDialog] = useState(false);
   const [skillCheckDialog, setSkillCheckDialog] = useState(false);
   const [powerCheckDialog, setPowerCheckDialog] = useState(false);
-  
-  // ゲーム状態
-  const [currentDay, setCurrentDay] = useState(1);
-  const [actionCount, setActionCount] = useState(0);
-  const [maxActionsPerDay] = useState(5);
-  const [currentLocation, setCurrentLocation] = useState("リバーベント街");
-  const [availableActions, setAvailableActions] = useState<ActionChoice[]>([]);
-  const [combatMode, setCombatMode] = useState(false);
-  const [initiativeOrder, setInitiativeOrder] = useState<string[]>([]);
   const [selectedEnemies, setSelectedEnemies] = useState<string[]>([]);
   const [isSessionStarted, setIsSessionStarted] = useState(false); // 🔒 セッション開始フラグ
   const [lockedCharacterId, setLockedCharacterId] = useState<string | null>(null); // 🔒 固定されたキャラクターID
+  const [aiDiceDialog, setAiDiceDialog] = useState(false);
+  const [aiRequiredDice, setAiRequiredDice] = useState<any>(null);
 
   const { openAIAssist } = useAIChatIntegration();
 
@@ -138,11 +163,32 @@ const TRPGSessionPage: React.FC = () => {
   const npcs = currentCampaign?.npcs || [];
   const enemies = currentCampaign?.enemies || [];
   const worldBuilding = currentCampaign?.worldBuilding || {};
-  const bases = worldBuilding.bases || [];
+  const bases = currentCampaign?.bases || [];
+
+  // 🌍 現在の拠点情報を取得
+  const getCurrentBase = () => {
+    return bases.find(base => base.name === currentLocation);
+  };
 
   // 現在の拠点のイラストURL取得
   const currentBaseImage = bases.find(base => base.name === currentLocation)?.imageUrl || 
     currentCampaign?.imageUrl || "/default-location.jpg";
+
+  // AI制御ダイスリクエストの監視
+  useEffect(() => {
+    if (aiDiceRequest) {
+      const diceSpec = {
+        dice: aiDiceRequest.dice,
+        reason: aiDiceRequest.reason,
+        difficulty: aiDiceRequest.difficulty,
+        characterId: aiDiceRequest.characterId,
+        skillName: aiDiceRequest.skillName,
+        modifier: 0 // 修正値は別途計算
+      };
+      setAiRequiredDice(diceSpec);
+      setAiDiceDialog(true);
+    }
+  }, [aiDiceRequest]);
 
   // セッション初期化
   useEffect(() => {
@@ -675,6 +721,96 @@ ${currentCampaign?.quests?.filter(q => q.scheduledDay === currentDay)
     );
   };
 
+  // 遭遇検出と処理
+  const checkForEncounters = async () => {
+    if (!currentCampaign || !selectedCharacter) return;
+
+    const currentBase = bases.find(base => base.name === currentLocation);
+    if (!currentBase) return;
+
+    const context: EncounterContext = {
+      location: currentBase,
+      time: { 
+        day: currentDay, 
+        timeOfDay: getTimeOfDay(actionCount) 
+      },
+      playerCharacters: playerCharacters.filter(pc => pc.id === selectedCharacter.id),
+      npcs: npcs,
+      enemies: enemies,
+      events: currentCampaign.timeline || [],
+    };
+
+    const { encounters, immediateAction } = EncounterDetectionSystem.detectEncounters(context);
+
+    // 即座に対応が必要な遭遇がある場合
+    if (immediateAction) {
+      setAiRequiredDice(immediateAction.requiredCheck);
+      setPendingEncounterResult(immediateAction);
+      setAiDiceDialog(true);
+    }
+  };
+
+  // 時刻を取得
+  const getTimeOfDay = (actions: number): 'morning' | 'afternoon' | 'evening' | 'night' => {
+    if (actions <= 1) return 'morning';
+    if (actions <= 3) return 'afternoon';
+    if (actions <= 4) return 'evening';
+    return 'night';
+  };
+
+  // AI制御ダイスロールの結果処理
+  const handleAIDiceRollResult = async (result: any) => {
+    setAiDiceDialog(false);
+
+    const message: ChatMessage = {
+      id: uuidv4(),
+      sender: "AIゲームマスター",
+      senderType: "gm",
+      message: `🎲 ${result.dice}の結果: ${result.total}`,
+      timestamp: new Date(),
+      diceRoll: result,
+    };
+    setChatMessages(prev => [...prev, message]);
+
+    // 結果に基づいた処理
+    if (pendingEncounterResult) {
+      const outcome = result.success 
+        ? pendingEncounterResult.possibleOutcomes.success
+        : pendingEncounterResult.possibleOutcomes.failure;
+
+      const outcomeMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "AIゲームマスター",
+        senderType: "gm",
+        message: outcome,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, outcomeMessage]);
+
+      // 戦闘開始などの追加処理
+      if (pendingEncounterResult.encounterType === '待ち伏せ遭遇' && !result.success) {
+        // 奇襲を受けた場合の処理
+        await startCombatWithSurprise();
+      }
+    }
+
+    setPendingEncounterResult(null);
+  };
+
+  // 奇襲を伴う戦闘開始
+  const startCombatWithSurprise = async () => {
+    setCombatMode(true);
+    // 奇襲処理のロジック
+    const surpriseMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "システム",
+      senderType: "system",
+      message: "⚔️ 奇襲戦闘開始！敵が先制攻撃を行います。",
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, surpriseMessage]);
+  };
+
   // 日程進行
   // AIゲームマスターにセッション開始を依頼
   const handleStartAIGameMaster = async () => {
@@ -1143,7 +1279,7 @@ ${encounter.type === "npc_encounter" ?
     setSessionState(updatedSession);
   };
 
-  // 位置更新システム
+  // 🌍 位置更新システム（世界観統合）
   const updatePlayerPosition = (characterId: string, newLocation: string) => {
     if (!sessionState) return;
 
@@ -1205,10 +1341,263 @@ ${encounter.type === "npc_encounter" ?
     setSessionState(updatedSession);
     setCurrentLocation(newLocation);
 
-    // 移動後の遭遇チェック
+    // 🌍 世界観統合: 移動後の自動処理
     setTimeout(() => {
-      checkTimelineEncounters();
+      applyLocationBasedEffects(newLocation);
+      checkForEncounters();
+      updateAvailableActions();
     }, 1000);
+  };
+
+  // 🌍 場所固有の効果適用
+  const applyLocationBasedEffects = (location: string) => {
+    const base = bases.find(b => b.name === location);
+    if (!base) return;
+
+    // 🏪 施設の自動表示
+    if (base.facilities) {
+      displayAvailableFacilities(base.facilities);
+    }
+
+    // 🎭 NPCの自動配置確認
+    if (base.npcs && base.npcs.length > 0) {
+      checkLocationNPCs(base.npcs);
+    }
+
+    // 💰 文化的修正値の適用
+    if (base.culturalModifiers) {
+      applyCulturalModifiers(base.culturalModifiers);
+    }
+
+    // 🌦️ 環境要因の適用
+    if (base.environmentalFactors) {
+      applyEnvironmentalFactors(base.environmentalFactors);
+    }
+
+    // ⚔️ 遭遇ルールの確認
+    if (base.encounterRules) {
+      checkEncounterRules(base.encounterRules);
+    }
+  };
+
+  // 🏪 利用可能施設の表示
+  const displayAvailableFacilities = (facilities: any) => {
+    const facilityMessages = [];
+    
+    if (facilities.inn) {
+      facilityMessages.push(`🏨 ${facilities.inn.name}: 宿泊可能 (${facilities.inn.pricePerNight}ゴールド/泊)`);
+    }
+    
+    if (facilities.shops && facilities.shops.length > 0) {
+      facilities.shops.forEach((shop: any) => {
+        facilityMessages.push(`🛒 ${shop.name}: ${shop.type} (価格倍率: ${shop.priceModifier})`);
+      });
+    }
+    
+    if (facilities.blacksmith) {
+      facilityMessages.push(`⚒️ ${facilities.blacksmith.name}: ${facilities.blacksmith.services?.join(', ')}`);
+    }
+    
+    if (facilities.temple) {
+      facilityMessages.push(`⛪ ${facilities.temple.name}: ${facilities.temple.deity}の神殿`);
+    }
+    
+    if (facilities.guild) {
+      facilityMessages.push(`🏛️ ${facilities.guild.name}: ${facilities.guild.type}`);
+    }
+
+    if (facilityMessages.length > 0) {
+      const facilityMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `📍 ${currentLocation}で利用可能な施設:\n${facilityMessages.join('\n')}`,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, facilityMessage]);
+    }
+  };
+
+  // 🎭 拠点NPCの確認
+  const checkLocationNPCs = (locationNPCs: any[]) => {
+    const presentNPCs = npcs.filter(npc => 
+      locationNPCs.some(locNPC => locNPC.id === npc.id || locNPC.name === npc.name)
+    );
+    
+    if (presentNPCs.length > 0) {
+      const npcMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `👥 この場所にいるNPC: ${presentNPCs.map(npc => npc.name).join(', ')}`,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, npcMessage]);
+    }
+  };
+
+  // 💰 文化的修正値の適用
+  const applyCulturalModifiers = (modifiers: any) => {
+    const modifierMessages = [];
+    
+    if (modifiers.priceModifier !== 1) {
+      const priceText = modifiers.priceModifier > 1 ? 
+        `${((modifiers.priceModifier - 1) * 100).toFixed(0)}%高い` : 
+        `${((1 - modifiers.priceModifier) * 100).toFixed(0)}%安い`;
+      modifierMessages.push(`💰 物価: ${priceText}`);
+    }
+    
+    if (modifiers.negotiationDC) {
+      modifierMessages.push(`🗣️ 交渉難易度: DC${modifiers.negotiationDC}`);
+    }
+    
+    if (modifiers.reputationImpact) {
+      const repText = modifiers.reputationImpact > 0 ? 
+        `評判向上しやすい(+${modifiers.reputationImpact})` : 
+        `評判悪化しやすい(${modifiers.reputationImpact})`;
+      modifierMessages.push(`⭐ ${repText}`);
+    }
+
+    if (modifierMessages.length > 0) {
+      const culturalMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `🌍 この地域の特徴:\n${modifierMessages.join('\n')}`,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, culturalMessage]);
+    }
+  };
+
+  // 🌦️ 環境要因の適用
+  const applyEnvironmentalFactors = (factors: any) => {
+    const environmentMessages = [];
+    
+    if (factors.climate) {
+      environmentMessages.push(`🌡️ 気候: ${factors.climate}`);
+    }
+    
+    if (factors.terrain) {
+      environmentMessages.push(`🗻 地形: ${factors.terrain}`);
+    }
+    
+    if (factors.weatherPatterns && factors.weatherPatterns.length > 0) {
+      environmentMessages.push(`🌤️ 天候パターン: ${factors.weatherPatterns.map((w: any) => w.type || w).join(', ')}`);
+    }
+    
+    if (factors.naturalHazards && factors.naturalHazards.length > 0) {
+      environmentMessages.push(`⚠️ 自然災害リスク: ${factors.naturalHazards.join(', ')}`);
+    }
+
+    if (environmentMessages.length > 0) {
+      const environmentMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `🌍 環境情報:\n${environmentMessages.join('\n')}`,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, environmentMessage]);
+    }
+  };
+
+  // ⚔️ 遭遇ルールの確認
+  const checkEncounterRules = (encounterRules: any) => {
+    const currentTime = getCurrentTimeOfDay();
+    const currentChance = encounterRules.timeOfDay?.[currentTime];
+    
+    if (currentChance) {
+      const chanceText = currentChance.chance ? 
+        `${(currentChance.chance * 100).toFixed(0)}%` : '設定なし';
+      
+      const encounterMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `⚔️ 現在の遭遇確率 (${currentTime}): ${chanceText}`,
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, encounterMessage]);
+      
+      // ランダム遭遇チェック
+      if (currentChance.chance && Math.random() < currentChance.chance) {
+        setTimeout(() => {
+          triggerRandomEncounter(currentChance);
+        }, 2000);
+      }
+    }
+  };
+
+  // 🎲 ランダム遭遇の発生
+  const triggerRandomEncounter = (encounterChance: any) => {
+    const encounterTypes = encounterChance.types || ['exploration', 'social'];
+    const selectedType = encounterTypes[Math.floor(Math.random() * encounterTypes.length)];
+    
+    const encounterMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "システム",
+      senderType: "system",
+      message: `🎲 ランダム遭遇が発生しました！ (${selectedType})`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, encounterMessage]);
+    
+    // AIに遭遇の詳細を生成してもらう
+    generateRandomEncounterDetails(selectedType);
+  };
+
+  // 🤖 ランダム遭遇の詳細生成
+  const generateRandomEncounterDetails = async (encounterType: string) => {
+    try {
+      await openAIAssist(
+        "random-encounter",
+        {
+          title: "ランダム遭遇生成",
+          description: `${encounterType}タイプの遭遇を生成します`,
+          defaultMessage: `${currentLocation}で${encounterType}タイプのランダム遭遇が発生しました。
+
+**現在の状況:**
+- 場所: ${currentLocation}
+- 日付: ${currentDay}日目
+- 時刻: ${getCurrentTimeOfDay()}
+- プレイヤー: ${selectedCharacter?.name}
+
+**世界観情報:**
+${getCurrentBase()?.description || '詳細な説明はありません'}
+
+**指示:**
+この場所と時間にふさわしい${encounterType}遭遇を生成してください。以下を含めてください：
+1. 遭遇の詳細な状況描写
+2. プレイヤーの取れる行動選択肢
+3. 必要に応じてダイス判定
+4. ストーリーやキャラクター成長に繋がる要素
+
+魅力的で記憶に残る遭遇にしてください。`,
+          onComplete: (result) => {
+            if (result.content) {
+              const encounterDetailMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "AIゲームマスター",
+                senderType: "gm",
+                message: result.content as string,
+                timestamp: new Date(),
+              };
+              setChatMessages(prev => [...prev, encounterDetailMessage]);
+            }
+          },
+        },
+        {
+          location: currentLocation,
+          encounterType,
+          timeOfDay: getCurrentTimeOfDay(),
+          character: selectedCharacter,
+          baseInfo: getCurrentBase()
+        }
+      );
+    } catch (error) {
+      console.error("ランダム遭遇生成エラー:", error);
+    }
   };
 
   // 現在時刻取得
@@ -1469,6 +1858,190 @@ ${dailyEvents.map(e => `- ${e.title}: ${e.description}`).join("\n")}
     }
   };
 
+  // 🏛️ 施設アクション処理
+  const handleFacilityAction = async (facilityType: string, action: string) => {
+    if (!selectedCharacter) {
+      alert("キャラクターを選択してください");
+      return;
+    }
+
+    const currentBase = getCurrentBase();
+    if (!currentBase) {
+      alert("現在の場所に施設が見つかりません");
+      return;
+    }
+
+    // アクション実行メッセージ
+    const actionMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: selectedCharacter.name,
+      senderType: "player",
+      message: `${getFacilityDisplayName(facilityType)}で「${action}」を実行しました`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, actionMessage]);
+
+    // 行動回数更新
+    setActionCount(prev => prev + 1);
+
+    // AIによる施設利用結果の生成
+    try {
+      await openAIAssist(
+        "facility-interaction",
+        {
+          title: "施設利用結果",
+          description: `${facilityType}での${action}の結果を生成します`,
+          defaultMessage: `${selectedCharacter.name}が${currentBase.name}の${getFacilityDisplayName(facilityType)}で「${action}」を実行しました。
+
+**施設情報:**
+- 施設タイプ: ${facilityType}
+- 実行アクション: ${action}
+- 場所: ${currentBase.name}
+
+**キャラクター:**
+- 名前: ${selectedCharacter.name}
+- 所持金: ${selectedCharacter.money || 1000}ゴールド (仮)
+
+**現在の状況:**
+- 日付: ${currentDay}日目
+- 時刻: ${getCurrentTimeOfDay()}
+- 行動回数: ${actionCount + 1}/${maxActionsPerDay}
+
+**施設の特徴:**
+${getFacilityDetails(currentBase, facilityType)}
+
+**指示:**
+1. この施設利用の詳細な結果を描写してください
+2. 必要に応じて費用やアイテムの変化を含めてください
+3. NPCとのやり取りがあれば自然な会話を生成してください
+4. ゲーム進行に役立つ情報や選択肢を提供してください
+5. 世界観やストーリーに合った要素を織り込んでください
+
+ゲームマスターとして、この施設利用を魅力的に演出してください。`,
+          onComplete: (result) => {
+            if (result.content) {
+              const facilityResult: ChatMessage = {
+                id: uuidv4(),
+                sender: "AIゲームマスター",
+                senderType: "gm",
+                message: result.content as string,
+                timestamp: new Date(),
+              };
+              setChatMessages(prev => [...prev, facilityResult]);
+            }
+          },
+        },
+        {
+          facilityType,
+          action,
+          character: selectedCharacter,
+          location: currentBase,
+          gameState: {
+            day: currentDay,
+            timeOfDay: getCurrentTimeOfDay(),
+            actionCount: actionCount + 1
+          }
+        }
+      );
+    } catch (error) {
+      console.error("施設利用処理エラー:", error);
+      const errorMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: "施設の利用に失敗しました。もう一度お試しください。",
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
+  // 🏛️ 施設タイプの表示名を取得
+  const getFacilityDisplayName = (facilityType: string): string => {
+    switch (facilityType) {
+      case 'inn': return '宿屋';
+      case 'shop': return '店舗';
+      case 'blacksmith': return '鍛冶屋';
+      case 'temple': return '神殿';
+      case 'guild': return 'ギルド';
+      case 'armory': return '武具屋';
+      default: return '施設';
+    }
+  };
+
+  // 🏛️ 施設の詳細情報を取得
+  const getFacilityDetails = (base: BaseLocation, facilityType: string): string => {
+    if (!base.facilities) return '詳細情報はありません。';
+    
+    const { facilities } = base;
+    let details = '';
+    
+    switch (facilityType) {
+      case 'inn':
+        if (facilities.inn) {
+          details = `宿屋「${facilities.inn.name}」\n料金: ${facilities.inn.pricePerNight}ゴールド/泊`;
+          if (facilities.inn.services) {
+            details += `\nサービス: ${facilities.inn.services.join(', ')}`;
+          }
+        }
+        break;
+      case 'shop':
+        if (facilities.shops && facilities.shops.length > 0) {
+          const shop = facilities.shops[0];
+          details = `店舗「${shop.name}」\nタイプ: ${shop.type}\n価格倍率: ${shop.priceModifier}`;
+        }
+        break;
+      case 'blacksmith':
+        if (facilities.blacksmith) {
+          details = `鍛冶屋「${facilities.blacksmith.name}」`;
+          if (facilities.blacksmith.services) {
+            details += `\nサービス: ${facilities.blacksmith.services.join(', ')}`;
+          }
+        }
+        break;
+      case 'temple':
+        if (facilities.temple) {
+          details = `神殿「${facilities.temple.name}」\n祭神: ${facilities.temple.deity}`;
+          if (facilities.temple.functions) {
+            details += `\n機能: ${facilities.temple.functions.join(', ')}`;
+          }
+        }
+        break;
+      case 'guild':
+        if (facilities.guild) {
+          details = `ギルド「${facilities.guild.name}」\nタイプ: ${facilities.guild.type}`;
+          if (facilities.guild.services) {
+            details += `\nサービス: ${facilities.guild.services.join(', ')}`;
+          }
+        }
+        break;
+      case 'armory':
+        if (facilities.armory) {
+          details = `武具屋「${facilities.armory.name}」`;
+          if (facilities.armory.weaponTypes) {
+            details += `\n武器: ${facilities.armory.weaponTypes.join(', ')}`;
+          }
+          if (facilities.armory.armorTypes) {
+            details += `\n防具: ${facilities.armory.armorTypes.join(', ')}`;
+          }
+        }
+        break;
+    }
+    
+    // 文化的修正値の追加
+    if (base.culturalModifiers) {
+      details += `\n\n地域特性:`;
+      if (base.culturalModifiers.priceModifier !== 1) {
+        details += `\n- 物価修正: ${(base.culturalModifiers.priceModifier * 100).toFixed(0)}%`;
+      }
+      if (base.culturalModifiers.negotiationDC) {
+        details += `\n- 交渉難易度: DC${base.culturalModifiers.negotiationDC}`;
+      }
+    }
+    
+    return details || '詳細情報は利用時に判明します。';
+  };
+
   // チャット送信
   const handleSendChat = async () => {
     if (!chatInput.trim() || !selectedCharacter) return;
@@ -1573,6 +2146,30 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
     };
     setChatMessages(prev => [...prev, resultMessage]);
     setPowerCheckDialog(false);
+  };
+
+  // AI制御ダイスロール結果処理
+  const handleAIDiceRollResult = async (result: any) => {
+    console.log("AI制御ダイス結果:", result);
+    
+    // ダイスロール結果をチャットに追加
+    const diceMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "システム",
+      senderType: "system",
+      message: `🎲 ${aiDiceRequest?.skillName}判定: ${result.dice} = [${result.rolls.join(", ")}] + ${result.modifier} = ${result.total} ${result.success !== undefined ? (result.success ? "✅成功！" : "❌失敗...") : ""}`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, diceMessage]);
+
+    // 結果を処理
+    if (aiDiceRequest) {
+      await processDiceResult(result);
+    }
+
+    // ダイアログを閉じる
+    setAiDiceDialog(false);
+    setAiRequiredDice(null);
   };
 
   return (
@@ -1800,7 +2397,7 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
         <Paper sx={{ width: 300, p: 2 }}>
           <Tabs value={0} onChange={() => {}}>
             <Tab label="ステータス" />
-            <Tab label="インタラクト" />
+            <Tab label="施設" />
             <Tab label="ログ" />
           </Tabs>
           
@@ -1871,7 +2468,13 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
           </TabPanel>
 
           <TabPanel value={0} index={1}>
-            <Stack spacing={2}>
+            {/* 🏛️ 施設インタラクション */}
+            <FacilityInteractionPanel 
+              currentBase={getCurrentBase()}
+              onFacilityAction={handleFacilityAction}
+            />
+            
+            <Stack spacing={2} sx={{ mt: 2 }}>
               <Button
                 variant="contained"
                 startIcon={<DiceD20Icon />}
@@ -1906,6 +2509,53 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
           </TabPanel>
         </Paper>
       </Box>
+
+      {/* 🌍 世界観コンテキストAI デモ（開発者モード） */}
+      {developerMode && currentBase && (
+        <Paper elevation={2} sx={{ p: 2, mt: 2, border: 2, borderColor: 'primary.main' }}>
+          <Typography variant="h6" color="primary" gutterBottom>
+            🌍 世界観コンテキストAI デモ
+          </Typography>
+          <WorldContextDemo
+            currentLocation={currentBase}
+            activeCharacters={selectedCharacter ? [selectedCharacter] : []}
+            onLocationChange={(location) => {
+              setCurrentLocation(location.name);
+              // 場所移動時の自動処理
+              setTimeout(() => {
+                applyLocationBasedEffects(location);
+                checkForEncounters();
+                updateAvailableActions();
+              }, 1000);
+            }}
+          />
+        </Paper>
+      )}
+
+      {/* 🏛️ 施設利用パネル（開発者モード） */}
+      {developerMode && currentBase && (
+        <Paper elevation={2} sx={{ p: 2, mt: 2, border: 2, borderColor: 'secondary.main' }}>
+          <Typography variant="h6" color="secondary" gutterBottom>
+            🏛️ 施設利用パネル
+          </Typography>
+          <FacilityInteractionPanel
+            currentBase={currentBase}
+            onFacilityAction={(facilityType, action) => {
+              console.log(`🏛️ 施設アクション: ${facilityType} - ${action}`);
+              
+              // チャットメッセージとして記録
+              const facilityMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: selectedCharacter?.name || "プレイヤー",
+                senderType: "player",
+                message: `🏛️ ${facilityType}で「${action}」を実行しました`,
+                timestamp: new Date(),
+              };
+              setChatMessages(prev => [...prev, facilityMessage]);
+            }}
+          />
+        </Paper>
+      )}
 
       {/* 🧪 開発テスト用デバッグパネル */}
       {developerMode && sessionState && (
@@ -2190,6 +2840,18 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
         powerName="パワー"
         characterName={selectedCharacter?.name || "キャラクター"}
       />
+      
+      {/* AI制御ダイスダイアログ */}
+      {aiRequiredDice && (
+        <AIControlledDiceDialog
+          open={aiDiceDialog}
+          aiRequiredDice={aiRequiredDice}
+          onDiceRoll={handleAIDiceRollResult}
+          onValidationFailed={(error) => {
+            console.error("ダイス検証エラー:", error);
+          }}
+        />
+      )}
     </Box>
   );
 };

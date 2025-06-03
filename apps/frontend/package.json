@@ -36,7 +36,7 @@
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
     "@mui/x-charts": "^8.0.0",
-    "@novel-ai-assistant/types": "workspace:*",
+    "@trpg-ai-gm/types": "workspace:*",
     "@types/slate": "^0.47.16",
     "@types/slate-react": "^0.50.0",
     "axios": "^1.9.0",
@@ -59,7 +59,8 @@
     "uuid": "^11.1.0",
     "dice-typescript": "^1.0.0",
     "jspdf": "^2.5.1",
-    "socket.io-client": "^4.7.2"
+    "socket.io-client": "^4.7.2",
+    "react-simple-maps": "^3.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.6",
@@ -71,9 +72,9 @@
     "@storybook/react-vite": "^8.6.12",
     "@storybook/test": "^8.6.12",
     "@testing-library/jest-dom": "^6.4.0",
-    "@types/react": "^19.1.2",
+    "@types/react": "^18.2.0",
     "@types/react-beautiful-dnd": "^13.1.8",
-    "@types/react-dom": "^19.1.2",
+    "@types/react-dom": "^18.2.0",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.4.1",
     "eslint": "^9.22.0",

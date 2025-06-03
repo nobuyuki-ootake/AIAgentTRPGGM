@@ -3,7 +3,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import CardActions from "@mui/material/CardActions";
-import { EnemyCharacter } from "@novel-ai-assistant/types";
+import { EnemyCharacter } from "@trpg-ai-gm/types";
 import { 
   Button, 
   Box, 
