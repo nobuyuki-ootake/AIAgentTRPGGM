@@ -30,7 +30,7 @@ import {
   Speed,
   Terrain,
 } from '@mui/icons-material';
-import { BaseLocation } from '@novel-ai-assistant/types';
+import { BaseLocation } from '@trpg-ai-gm/types';
 
 interface Position {
   lat: number;

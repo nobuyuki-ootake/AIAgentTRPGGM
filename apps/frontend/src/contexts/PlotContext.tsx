@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { usePlot } from "../hooks/usePlot";
 import { v4 as uuidv4 } from "uuid";
-import { PlotElement, NovelProject } from "@novel-ai-assistant/types";
+import { PlotElement, TRPGCampaign } from "@trpg-ai-gm/types";
 import { toast } from "sonner";
 import { SelectChangeEvent } from "@mui/material";
 import { DropResult } from "react-beautiful-dnd";
@@ -18,7 +18,7 @@ interface PlotContextType {
   isDialogOpen: boolean;
   hasUnsavedChanges: boolean;
   snackbarOpen: boolean;
-  currentProject: NovelProject | null;
+  currentProject: TRPGCampaign | null;
 
   // アクション
   setNewItemTitle: (title: string) => void;
@@ -147,7 +147,7 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
     isDialogOpen,
     hasUnsavedChanges,
     snackbarOpen,
-    currentProject: currentProject as NovelProject | null,
+    currentProject: currentProject as TRPGCampaign | null,
     setNewItemTitle,
     setNewItemDescription,
     setEditItemTitle,

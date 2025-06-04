@@ -9,7 +9,7 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
-import { TimelineEventSeed } from "@novel-ai-assistant/types";
+import { TimelineEventSeed } from "@trpg-ai-gm/types";
 
 interface DraggableEventSeedItemProps {
   seed: TimelineEventSeed;

@@ -5,7 +5,7 @@ import {
   TimelineEventSeed,
   StandardAIRequest,
   StandardAIResponse,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import axios from "axios";
 
 /**

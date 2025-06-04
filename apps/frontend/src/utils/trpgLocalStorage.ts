@@ -1,4 +1,4 @@
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 /**
  * TRPGキャンペーン管理用のローカルストレージマネージャー
@@ -9,13 +9,13 @@ export class TRPGLocalStorageManager {
   private static readonly CURRENT_CAMPAIGN_KEY = "currentCampaignId";
 
   /**
-   * 旧い小説用のデータをクリアする
+   * 旧い形式のデータをクリアする
    */
   static clearOldNovelData(): void {
     try {
       const keysToRemove: string[] = [];
       
-      // 小説用のキーを検索
+      // 旧形式のキーを検索
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (
@@ -30,7 +30,7 @@ export class TRPGLocalStorageManager {
       // 一括削除
       keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      console.log(`旧い小説データをクリアしました: ${keysToRemove.length}件`);
+      console.log(`旧いデータをクリアしました: ${keysToRemove.length}件`);
     } catch (error) {
       console.error("旧データのクリアに失敗:", error);
     }

@@ -21,7 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import PlotItem from "../components/plot/PlotItem";
 import { PlotProvider, usePlotContext } from "../contexts/PlotContext";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 // PlotPageの実装コンポーネント
 const PlotPageContent: React.FC = () => {

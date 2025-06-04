@@ -15,9 +15,9 @@ import {
 import { withReact } from "slate-react";
 import {
   Chapter,
-  NovelProject,
+  TRPGCampaign,
   TimelineEvent,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { currentChapterSelector } from "../store/selectors";
 import { currentChapterIdState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
@@ -26,8 +26,8 @@ import { ReactEditor } from "slate-react";
 import type { CustomElement, CustomText } from "../types/slate";
 
 export const useWriting = () => {
-  const { novelId: _novelId } = useParams() as {
-    novelId: string;
+  const { campaignId: _campaignId } = useParams() as {
+    campaignId: string;
   };
 
   const [editorKey, setEditorKey] = useState(0); // エディタの強制再レンダリング用
@@ -259,24 +259,24 @@ export const useWriting = () => {
     setSelectedEventId(null);
   };
 
-  const saveProject = useCallback((project: NovelProject) => {
+  const saveProject = useCallback((project: TRPGCampaign) => {
     console.log("=== saveProject called ===");
     console.log("Project to save:", project);
 
-    const projectsStr = localStorage.getItem("novelProjects");
-    console.log("Current localStorage novelProjects:", projectsStr);
+    const projectsStr = localStorage.getItem("trpgCampaigns");
+    console.log("Current localStorage trpgCampaigns:", projectsStr);
 
     if (projectsStr) {
       const projects = JSON.parse(projectsStr);
       console.log("Parsed projects from localStorage:", projects);
 
-      const updatedProjects = projects.map((p: NovelProject) =>
+      const updatedProjects = projects.map((p: TRPGCampaign) =>
         p.id === project.id ? project : p
       );
 
       console.log("Updated projects array:", updatedProjects);
 
-      localStorage.setItem("novelProjects", JSON.stringify(updatedProjects));
+      localStorage.setItem("trpgCampaigns", JSON.stringify(updatedProjects));
       console.log("Saved to localStorage successfully");
     } else {
       console.log("No existing projects in localStorage");

@@ -110,9 +110,9 @@ export const aiAgentApi = {
       PlotElement | Character | WorldBuildingElement
     > = [],
     networkType:
-      | "novel-creation"
+      | "trpg-session"
       | "plot-development"
-      | "writing-improvement" = "novel-creation"
+      | "writing-improvement" = "trpg-session"
   ) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/chat`, {

@@ -1,5 +1,5 @@
 import testCampaignData from '../data/testCampaignData.json';
-import { TRPGCampaign } from '@novel-ai-assistant/types';
+import { TRPGCampaign } from '@trpg-ai-gm/types';
 import { TRPGLocalStorageManager } from './trpgLocalStorage';
 
 /**

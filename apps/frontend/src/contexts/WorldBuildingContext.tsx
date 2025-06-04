@@ -19,7 +19,7 @@ import {
   MagicTechnologyElement,
   FreeFieldElement,
   StateDefinitionElement,
-  NovelProject,
+  TRPGCampaign,
   SettingElement,
   // WorldBuildingCategory, // 未使用のためコメントアウト
   WorldBuildingFreeField,
@@ -27,7 +27,7 @@ import {
   // WorldBuildingRule, // 未使用のためコメントアウト
   // BaseWorldBuildingElement, // 未使用のためコメントアウト
   // WorldBuildingElement, // 未使用のためコメントアウト
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { Base } from "../components/worldbuilding/BaseTab";
 
 // Contextで提供する値の型定義
@@ -60,8 +60,8 @@ export interface WorldBuildingContextType {
     geographyEnvironment?: GeographyEnvironmentElement[];
     freeFields?: FreeFieldElement[];
   }) => void;
-  getCurrentProjectState: () => NovelProject | null;
-  updateProjectState: (project: NovelProject) => void;
+  getCurrentProjectState: () => TRPGCampaign | null;
+  updateProjectState: (project: TRPGCampaign) => void;
   markTabAsUpdated: (tabIndex: number) => void;
   aiGenerationProgress: number;
   currentGeneratingElementName: string;
@@ -95,8 +95,8 @@ export interface WorldBuildingContextType {
   snackbarMessage: string;
   setSnackbarMessage: React.Dispatch<React.SetStateAction<string>>;
   handleCloseSnackbar: () => void;
-  projectForSaving: NovelProject | null;
-  updateAndSaveCurrentProject: (projectToSave: NovelProject | null) => void;
+  projectForSaving: TRPGCampaign | null;
+  updateAndSaveCurrentProject: (projectToSave: TRPGCampaign | null) => void;
   initiateWorldBuildingAIGeneration?: (
     elementsToGenerate: Array<{
       elementType: string;

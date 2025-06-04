@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { LocalStorageManager } from "../../../utils/localStorage";
 import { ExportUtil } from "../../../utils/exportUtil";
 
@@ -36,17 +36,17 @@ export const useProjectExport = () => {
       switch (format) {
         case "json":
           result = ExportUtil.exportProjectAsJson(
-            project as unknown as NovelProject
+            project as unknown as TRPGCampaign
           );
           break;
         case "text":
           result = ExportUtil.exportNovelText(
-            project as unknown as NovelProject
+            project as unknown as TRPGCampaign
           );
           break;
         case "stats":
           result = ExportUtil.exportProjectStats(
-            project as unknown as NovelProject
+            project as unknown as TRPGCampaign
           );
           break;
         default:
@@ -74,7 +74,7 @@ export const useProjectExport = () => {
    * @returns 成功したかどうか
    */
   const exportProjectDirect = async (
-    project: NovelProject,
+    project: TRPGCampaign,
     format: ExportFormat = "json"
   ): Promise<boolean> => {
     try {

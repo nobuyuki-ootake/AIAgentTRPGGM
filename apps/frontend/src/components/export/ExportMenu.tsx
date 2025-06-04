@@ -26,7 +26,7 @@ import {
   TableChart as CsvIcon,
   Print as PrintIcon,
 } from '@mui/icons-material';
-import { TRPGCharacter, TRPGCampaign } from '@novel-ai-assistant/types';
+import { TRPGCharacter, TRPGCampaign } from '@trpg-ai-gm/types';
 import {
   exportCharacterSheetPDF,
   exportCampaignJSON,

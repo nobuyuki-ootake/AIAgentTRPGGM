@@ -5,7 +5,7 @@ import {
   TimelineEvent,
   PlaceElement,
   PlotElement,
-} from "@novel-ai-assistant/types"; // PlotElement をインポート
+} from "@trpg-ai-gm/types"; // PlotElement をインポート
 // import { getEventTypeIconComponent } from "./TimelineUtils"; // TimelineEventCard に移譲
 // import { Event as EventIcon } from "@mui/icons-material"; // TimelineEventCard に移譲
 import TimelineEventCard from "./TimelineEventCard"; // TimelineEventCard をインポート

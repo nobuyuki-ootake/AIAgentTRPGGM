@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../store/atoms";
-import { PlotElement, NovelProject } from "@novel-ai-assistant/types";
+import { PlotElement, TRPGCampaign } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 import { SelectChangeEvent } from "@mui/material";
 import { DropResult } from "react-beautiful-dnd";
@@ -155,7 +155,7 @@ export function usePlot() {
       if (projectsStr) {
         try {
           const projects = JSON.parse(projectsStr);
-          const updatedProjects = projects.map((p: NovelProject) =>
+          const updatedProjects = projects.map((p: TRPGCampaign) =>
             p.id === currentProject.id
               ? {
                   ...p,

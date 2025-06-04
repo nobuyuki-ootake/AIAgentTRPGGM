@@ -1,4 +1,4 @@
-import { TRPGCharacter, NPCCharacter, EnemyCharacter, TimelineEvent, Base } from '@novel-ai-assistant/types';
+import { TRPGCharacter, NPCCharacter, EnemyCharacter, TimelineEvent, Base } from '@trpg-ai-gm/types';
 
 export interface EncounterContext {
   location: Base;

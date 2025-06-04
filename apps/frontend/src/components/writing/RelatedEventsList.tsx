@@ -14,7 +14,7 @@ import {
   Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import { QuestScrollIcon } from "../icons/TRPGIcons";
-import { TimelineEvent } from "@novel-ai-assistant/types";
+import { TimelineEvent } from "@trpg-ai-gm/types";
 // import { useWritingContext } from "../../contexts/WritingContext"; // 未使用のためコメントアウト
 
 interface RelatedEventsListProps {

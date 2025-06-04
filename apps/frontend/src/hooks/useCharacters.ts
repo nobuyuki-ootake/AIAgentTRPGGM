@@ -8,13 +8,12 @@ import {
   CharacterTrait,
   Relationship,
   CharacterStatus,
-  NovelProject,
   TRPGCampaign,
   CharacterStats,
   Skill,
   Equipment,
   CharacterProgression,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 // 絵文字をデータURLに変換する関数
@@ -426,7 +425,7 @@ export function useCharacters() {
 
       // Recoilの状態も更新
       if (currentProject) {
-        // NovelProjectの型に合わせてキャラクターを変換
+        // TRPGCampaignの型に合わせてキャラクターを変換
         const indexCharacters = updatedCharacters.map(convertToIndexCharacter);
 
         // 明示的にunknownを介して型変換
@@ -434,7 +433,7 @@ export function useCharacters() {
           ...currentProject,
           characters: indexCharacters,
           updatedAt: new Date(),
-        } as unknown as NovelProject;
+        } as unknown as TRPGCampaign;
 
         setCurrentProject(updatedProject);
 
@@ -485,27 +484,27 @@ export function useCharacters() {
       updatedAt: new Date(),
     };
 
-    // ここで unknown を介さずに直接 NovelProject 型を指定（型が一致している前提）
-    const updatedProject: NovelProject = updatedProjectData;
+    // ここで unknown を介さずに直接 TRPGCampaign 型を指定（型が一致している前提）
+    const updatedProject: TRPGCampaign = updatedProjectData;
 
     setCurrentProject(updatedProject);
 
     // ローカルストレージにも保存
-    const projectsStr = localStorage.getItem("novelProjects");
+    const projectsStr = localStorage.getItem("trpgCampaigns");
     if (projectsStr) {
       try {
         // JSON.parseのエラーハンドリング追加
-        const projects = JSON.parse(projectsStr) as NovelProject[];
+        const projects = JSON.parse(projectsStr) as TRPGCampaign[];
         const projectIndex = projects.findIndex(
           (p) => p.id === currentProject.id
         );
         if (projectIndex !== -1) {
           projects[projectIndex] = updatedProject;
-          localStorage.setItem("novelProjects", JSON.stringify(projects));
+          localStorage.setItem("trpgCampaigns", JSON.stringify(projects));
         }
       } catch (e) {
         console.error(
-          "Failed to parse or save novel projects to local storage",
+          "Failed to parse or save TRPG campaigns to local storage",
           e
         );
         // エラー通知などを検討
@@ -663,7 +662,7 @@ export function useCharacters() {
               };
 
               // ローカルストレージも更新
-              const projectsStr = localStorage.getItem("novelProjects");
+              const projectsStr = localStorage.getItem("trpgCampaigns");
               if (projectsStr) {
                 try {
                   const projects = JSON.parse(projectsStr) as Array<{
@@ -676,7 +675,7 @@ export function useCharacters() {
                   if (projectIndex !== -1) {
                     projects[projectIndex] = updatedProject;
                     localStorage.setItem(
-                      "novelProjects",
+                      "trpgCampaigns",
                       JSON.stringify(projects)
                     );
                   }

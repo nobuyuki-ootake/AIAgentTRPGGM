@@ -1,4 +1,4 @@
-import { TRPGCampaign, NovelProject, PlaceElement, GameSession } from "@novel-ai-assistant/types";
+import { TRPGCampaign, PlaceElement, GameSession } from "@trpg-ai-gm/types";
 import {
   atom,
   // RecoilEnv, // 未使用のためコメントアウト (または削除)

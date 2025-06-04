@@ -32,7 +32,7 @@ import {
   Build,
   Group,
 } from "@mui/icons-material";
-import { BaseLocation, Inn, Shop, Armory, Temple, Guild, Blacksmith, LocationNPC } from "@novel-ai-assistant/types";
+import { BaseLocation, Inn, Shop, Armory, Temple, Guild, Blacksmith, LocationNPC } from "@trpg-ai-gm/types";
 import { useBases } from "../../hooks/useBases";
 
 interface BaseFormProps {

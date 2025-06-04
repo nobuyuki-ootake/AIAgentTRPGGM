@@ -13,7 +13,7 @@ import {
   FormHelperText,
   Stack,
 } from "@mui/material";
-import { CharacterStatus } from "@novel-ai-assistant/types";
+import { CharacterStatus } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 interface CharacterStatusEditorDialogProps {

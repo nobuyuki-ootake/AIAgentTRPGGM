@@ -1,4 +1,4 @@
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { LocalStorageManager } from "./localStorage";
 
 /**
@@ -20,7 +20,7 @@ export class ImportUtil {
    */
   static async importProjectFromFile(
     file: File
-  ): Promise<{ project: NovelProject | null; errors: ValidationError[] }> {
+  ): Promise<{ project: TRPGCampaign | null; errors: ValidationError[] }> {
     try {
       // ファイルがJSONかどうかをチェック
       if (!file.type.includes("json") && !file.name.endsWith(".json")) {
@@ -48,7 +48,7 @@ export class ImportUtil {
         return validationResult;
       }
 
-      return { project: projectData as NovelProject, errors: [] };
+      return { project: projectData as TRPGCampaign, errors: [] };
     } catch (error) {
       let errorMessage = "プロジェクトのインポートに失敗しました";
 
@@ -72,7 +72,7 @@ export class ImportUtil {
    * @returns 成功時はプロジェクトID、失敗時はnull
    */
   static saveImportedProject(
-    project: NovelProject,
+    project: TRPGCampaign,
     overwriteIfExists: boolean = false
   ): string | null {
     try {
@@ -129,7 +129,7 @@ export class ImportUtil {
    * @returns バリデーション結果
    */
   private static validateProject(data: Record<string, unknown>): {
-    project: NovelProject | null;
+    project: TRPGCampaign | null;
     errors: ValidationError[];
   } {
     const errors: ValidationError[] = [];
@@ -239,7 +239,7 @@ export class ImportUtil {
       };
     }
 
-    // NovelProject型にキャスト（より厳密な型チェックが推奨される）
-    return { project: data as unknown as NovelProject, errors: [] };
+    // TRPGCampaign型にキャスト（より厳密な型チェックが推奨される）
+    return { project: data as unknown as TRPGCampaign, errors: [] };
   }
 }

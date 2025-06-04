@@ -20,7 +20,7 @@ import {
   RuleElement as Rule,
   WorldBuildingElementType,
   getCategoryTabIndex,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { useElementAccumulator } from "../../hooks/useElementAccumulator";
 import { v4 as uuidv4 } from "uuid";
 

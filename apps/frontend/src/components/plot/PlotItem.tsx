@@ -15,7 +15,7 @@ import {
   Delete as DeleteIcon,
   DragIndicator as DragIcon,
 } from "@mui/icons-material";
-import { PlotElement } from "@novel-ai-assistant/types";
+import { PlotElement } from "@trpg-ai-gm/types";
 import { CalendarMonth, EmojiEvents, CheckCircle } from "@mui/icons-material";
 
 interface PlotItemProps {

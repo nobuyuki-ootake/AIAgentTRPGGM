@@ -8,7 +8,7 @@ import {
   List,
   Typography,
 } from "@mui/material";
-import { TimelineEventSeed } from "@novel-ai-assistant/types";
+import { TimelineEventSeed } from "@trpg-ai-gm/types";
 import DraggableEventSeedItem from "./DraggableEventSeedItem";
 
 export interface EventSeedReviewDialogProps {

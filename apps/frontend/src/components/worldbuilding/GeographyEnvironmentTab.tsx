@@ -21,8 +21,8 @@ import { currentProjectState } from "../../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import {
   GeographyEnvironmentElement,
-  NovelProject,
-} from "@novel-ai-assistant/types";
+  TRPGCampaign,
+} from "@trpg-ai-gm/types";
 
 const GeographyEnvironmentTab: React.FC = () => {
   // Recoilからデータを取得
@@ -70,7 +70,7 @@ const GeographyEnvironmentTab: React.FC = () => {
       (geography: GeographyEnvironmentElement) => geography.id !== id
     );
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return null;
       return {
         ...prevProject,
@@ -78,7 +78,7 @@ const GeographyEnvironmentTab: React.FC = () => {
           ...prevProject.worldBuilding,
           geographyEnvironment: updatedGeographyEnvironments,
         },
-      } as NovelProject;
+      } as TRPGCampaign;
     });
   };
 
@@ -97,7 +97,7 @@ const GeographyEnvironmentTab: React.FC = () => {
         (geography: GeographyEnvironmentElement) =>
           geography.id === currentGeography.id ? currentGeography : geography
       );
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -105,10 +105,10 @@ const GeographyEnvironmentTab: React.FC = () => {
             ...prevProject.worldBuilding,
             geographyEnvironment: updatedGeographyEnvironments,
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     } else {
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -119,7 +119,7 @@ const GeographyEnvironmentTab: React.FC = () => {
               currentGeography,
             ],
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     }
     handleCloseDialog();

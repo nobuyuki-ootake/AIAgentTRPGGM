@@ -14,7 +14,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { CultureElement } from "@novel-ai-assistant/types";
+import { CultureElement } from "@trpg-ai-gm/types";
 
 interface CultureItemProps {
   culture: CultureElement;

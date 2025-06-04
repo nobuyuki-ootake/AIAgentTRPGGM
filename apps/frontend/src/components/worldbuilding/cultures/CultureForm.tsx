@@ -14,7 +14,7 @@ import {
   Divider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { CultureElement } from "@novel-ai-assistant/types";
+import { CultureElement } from "@trpg-ai-gm/types";
 
 interface CultureFormProps {
   open: boolean;

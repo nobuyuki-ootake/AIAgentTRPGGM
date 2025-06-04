@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { Character, PlotElement } from "@novel-ai-assistant/types";
+import { Character, PlotElement } from "@trpg-ai-gm/types";
 
 /**
  * AI応答からキャラクターを解析する関数

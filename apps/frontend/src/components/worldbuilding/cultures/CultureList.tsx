@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { CultureElement } from "@novel-ai-assistant/types";
+import { CultureElement } from "@trpg-ai-gm/types";
 import { CultureItem } from "./CultureItem";
 
 interface CultureListProps {

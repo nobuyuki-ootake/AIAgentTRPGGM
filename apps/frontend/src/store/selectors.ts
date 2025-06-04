@@ -3,7 +3,7 @@ import {
   // selectorFamily,
   // DefaultValue, // 未使用のためコメントアウト
 } from "recoil";
-import { Chapter } from "@novel-ai-assistant/types";
+import { Chapter } from "@trpg-ai-gm/types";
 import { currentProjectState, currentChapterIdState } from "./atoms";
 
 // 現在選択されている章を取得するセレクタ

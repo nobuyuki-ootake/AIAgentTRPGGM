@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState } from "../store/atoms";
-import { BaseLocation, Inn, Shop, Armory, Temple, Guild, Blacksmith, LocationNPC } from "@novel-ai-assistant/types";
+import { BaseLocation, Inn, Shop, Armory, Temple, Guild, Blacksmith, LocationNPC } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 export const useBases = () => {

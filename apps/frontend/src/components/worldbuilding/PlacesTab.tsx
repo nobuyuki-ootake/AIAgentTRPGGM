@@ -24,7 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../../store/atoms";
 import { v4 as uuidv4 } from "uuid";
-import { PlaceElement, NovelProject } from "@novel-ai-assistant/types";
+import { PlaceElement, TRPGCampaign } from "@trpg-ai-gm/types";
 
 // 場所タイプの定義
 const PLACE_TYPES = [
@@ -92,7 +92,7 @@ const PlacesTab: React.FC = () => {
       (place: PlaceElement) => place.id !== id
     );
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return null;
       return {
         ...prevProject,
@@ -100,7 +100,7 @@ const PlacesTab: React.FC = () => {
           ...prevProject.worldBuilding,
           places: updatedPlaces,
         },
-      } as NovelProject;
+      } as TRPGCampaign;
     });
   };
 
@@ -118,7 +118,7 @@ const PlacesTab: React.FC = () => {
       const updatedPlaces = places.map((place: PlaceElement) =>
         place.id === currentPlace.id ? currentPlace : place
       );
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -126,10 +126,10 @@ const PlacesTab: React.FC = () => {
             ...prevProject.worldBuilding,
             places: updatedPlaces,
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     } else {
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -140,7 +140,7 @@ const PlacesTab: React.FC = () => {
               currentPlace,
             ],
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     }
     handleCloseDialog();

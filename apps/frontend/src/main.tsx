@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { v4 as uuidv4 } from "uuid";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { convertTextToSlateValue } from "./utils/slateUtils";
 
 // Recoil用の回避策を追加（修正版）
@@ -22,7 +22,7 @@ if (!("__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED" in React)) {
 }
 
 // 開発用のダミーデータを作成
-const dummyProject: NovelProject = {
+const dummyProject: TRPGCampaign = {
   id: uuidv4(),
   title: "思考が現実になる世界",
   createdAt: new Date(),
@@ -138,7 +138,7 @@ const dummyProject: NovelProject = {
 };
 
 // ローカルストレージにプロジェクトリストを保存する関数
-const saveProjectsToLocalStorage = (projects: NovelProject[]) => {
+const saveProjectsToLocalStorage = (projects: TRPGCampaign[]) => {
   localStorage.setItem("novelProjects", JSON.stringify(projects));
 };
 
@@ -147,7 +147,7 @@ const migrateExistingData = () => {
   const projectsStr = localStorage.getItem("novelProjects");
   if (projectsStr) {
     try {
-      const projects = JSON.parse(projectsStr) as NovelProject[];
+      const projects = JSON.parse(projectsStr) as TRPGCampaign[];
       let needsMigration = false;
 
       const migratedProjects = projects.map((project) => {
@@ -196,7 +196,7 @@ const initializeApp = () => {
 initializeApp();
 
 // ローカルストレージからプロジェクトリストを読み込む関数
-const loadProjectsFromLocalStorage = (): NovelProject[] => {
+const loadProjectsFromLocalStorage = (): TRPGCampaign[] => {
   const data = localStorage.getItem("novelProjects");
   return data ? JSON.parse(data) : [];
 };

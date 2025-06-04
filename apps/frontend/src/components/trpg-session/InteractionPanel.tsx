@@ -41,7 +41,7 @@ import {
   DirectionsRun,
   Security,
 } from "@mui/icons-material";
-import { TRPGCharacter, NPCCharacter, BaseLocation, CharacterInteraction } from "@novel-ai-assistant/types";
+import { TRPGCharacter, NPCCharacter, BaseLocation, CharacterInteraction } from "@trpg-ai-gm/types";
 import { useTRPGSession } from "../../hooks/useTRPGSession";
 
 interface InteractionPanelProps {

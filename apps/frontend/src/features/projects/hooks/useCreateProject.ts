@@ -2,9 +2,9 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { LocalStorageManager } from "../../../utils/localStorage";
 import {
-  NovelProject as Project,
+  TRPGCampaign as Project,
   ProjectStatus,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { Descendant } from "slate";
 
 interface CreateProjectOptions {

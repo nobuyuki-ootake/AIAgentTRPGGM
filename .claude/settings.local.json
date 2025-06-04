@@ -24,7 +24,9 @@
       "Bash(npm ls:*)",
       "Bash(node:*)",
       "Bash(npm --version)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(chmod:*)",
+      "Bash(./find-novel-refs.sh:*)"
     ],
     "deny": []
   }

@@ -1,4 +1,4 @@
-import { BaseLocation, TRPGCharacter, WeatherPattern, ClimateType, TerrainType } from '@novel-ai-assistant/types';
+import { BaseLocation, TRPGCharacter, WeatherPattern, ClimateType, TerrainType } from '@trpg-ai-gm/types';
 
 /**
  * 🌍 環境要因システム

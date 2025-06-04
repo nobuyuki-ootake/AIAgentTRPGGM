@@ -41,12 +41,12 @@ import EventSeedReviewDialog from "../components/timeline/EventSeedReviewDialog"
 import {
   TimelineEventSeed,
   TimelineEvent,
-  // NovelProject, // Unused
+  // TRPGCampaign, // Unused
   // PlotElement, // Unused
   // Character, // Unused
   // CharacterStatus, // Unused
   // PlaceElement, // Unused
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import moment from "moment";
 import TimelineEventCard from "../components/timeline/TimelineEventCard";
 // import { TimelineProvider } from "../contexts/TimelineContext"; // Unused and path error

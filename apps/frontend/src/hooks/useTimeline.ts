@@ -10,8 +10,7 @@ import {
   PlaceElement,
   CharacterStatus,
   QuestElement,
-  NovelProject,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { currentCampaignState } from "../store/atoms";
 
 // タイムライングループの型定義
@@ -351,7 +350,7 @@ export function useTimeline() {
       const projectsStr = localStorage.getItem("novelProjects");
       if (projectsStr) {
         try {
-          const projects: NovelProject[] = JSON.parse(projectsStr);
+          const projects: TRPGCampaign[] = JSON.parse(projectsStr);
           const latestProjectFromLocalStorage = projects.find(
             (p) => p.id === campaignId
           );

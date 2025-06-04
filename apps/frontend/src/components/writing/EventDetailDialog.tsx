@@ -16,7 +16,7 @@ import {
   Place as PlaceIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
-import { TimelineEvent } from "@novel-ai-assistant/types";
+import { TimelineEvent } from "@trpg-ai-gm/types";
 
 interface EventDetailDialogProps {
   open: boolean;

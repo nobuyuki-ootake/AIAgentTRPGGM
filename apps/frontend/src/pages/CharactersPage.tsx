@@ -18,11 +18,13 @@ import {
   Group, 
   PersonOutline, 
   Dangerous,
-  FileUpload 
+  FileUpload,
+  Assessment as AssessmentIcon
 } from "@mui/icons-material";
 import CharacterCard from "../components/characters/CharacterCard";
 import CharacterForm from "../components/characters/CharacterForm";
 import CharacterImportDialog from "../components/characters/CharacterImportDialog";
+import PartyBalanceEvaluator from "../components/characters/PartyBalanceEvaluator";
 import {
   CharactersProvider,
   useCharactersContext,
@@ -60,6 +62,7 @@ const CharactersPageContent: React.FC = () => {
     handleSaveStatus,
     handleDeleteStatus,
     addCharacter,
+    handleTemplateApplied,
     parseAIResponseToCharacters,
   } = useCharactersContext();
 
@@ -274,6 +277,7 @@ const CharactersPageContent: React.FC = () => {
         <Tab icon={<Group />} label="パーティー全体" />
         <Tab icon={<PersonOutline />} label={`PC (${characters.filter((c: any) => c.characterType === 'PC').length})`} />
         <Tab icon={<PersonOutline />} label={`NPC (${characters.filter((c: any) => c.characterType === 'NPC').length})`} />
+        <Tab icon={<AssessmentIcon />} label="バランス評価" />
       </Tabs>
 
       {/* パーティー全体タブ */}
@@ -355,6 +359,18 @@ const CharactersPageContent: React.FC = () => {
         </Box>
       </TabPanel>
 
+      {/* バランス評価タブ */}
+      <TabPanel value={tabValue} index={3}>
+        <PartyBalanceEvaluator 
+          characters={characters}
+          campaign={currentProject}
+          onRecommendationSelected={(recommendation) => {
+            // 推奨事項が選択された場合の処理（将来的に実装可能）
+            console.log("推奨事項が選択されました:", recommendation);
+          }}
+        />
+      </TabPanel>
+
       {/* キャラクター編集ダイアログ */}
       <Dialog
         open={openDialog}
@@ -390,6 +406,22 @@ const CharactersPageContent: React.FC = () => {
             onCancel={handleCloseDialog}
             onSaveStatus={handleSaveStatus}
             onDeleteStatus={handleDeleteStatus}
+            onTemplateApplied={handleTemplateApplied}
+            onStatsChange={(stats) => {
+              handleInputChange({
+                target: { name: 'stats', value: stats }
+              } as React.ChangeEvent<HTMLInputElement>);
+            }}
+            onSkillsChange={(skills) => {
+              handleSelectChange({
+                target: { name: 'skills', value: skills }
+              });
+            }}
+            onEquipmentChange={(equipment) => {
+              handleInputChange({
+                target: { name: 'equipment', value: equipment }
+              } as React.ChangeEvent<HTMLInputElement>);
+            }}
           />
         </DialogContent>
       </Dialog>

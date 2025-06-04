@@ -28,7 +28,7 @@ import { AIAssistButton } from "../components/ui/AIAssistButton";
 import LoadingOverlay from "../components/ui/LoadingOverlay";
 import ErrorDisplay from "../components/ui/ErrorDisplay";
 import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
-import { NovelProject, TimelineEvent } from "@novel-ai-assistant/types";
+import { TRPGCampaign, TimelineEvent } from "@trpg-ai-gm/types";
 import VerticalContentEditorWrapper from "../components/editor/VerticalContentEditorWrapper";
 import ChapterList from "../components/writing/ChapterList";
 import RelatedEventsList from "../components/writing/RelatedEventsList";
@@ -132,7 +132,7 @@ const WritingPageContent: React.FC = () => {
 
   // キャラクター名を取得する関数
   const getCharacterName = (characterId: string) => {
-    const characters = (currentProject as NovelProject)?.characters || [];
+    const characters = (currentProject as TRPGCampaign)?.characters || [];
     const character = characters.find(
       (c: { id: string }) => c.id === characterId
     );
@@ -142,7 +142,7 @@ const WritingPageContent: React.FC = () => {
   // 場所名を取得する関数
   const getPlaceName = (placeId: string) => {
     const places =
-      (currentProject as NovelProject)?.worldBuilding?.places || [];
+      (currentProject as TRPGCampaign)?.worldBuilding?.places || [];
     const place = places.find((p: { id: string }) => p.id === placeId);
     return place ? place.name : placeId;
   };
@@ -314,16 +314,16 @@ const WritingPageContent: React.FC = () => {
         .filter(Boolean)
         .join("\n") || "関連場所なし";
 
-    const defaultMessage = `「${currentChapter.title}」の章を執筆してください。
+    const defaultMessage = `「${currentChapter.title}」のセッションログを記録してください。
 
-【章の情報】
+【セッション情報】
 タイトル: ${currentChapter.title}
-あらすじ: ${currentChapter.synopsis || "未設定"}
+概要: ${currentChapter.synopsis || "未設定"}
 
-【関連イベント】
+【発生したイベント】
 ${relatedEventDetails}
 
-【登場キャラクター】
+【参加キャラクター】
 ${charactersInfo}
 
 【舞台となる場所】
@@ -343,14 +343,14 @@ ${
     : "指定なし"
 }
 
-上記の情報を参考に、物語の流れに沿った章を執筆してください。`;
+上記の情報を参考に、TRPGセッションの進行に沿ったログを記録してください。`;
 
     openAIAssist(
       "writing",
       {
-        title: "AI章執筆アシスト",
+        title: "AIセッションログアシスト",
         description:
-          "章の情報、関連イベント、キャラクター、場所を参考に章を執筆します。",
+          "セッション情報、発生イベント、キャラクター、場所を参考にセッションログを記録します。",
         defaultMessage,
         onComplete: (result) => {
           if (result && result.content) {
@@ -418,7 +418,7 @@ ${
         >
           <Box>
             <Typography variant="h4" gutterBottom>
-              {(currentProject as NovelProject).title}
+              {(currentProject as TRPGCampaign).title}
             </Typography>
             {currentChapter && (
               <Typography variant="h5" color="text.secondary">
@@ -517,7 +517,7 @@ ${
           }}
         >
           <ChapterList
-            chapters={(currentProject as NovelProject).chapters}
+            chapters={(currentProject as TRPGCampaign).chapters}
             currentChapterId={currentChapterId}
             onSelectChapter={handleChapterSelect}
           />
@@ -621,9 +621,9 @@ ${
         open={assignEventsDialogOpen}
         events={timelineEvents || []}
         selectedEvents={selectedEvents}
-        characters={(currentProject as NovelProject).characters || []}
-        places={(currentProject as NovelProject).worldBuilding?.places || []}
-        allPlots={(currentProject as NovelProject).plot || []}
+        characters={(currentProject as TRPGCampaign).characters || []}
+        places={(currentProject as TRPGCampaign).worldBuilding?.places || []}
+        allPlots={(currentProject as TRPGCampaign).plot || []}
         onClose={handleCloseAssignEventsDialog}
         onToggle={handleToggleEvent}
         onSave={handleAssignEvents}

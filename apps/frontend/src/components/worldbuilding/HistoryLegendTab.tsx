@@ -19,7 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../../store/atoms";
 import { v4 as uuidv4 } from "uuid";
-import { HistoryLegendElement, NovelProject } from "@novel-ai-assistant/types";
+import { HistoryLegendElement, TRPGCampaign } from "@trpg-ai-gm/types";
 
 const HistoryLegendTab: React.FC = () => {
   // Recoilからデータを取得
@@ -69,7 +69,7 @@ const HistoryLegendTab: React.FC = () => {
       (history: HistoryLegendElement) => history.id !== id
     );
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return null;
       return {
         ...prevProject,
@@ -77,7 +77,7 @@ const HistoryLegendTab: React.FC = () => {
           ...prevProject.worldBuilding,
           historyLegend: updatedHistoryLegends,
         },
-      } as NovelProject;
+      } as TRPGCampaign;
     });
   };
 
@@ -96,7 +96,7 @@ const HistoryLegendTab: React.FC = () => {
         (history: HistoryLegendElement) =>
           history.id === currentHistory.id ? currentHistory : history
       );
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -104,10 +104,10 @@ const HistoryLegendTab: React.FC = () => {
             ...prevProject.worldBuilding,
             historyLegend: updatedHistoryLegends,
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     } else {
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -118,7 +118,7 @@ const HistoryLegendTab: React.FC = () => {
               currentHistory,
             ],
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     }
     handleCloseDialog();

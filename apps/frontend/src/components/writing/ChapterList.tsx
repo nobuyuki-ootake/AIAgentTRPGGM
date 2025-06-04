@@ -9,7 +9,7 @@ import {
   Paper,
   Chip,
 } from "@mui/material";
-import { Chapter } from "@novel-ai-assistant/types";
+import { Chapter } from "@trpg-ai-gm/types";
 // import { useWritingContext } from "../../contexts/WritingContext"; // 未使用のためコメントアウト
 
 interface ChapterListProps {

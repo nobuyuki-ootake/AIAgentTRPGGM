@@ -23,7 +23,7 @@ import {
   Character,
   PlaceElement,
   PlotElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 
 interface AssignEventsDialogProps {
   open: boolean;
