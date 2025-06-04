@@ -1,4 +1,4 @@
-import { TRPGCharacter, StormbringerCharacter } from '@novel-ai-assistant/types';
+import { TRPGCharacter, StormbringerCharacter } from '@trpg-ai-gm/types';
 
 /**
  * 🎮 ゲームシステム固有のステータス管理システム

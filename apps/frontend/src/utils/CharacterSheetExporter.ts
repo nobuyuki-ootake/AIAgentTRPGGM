@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { TRPGCharacter, TRPGCampaign } from '@novel-ai-assistant/types';
+import { TRPGCharacter, TRPGCampaign } from '@trpg-ai-gm/types';
 import { GameSystemManager, UnifiedCharacterStats } from './GameSystemManager';
 import { SpellPowerManager } from './SpellPowerSystem';
 

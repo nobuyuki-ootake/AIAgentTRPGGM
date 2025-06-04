@@ -25,7 +25,7 @@ import {
   TimelineEvent,
   CharacterStatus,
   PlotElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { getCharacterIcon, eventTypes } from "./TimelineUtils";
 import moment from "moment";
 

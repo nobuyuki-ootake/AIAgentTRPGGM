@@ -7,7 +7,7 @@ import {
   PageContext,
   SelectedElement,
 } from "../store/atoms";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { toast } from "sonner";
 
 // エラーの種類
@@ -87,7 +87,7 @@ export const useAIChatIntegration = () => {
   const openAIAssist = (
     pageContext: PageContext,
     assistConfig: AssistConfig,
-    projectData?: NovelProject | null,
+    projectData?: TRPGCampaign | null,
     selectedElements?: SelectedElement[]
   ): boolean => {
     try {

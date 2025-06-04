@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRecoilState } from "recoil";
 import {
   WorldBuilding,
-  NovelProject,
+  TRPGCampaign,
   CultureElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { currentProjectState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import { useWorldBuildingContext } from "../contexts/WorldBuildingContext";
@@ -141,7 +141,7 @@ export const useWorldBuilding = () => {
     (newWorldBuilding: WorldBuilding) => {
       setWorldBuildingState(newWorldBuilding);
       if (project) {
-        const updatedProject: NovelProject = {
+        const updatedProject: TRPGCampaign = {
           ...project,
           worldBuilding: newWorldBuilding,
         };

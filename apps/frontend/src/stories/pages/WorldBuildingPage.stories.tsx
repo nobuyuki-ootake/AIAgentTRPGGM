@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { RecoilRoot } from "recoil";
 import WorldBuildingPage from "../../pages/WorldBuildingPage";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 // モックデータ
-const mockProject: NovelProject = {
+const mockProject: TRPGCampaign = {
   id: uuidv4(),
   title: "ファンタジー小説",
   createdAt: new Date(),

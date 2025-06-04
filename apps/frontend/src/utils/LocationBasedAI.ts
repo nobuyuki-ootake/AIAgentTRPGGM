@@ -1,4 +1,4 @@
-import { BaseLocation, TRPGCharacter } from '@novel-ai-assistant/types';
+import { BaseLocation, TRPGCharacter } from '@trpg-ai-gm/types';
 
 /**
  * 🏛️ 場所別AI応答カスタマイズシステム

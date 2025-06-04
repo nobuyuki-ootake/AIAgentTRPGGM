@@ -4,11 +4,10 @@ import { useRecoilValue } from "recoil";
 import {
   TRPGCharacter,
   Character,
-  NovelProject,
   TRPGCampaign,
   CustomField,
   CharacterStatus,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { currentCampaignState } from "../store/atoms";
 
 // コンテキストで提供する値の型定義
@@ -57,6 +56,7 @@ interface CharactersContextType {
   handleSaveStatus: (status: CharacterStatus) => void;
   handleDeleteStatus: (statusId: string) => void;
   addCharacter: (character: TRPGCharacter) => void;
+  handleTemplateApplied: (template: any, character: Partial<TRPGCharacter>) => void;
 
   // TRPGアシスト機能
   parseAIResponseToCharacters: (response: string) => TRPGCharacter[];
@@ -117,6 +117,58 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
     getEnemies,
   } = useCharacters();
 
+  // ゲームシステムテンプレート適用ハンドラー
+  const handleTemplateApplied = (template: any, character: Partial<TRPGCharacter>) => {
+    // テンプレートのデータをformDataに適用
+    const templateData: Partial<TRPGCharacter> = {
+      // 基本情報
+      race: character.race || "",
+      class: character.class || "",
+      // 能力値の適用
+      stats: {
+        ...formData.stats,
+        ...character.stats,
+      },
+      // スキルの適用
+      skills: character.skills || [],
+      // システム情報
+      gameSystem: template.name || formData.gameSystem,
+    };
+
+    // 各フィールドを個別に更新
+    Object.entries(templateData).forEach(([key, value]) => {
+      if (key === "stats" && value && typeof value === "object") {
+        // 能力値は個別に処理
+        Object.entries(value).forEach(([statKey, statValue]) => {
+          if (statValue !== undefined) {
+            handleInputChange({
+              target: {
+                name: `stats.${statKey}`,
+                value: statValue,
+              }
+            } as React.ChangeEvent<HTMLInputElement>);
+          }
+        });
+      } else if (key === "skills" && Array.isArray(value)) {
+        // スキルは配列として処理（現在の実装に応じて調整が必要な場合あり）
+        handleSelectChange({
+          target: {
+            name: "skills",
+            value: value,
+          }
+        });
+      } else if (value !== undefined && key !== "stats" && key !== "skills") {
+        // その他のフィールド
+        handleInputChange({
+          target: {
+            name: key,
+            value: value,
+          }
+        } as React.ChangeEvent<HTMLInputElement>);
+      }
+    });
+  };
+
   // コンテキストで提供する値
   const value: CharactersContextType = {
     // キャラクター状態と関数
@@ -154,6 +206,7 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
     handleSaveStatus,
     handleDeleteStatus,
     addCharacter,
+    handleTemplateApplied,
 
     // TRPGアシスト関連
     parseAIResponseToCharacters,

@@ -45,7 +45,7 @@ import {
   Image as ImageIcon,
 } from "@mui/icons-material";
 import { useBases } from "../../hooks/useBases";
-import { BaseLocation } from "@novel-ai-assistant/types";
+import { BaseLocation } from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../../api/aiAgent";
 
 const BaseTab: React.FC = () => {

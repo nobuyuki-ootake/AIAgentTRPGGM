@@ -9,7 +9,7 @@ import {
   appModeState,
 } from "../store/atoms";
 import { useEffect } from "react";
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 const ProjectsPage = () => {
   // Convert to Campaign page for TRPG

@@ -23,7 +23,7 @@ import {
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
-import { TimelineEvent } from "@novel-ai-assistant/types";
+import { TimelineEvent } from "@trpg-ai-gm/types";
 import moment from "moment";
 import { getEventTypeIconComponent } from "./TimelineUtils";
 import { useDraggable } from "@dnd-kit/core";

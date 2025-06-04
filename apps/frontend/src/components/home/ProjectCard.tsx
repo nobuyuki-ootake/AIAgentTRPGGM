@@ -8,7 +8,7 @@ import {
   Box,
 } from "@mui/material";
 import { Delete as DeleteIcon, Book as BookIcon } from "@mui/icons-material";
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 interface ProjectCardProps {
   project: TRPGCampaign;

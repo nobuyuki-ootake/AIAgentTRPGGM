@@ -35,7 +35,7 @@ import {
   CharacterTrait,
   // CharacterRole, // 削除 (CharacterRoleType を types/index.ts で定義)
   // CharacterStatus, // 未使用のためコメントアウト
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import {
   characterIcons,
   availableEmojis,

@@ -11,10 +11,10 @@ import { AlertColor } from "@mui/material";
 import {
   Chapter,
   TimelineEvent,
-  NovelProject,
+  TRPGCampaign,
   Character,
   WorldBuildingElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../api/aiAgent";
 import { convertTextToSlateValue } from "../utils/slateUtils";
 import { serializeToText } from "../utils/editorUtils";
@@ -41,7 +41,7 @@ export interface WritingContextType {
   // 状態
   editorValue: Descendant[];
   currentChapter: Chapter | null;
-  currentProject: NovelProject | null;
+  currentProject: TRPGCampaign | null;
   currentChapterId: string | null;
   timelineEvents: TimelineEvent[];
   newChapterDialogOpen: boolean;

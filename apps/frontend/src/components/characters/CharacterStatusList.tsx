@@ -9,7 +9,7 @@ import {
   Chip,
   Stack,
 } from "@mui/material";
-import { CharacterStatus } from "@novel-ai-assistant/types";
+import { CharacterStatus } from "@trpg-ai-gm/types";
 import EditIcon from "@mui/icons-material/Edit";
 import { Delete as DeleteIcon } from "@mui/icons-material";
 

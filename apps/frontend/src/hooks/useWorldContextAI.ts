@@ -1,6 +1,6 @@
 import { useRecoilValue } from 'recoil';
 import { currentCampaignState } from '../store/atoms';
-import { BaseLocation, TRPGCharacter } from '@novel-ai-assistant/types';
+import { BaseLocation, TRPGCharacter } from '@trpg-ai-gm/types';
 import { WorldContextBuilder } from '../utils/WorldContextBuilder';
 import { useAIChatIntegration } from './useAIChatIntegration';
 import { toast } from 'sonner';

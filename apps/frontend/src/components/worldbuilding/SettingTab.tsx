@@ -18,7 +18,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../../store/atoms";
-import { SettingElement, NovelProject } from "@novel-ai-assistant/types";
+import { SettingElement, TRPGCampaign } from "@trpg-ai-gm/types";
 
 interface SettingTabProps {
   settings: SettingElement[];
@@ -68,7 +68,7 @@ const SettingTab: React.FC<SettingTabProps> = ({ settings }) => {
   const handleSave = () => {
     if (!currentProject) return;
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return prevProject;
 
       let updatedSettings: SettingElement[];
@@ -106,7 +106,7 @@ const SettingTab: React.FC<SettingTabProps> = ({ settings }) => {
   const handleDelete = (elementToDelete: SettingElement) => {
     if (!currentProject) return;
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return prevProject;
 
       const updatedSettings = prevProject.worldBuilding.setting.filter(

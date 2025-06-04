@@ -5,6 +5,7 @@ import SynopsisPage from "./pages/SynopsisPage";
 import WritingPage from "./pages/WritingPage";
 import HomePage from "./pages/HomePage";
 import PlotPage from "./pages/PlotPage";
+import QuestPage from "./pages/QuestPage";
 import CharactersPage from "./pages/CharactersPage";
 import WorldBuildingPage from "./pages/WorldBuildingPage";
 import TimelinePage from "./pages/TimelinePage";
@@ -36,7 +37,7 @@ const MainContent = () => {
     case "synopsis":
       return <SynopsisPage />;
     case "plot":
-      return <PlotPage />;
+      return <QuestPage />;
     case "characters":
       return <CharactersPage />;
     case "worldbuilding":

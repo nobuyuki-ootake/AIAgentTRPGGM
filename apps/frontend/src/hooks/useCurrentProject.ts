@@ -1,6 +1,6 @@
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../store/atoms";
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 /**
  * 現在のキャンペーンを取得・更新するためのカスタムフック

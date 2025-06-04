@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { RecoilRoot } from "recoil";
 import CharactersPage from "../../pages/CharactersPage";
-import { Character } from "@novel-ai-assistant/types";
+import { Character } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 // モックデータ

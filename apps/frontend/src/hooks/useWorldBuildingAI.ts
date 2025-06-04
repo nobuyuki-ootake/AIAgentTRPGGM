@@ -16,7 +16,7 @@ import {
   PlotElement,
   Character,
   BaseWorldBuildingElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import { WorldBuildingApiResponse } from "../types/apiResponse";
 
 /**

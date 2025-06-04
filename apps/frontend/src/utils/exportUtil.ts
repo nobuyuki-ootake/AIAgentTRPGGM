@@ -1,8 +1,8 @@
 import {
-  NovelProject as Project,
+  TRPGCampaign as Project,
   Chapter,
   Section,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 
 /**
  * プロジェクトエクスポート用のユーティリティクラス

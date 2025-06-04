@@ -17,6 +17,9 @@ import {
   Grid,
   Divider,
   Stack,
+  Switch,
+  FormControlLabel,
+  LinearProgress,
 } from "@mui/material";
 import {
   Image as ImageIcon,
@@ -31,11 +34,16 @@ import {
 } from "@trpg-ai-gm/types";
 import CharacterStatusList from "./CharacterStatusList";
 import CharacterStatusEditorDialog from "./CharacterStatusEditorDialog";
+import GameSystemTemplates from "../templates/GameSystemTemplates";
 import { useAIChatIntegration } from "../../hooks/useAIChatIntegration";
 import { SelectChangeEvent } from "@mui/material/Select";
 import { useRecoilValue } from "recoil";
 import { currentCampaignState, ResponseData } from "../../store/atoms";
 import { AIAssistButton } from "../ui/AIAssistButton";
+import RealTimeValidator, { createCommonRules } from "../ui/RealTimeValidator";
+import useFormValidation, { TRPGValidationRules } from "../../hooks/useFormValidation";
+import AIAutoComplete from "../ai/AIAutoComplete";
+import AbilityScoreAllocationGuide from "./AbilityScoreAllocationGuide";
 
 // キャラクタータイプに応じたアイコンとカラーを定義
 const characterTypeIcons: Record<
@@ -95,6 +103,7 @@ interface CharacterFormProps {
   onStatsChange: (stats: TRPGCharacter["stats"]) => void;
   onSkillsChange: (skills: TRPGCharacter["skills"]) => void;
   onEquipmentChange: (equipment: TRPGCharacter["equipment"]) => void;
+  onTemplateApplied?: (template: any, character: Partial<TRPGCharacter>) => void;
 }
 
 // タブパネルコンポーネント
@@ -140,6 +149,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   onStatsChange,
   onSkillsChange,
   onEquipmentChange,
+  onTemplateApplied,
 }) => {
   const currentCampaign = useRecoilValue(currentCampaignState);
   const [activeTab, setActiveTab] = useState(0);
@@ -148,6 +158,113 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     undefined
   );
   const { openAIAssist } = useAIChatIntegration();
+  
+  // AI自動補完の状態管理
+  const [aiAutoCompleteEnabled, setAiAutoCompleteEnabled] = useState(true);
+  const [focusedElement, setFocusedElement] = useState<HTMLElement | null>(null);
+  const [currentField, setCurrentField] = useState<string>("");
+  
+  // フォーム検証の設定
+  const {
+    setValue,
+    setFieldRules,
+    getFieldError,
+    hasFieldError,
+    validationState,
+    formScore,
+    isFormValid
+  } = useFormValidation(300);
+
+  // フィールドナビゲーション機能
+  const handleNavigateToField = (fieldName: string) => {
+    // タブ間ナビゲーション
+    const fieldTabMap: Record<string, number> = {
+      'name': 1,
+      'race': 1,
+      'class': 1,
+      'characterType': 1,
+      'playerName': 1,
+      'gender': 1,
+      'age': 1,
+      'alignment': 1,
+      'background': 1,
+      'personality': 1,
+      'appearance': 1,
+      'stats': 2,
+      'skills': 3,
+      'equipment': 4,
+    };
+
+    const targetTab = fieldTabMap[fieldName];
+    if (targetTab !== undefined) {
+      setActiveTab(targetTab);
+      
+      // フィールドにフォーカス（遅延実行）
+      setTimeout(() => {
+        const element = document.querySelector(`[name="${fieldName}"]`) as HTMLElement;
+        if (element) {
+          element.focus();
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  };
+
+  // バリデーションルールの設定
+  React.useEffect(() => {
+    setFieldRules("name", TRPGValidationRules.characterName());
+    setFieldRules("race", [
+      createCommonRules.required("種族を入力してください"),
+      createCommonRules.minLength(2, "種族名は2文字以上で入力してください"),
+      createCommonRules.maxLength(20, "種族名は20文字以下で入力してください")
+    ]);
+    setFieldRules("class", [
+      createCommonRules.required("クラス/職業を入力してください"),
+      createCommonRules.minLength(2, "クラス名は2文字以上で入力してください")
+    ]);
+  }, [setFieldRules]);
+
+  // フォームデータと検証の同期
+  React.useEffect(() => {
+    setValue("name", formData.name || "");
+    setValue("race", formData.race || "");
+    setValue("class", formData.class || "");
+  }, [formData.name, formData.race, formData.class, setValue]);
+
+  // 検証付き入力変更ハンドラ
+  const handleValidatedInputChange = (fieldName: string, value: string) => {
+    setValue(fieldName, value);
+    // 既存のハンドラも呼び出す
+    onInputChange({
+      target: { name: fieldName, value }
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
+  // フォーカスイベントハンドラ（AI自動補完用）
+  const handleFieldFocus = (fieldName: string) => (event: React.FocusEvent<HTMLInputElement>) => {
+    setFocusedElement(event.target);
+    setCurrentField(fieldName);
+  };
+
+  const handleFieldBlur = () => {
+    // 少し遅延させてフォーカスを解除（AIAutoCompleteのクリックを可能にするため）
+    setTimeout(() => {
+      setFocusedElement(null);
+      setCurrentField("");
+    }, 150);
+  };
+
+  // AI提案受け入れハンドラ
+  const handleAISuggestionAccepted = (suggestion: string) => {
+    if (currentField) {
+      handleValidatedInputChange(currentField, suggestion);
+    }
+  };
+
+  // AI提案拒否ハンドラ
+  const handleAISuggestionRejected = (suggestionId: string) => {
+    console.log("AI suggestion rejected:", suggestionId);
+  };
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -245,6 +362,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
   return (
     <Box sx={{ p: 3 }}>
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+        <Tab label="システムテンプレート" />
         <Tab label="基本情報" />
         <Tab label="能力値" />
         <Tab label="スキル" />
@@ -252,8 +370,23 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
         <Tab label="画像・状態" />
       </Tabs>
 
-      {/* 基本情報タブ */}
+      {/* システムテンプレートタブ */}
       <TabPanel value={activeTab} index={0}>
+        <GameSystemTemplates
+          onTemplateSelected={(template) => {
+            if (onTemplateApplied) {
+              onTemplateApplied(template, template.characterTemplate);
+            }
+          }}
+          onCharacterTemplateApplied={(character) => {
+            // 自動的に基本情報タブに移動
+            setActiveTab(1);
+          }}
+        />
+      </TabPanel>
+
+      {/* 基本情報タブ */}
+      <TabPanel value={activeTab} index={1}>
         <Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
             <Typography variant="h6">基本情報</Typography>
@@ -262,18 +395,33 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
               text="AI提案"
               variant="outline"
             />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={aiAutoCompleteEnabled}
+                  onChange={(e) => setAiAutoCompleteEnabled(e.target.checked)}
+                  size="small"
+                />
+              }
+              label="AI自動補完"
+              sx={{ ml: 2 }}
+            />
           </Box>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
-              <TextField
-                name="name"
-                label="名前"
+              <RealTimeValidator
                 value={formData.name || ""}
-                onChange={onInputChange}
-                error={!!formErrors.name}
-                helperText={formErrors.name}
-                fullWidth
-                required
+                label="名前 *"
+                placeholder="キャラクターの名前を入力"
+                rules={TRPGValidationRules.characterName()}
+                onValueChange={(value) => handleValidatedInputChange("name", value)}
+                onNavigateToField={handleNavigateToField}
+                showValidationScore={true}
+                suggestions={[
+                  "アルトリア", "ガンダルフ", "レオナルド", "イザベラ", "ケイ",
+                  "アーサー", "マーリン", "エレン", "ミカサ", "リヴァイ"
+                ]}
+                allowSuggestions={true}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -310,21 +458,40 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
               </Grid>
             )}
             <Grid item xs={12} sm={6}>
-              <TextField
-                name="race"
-                label="種族"
+              <RealTimeValidator
                 value={formData.race || ""}
-                onChange={onInputChange}
-                fullWidth
+                label="種族"
+                placeholder="キャラクターの種族を入力"
+                rules={[
+                  createCommonRules.required("種族を入力してください"),
+                  createCommonRules.minLength(2, "種族名は2文字以上で入力してください"),
+                  createCommonRules.maxLength(20, "種族名は20文字以下で入力してください")
+                ]}
+                onValueChange={(value) => handleValidatedInputChange("race", value)}
+                onNavigateToField={handleNavigateToField}
+                suggestions={[
+                  "人間", "エルフ", "ドワーフ", "ハーフリング", "オーク",
+                  "ハーフエルフ", "ドラゴンボーン", "ティーフリング", "ノーム"
+                ]}
+                allowSuggestions={true}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                name="class"
-                label="職業/クラス"
+              <RealTimeValidator
                 value={formData.class || ""}
-                onChange={onInputChange}
-                fullWidth
+                label="職業/クラス"
+                placeholder="キャラクターのクラスを入力"
+                rules={[
+                  createCommonRules.required("クラス/職業を入力してください"),
+                  createCommonRules.minLength(2, "クラス名は2文字以上で入力してください")
+                ]}
+                onValueChange={(value) => handleValidatedInputChange("class", value)}
+                onNavigateToField={handleNavigateToField}
+                suggestions={[
+                  "ファイター", "ウィザード", "クレリック", "ローグ", "レンジャー",
+                  "パラディン", "バーバリアン", "ソーサラー", "バード", "ウォーロック"
+                ]}
+                allowSuggestions={true}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -360,9 +527,12 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 label="背景"
                 value={formData.background || ""}
                 onChange={onInputChange}
+                onFocus={handleFieldFocus("background")}
+                onBlur={handleFieldBlur}
                 multiline
                 rows={3}
                 fullWidth
+                placeholder="キャラクターの背景や経歴を入力（AI自動補完が利用可能）"
               />
             </Grid>
             <Grid item xs={12}>
@@ -371,9 +541,12 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 label="性格"
                 value={formData.personality || ""}
                 onChange={onInputChange}
+                onFocus={handleFieldFocus("personality")}
+                onBlur={handleFieldBlur}
                 multiline
                 rows={2}
                 fullWidth
+                placeholder="キャラクターの性格や特徴を入力（AI自動補完が利用可能）"
               />
             </Grid>
             <Grid item xs={12}>
@@ -382,9 +555,12 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 label="外見"
                 value={formData.appearance || ""}
                 onChange={onInputChange}
+                onFocus={handleFieldFocus("appearance")}
+                onBlur={handleFieldBlur}
                 multiline
                 rows={2}
                 fullWidth
+                placeholder="キャラクターの外見的特徴を入力（AI自動補完が利用可能）"
               />
             </Grid>
           </Grid>
@@ -392,7 +568,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
       </TabPanel>
 
       {/* 能力値タブ */}
-      <TabPanel value={activeTab} index={1}>
+      <TabPanel value={activeTab} index={2}>
         <Box>
           <Typography variant="h6" sx={{ mb: 2 }}>
             能力値（ステータス）
@@ -496,7 +672,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
       </TabPanel>
 
       {/* スキルタブ */}
-      <TabPanel value={activeTab} index={2}>
+      <TabPanel value={activeTab} index={3}>
         <Box>
           <Typography variant="h6" sx={{ mb: 2 }}>
             スキル
@@ -511,7 +687,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
       </TabPanel>
 
       {/* 装備タブ */}
-      <TabPanel value={activeTab} index={3}>
+      <TabPanel value={activeTab} index={4}>
         <Box>
           <Typography variant="h6" sx={{ mb: 2 }}>
             装備
@@ -526,7 +702,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
       </TabPanel>
 
       {/* 画像・状態タブ */}
-      <TabPanel value={activeTab} index={4}>
+      <TabPanel value={activeTab} index={5}>
         <Box>
           <Typography variant="h6" sx={{ mb: 2 }}>
             キャラクター画像/アイコン
@@ -660,6 +836,33 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
         </Box>
       </TabPanel>
 
+      {/* バリデーションサマリー */}
+      {Object.keys(validationState).length > 0 && (
+        <Paper elevation={1} sx={{ p: 2, mt: 2, border: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="subtitle2">
+              フォーム品質スコア: {formScore}/100
+            </Typography>
+            <Chip 
+              label={isFormValid ? "入力完了" : "入力中"} 
+              color={isFormValid ? "success" : "warning"}
+              size="small"
+            />
+          </Box>
+          <LinearProgress 
+            variant="determinate" 
+            value={formScore} 
+            color={isFormValid ? "success" : "warning"}
+            sx={{ height: 6, borderRadius: 3 }}
+          />
+          {!isFormValid && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              エラーのあるフィールドを修正してください
+            </Typography>
+          )}
+        </Paper>
+      )}
+
       {/* アクションボタン */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
         <Button onClick={onCancel} sx={{ mr: 1 }}>
@@ -670,6 +873,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
           variant="contained"
           color="primary"
           startIcon={<SaveIcon />}
+          disabled={!isFormValid && Object.keys(validationState).length > 0}
         >
           保存
         </Button>
@@ -680,6 +884,26 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
         editingStatus={editingStatus}
         onClose={handleCloseStatusEditor}
         onSave={handleSaveStatusCallback}
+      />
+
+      {/* AI自動補完コンポーネント */}
+      <AIAutoComplete
+        targetElement={focusedElement}
+        currentValue={
+          currentField === "background" ? formData.background || "" :
+          currentField === "personality" ? formData.personality || "" :
+          currentField === "appearance" ? formData.appearance || "" :
+          ""
+        }
+        field={currentField}
+        context={{
+          character: formData,
+          campaign: currentCampaign,
+          gameSystem: formData.gameSystem || "Fantasy",
+        }}
+        onSuggestionAccepted={handleAISuggestionAccepted}
+        onSuggestionRejected={handleAISuggestionRejected}
+        enabled={aiAutoCompleteEnabled}
       />
     </Box>
   );

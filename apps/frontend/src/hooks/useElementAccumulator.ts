@@ -9,7 +9,7 @@ import {
 // import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import {
-  NovelProject,
+  TRPGCampaign,
   PlaceElement,
   CultureElement,
   RuleElement,
@@ -22,7 +22,7 @@ import {
   getCategoryTabIndex,
   StateDefinitionElement,
   FreeFieldElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 
 export interface ElementAccumulatorHook {
   updatedTabs: { [key: number]: boolean };
@@ -52,8 +52,8 @@ export interface ElementAccumulatorHook {
     geographyEnvironment?: GeographyEnvironmentElement[];
     freeFields?: FreeFieldElement[];
   }) => void;
-  getCurrentProjectState: () => NovelProject;
-  updateProjectState: (updatedProject: NovelProject) => void;
+  getCurrentProjectState: () => TRPGCampaign;
+  updateProjectState: (updatedProject: TRPGCampaign) => void;
   validateWorldBuildingData: () => boolean;
   pendingPlaces: PlaceElement[];
   pendingRules: RuleElement[];
@@ -132,7 +132,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (rule: RuleElement) => {
       if (!currentProject) return;
       const newRule = { ...rule, id: rule.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -150,7 +150,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (culture: CultureElement) => {
       if (!currentProject) return;
       const newCulture = { ...culture, id: culture.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -179,7 +179,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
       const newPlace = { ...place, id: place.id || uuidv4() };
       console.log("[DEBUG] newPlace to add:", JSON.stringify(newPlace));
 
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject; // Should not happen if initial check passed
         console.log(
           "[DEBUG] prevProject.worldBuilding.places before adding:",
@@ -214,7 +214,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (worldmap: WorldmapElement) => {
       if (!currentProject) return;
       const newWorldmap = { ...worldmap, id: worldmap.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -234,7 +234,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (setting: SettingElement) => {
       if (!currentProject) return;
 
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
 
         const updatedWorldBuilding = {
@@ -254,7 +254,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (history: HistoryLegendElement) => {
       if (!currentProject) return;
       const newHistory = { ...history, id: history.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -276,7 +276,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (technology: MagicTechnologyElement) => {
       if (!currentProject) return;
       const newTechnology = { ...technology, id: technology.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -298,7 +298,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (geography: GeographyEnvironmentElement) => {
       if (!currentProject) return;
       const newGeography = { ...geography, id: geography.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -320,7 +320,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
     (freeField: FreeFieldElement) => {
       if (!currentProject) return;
       const newFreeField = { ...freeField, id: freeField.id || uuidv4() };
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return prevProject;
         const updatedWorldBuilding = {
           ...prevProject.worldBuilding,
@@ -503,7 +503,7 @@ export const useElementAccumulator = (): ElementAccumulatorHook => {
   }, [currentProject]);
 
   const updateProjectState = useCallback(
-    (updatedProject: NovelProject) => {
+    (updatedProject: TRPGCampaign) => {
       setCurrentProject(updatedProject);
     },
     [setCurrentProject]

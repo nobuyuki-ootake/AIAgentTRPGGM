@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ImportUtil, ValidationError } from "../../../utils/importUtil";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 interface ImportResult {
   success: boolean;
@@ -13,7 +13,7 @@ export const useProjectImport = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
     []
   );
-  const [importedProject, setImportedProject] = useState<NovelProject | null>(
+  const [importedProject, setImportedProject] = useState<TRPGCampaign | null>(
     null
   );
 

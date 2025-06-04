@@ -35,7 +35,7 @@ import {
   Settings,
   Add,
 } from '@mui/icons-material';
-import { BaseLocation } from '@novel-ai-assistant/types';
+import { BaseLocation } from '@trpg-ai-gm/types';
 
 // 🗺️ カスタム世界地図のGeoJSONデータ
 const FANTASY_WORLD_GEOJSON = {

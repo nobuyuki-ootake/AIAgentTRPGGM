@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { useRecoilValue } from 'recoil';
 import { currentCampaignState } from '../../store/atoms';
-import { BaseLocation } from '@novel-ai-assistant/types';
+import { BaseLocation } from '@trpg-ai-gm/types';
 import InteractiveMap from './InteractiveMap';
 import PositionTracker from './PositionTracker';
 

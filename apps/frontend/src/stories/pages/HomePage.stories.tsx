@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { RecoilRoot } from "recoil";
 import { MemoryRouter } from "react-router-dom";
 import HomePage from "../../pages/HomePage";
-import { NovelProject } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
 // モックプロジェクトデータ
-const mockProjects: NovelProject[] = [
+const mockProjects: TRPGCampaign[] = [
   {
     id: uuidv4(),
     title: "ファンタジー小説",

@@ -43,7 +43,7 @@ import { currentCampaignState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { EnemyCharacter, CharacterStats } from "@novel-ai-assistant/types";
+import { EnemyCharacter, CharacterStats } from "@trpg-ai-gm/types";
 
 const EnemyPage: React.FC = () => {
   const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);

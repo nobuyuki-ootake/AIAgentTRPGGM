@@ -6,7 +6,7 @@ import {
   StandardAIResponse,
   Character,
   PlaceElement,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import axios from "axios";
 
 // タイムラインイベントの「種」をAIに生成させるためのAPIの想定レスポンス型

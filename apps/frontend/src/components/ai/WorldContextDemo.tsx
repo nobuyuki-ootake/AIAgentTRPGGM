@@ -21,6 +21,11 @@ import {
   AccordionSummary,
   AccordionDetails,
   Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -32,10 +37,14 @@ import {
   Settings,
   PlayArrow,
   Code,
+  Casino as DiceIcon,
+  Group as PartyIcon,
+  Person as CharacterIcon,
+  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import { useRecoilValue } from 'recoil';
 import { currentCampaignState } from '../../store/atoms';
-import { BaseLocation, TRPGCharacter } from '@novel-ai-assistant/types';
+import { BaseLocation, TRPGCharacter } from '@trpg-ai-gm/types';
 import { useWorldContextAI } from '../../hooks/useWorldContextAI';
 import { WorldContextBuilder } from '../../utils/WorldContextBuilder';
 import { LocationBasedAI } from '../../utils/LocationBasedAI';
@@ -93,7 +102,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
   // 🎮 AI対話を開始
   const handleStartAI = () => {
     if (!currentLocation) {
-      alert('場所を選択してください');
+      alert('拠点を選択してください');
       return;
     }
 
@@ -127,7 +136,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
   // 📋 コンテキストをプレビュー
   const handlePreviewContext = () => {
     if (!currentLocation) {
-      alert('場所を選択してください');
+      alert('拠点を選択してください');
       return;
     }
 
@@ -144,7 +153,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
     setContextDialog(true);
   };
 
-  // 利用可能な場所とNPCを取得
+  // 利用可能な拠点とNPCを取得
   const availableLocations = currentCampaign?.bases || [];
   const availableNPCs = currentLocation?.npcs || [];
 
@@ -164,13 +173,16 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
           <CardContent>
             <Typography variant="h6" gutterBottom>
               <Settings sx={{ verticalAlign: 'middle', mr: 1 }} />
-              世界観コンテキストAI 設定
+              TRPG 世界観AI システム
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              拠点、時間、キャラクター情報を統合したコンテキスト認識型AIでTRPGセッションを進行
             </Typography>
             
             <Stack spacing={2}>
-              {/* 場所選択 */}
+              {/* 拠点選択 */}
               <FormControl fullWidth>
-                <InputLabel>現在の場所</InputLabel>
+                <InputLabel>現在の拠点</InputLabel>
                 <Select
                   value={currentLocation?.id || ''}
                   onChange={(e) => {
@@ -190,15 +202,15 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
 
               {/* 状況選択 */}
               <FormControl fullWidth>
-                <InputLabel>AI対話の状況</InputLabel>
+                <InputLabel>セッション状況</InputLabel>
                 <Select
                   value={selectedSituation}
                   onChange={(e) => setSelectedSituation(e.target.value as any)}
                 >
-                  <MenuItem value="encounter">⚔️ 遭遇・戦闘</MenuItem>
-                  <MenuItem value="conversation">💬 NPC会話</MenuItem>
-                  <MenuItem value="exploration">🔍 探索</MenuItem>
-                  <MenuItem value="general">🎮 汎用セッション</MenuItem>
+                  <MenuItem value="encounter">⚔️ 戦闘・遭遇シーン</MenuItem>
+                  <MenuItem value="conversation">💬 ロールプレイ・NPC対話</MenuItem>
+                  <MenuItem value="exploration">🔍 探索・調査シーン</MenuItem>
+                  <MenuItem value="general">🎮 汎用セッション進行</MenuItem>
                 </Select>
               </FormControl>
 
@@ -261,7 +273,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
                   startIcon={<PlayArrow />}
                   disabled={!currentLocation}
                 >
-                  AI対話を開始
+                  TRPGセッションを開始
                 </Button>
                 <Button
                   variant="outlined"
@@ -269,7 +281,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
                   startIcon={<Code />}
                   disabled={!currentLocation}
                 >
-                  コンテキストをプレビュー
+                  世界観コンテキスト確認
                 </Button>
               </Stack>
             </Stack>
@@ -378,16 +390,47 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
         {/* 🎯 使用方法ガイド */}
         <Alert severity="info">
           <Typography variant="subtitle2" gutterBottom>
-            💡 世界観コンテキストAIの使い方
+            <AutoAwesome sx={{ verticalAlign: 'middle', mr: 1 }} />
+            TRPGセッション AI ガイド
           </Typography>
-          <Typography variant="body2" component="div">
-            1. <strong>場所を選択</strong>: 現在いる拠点を選択<br />
-            2. <strong>状況を選択</strong>: 遭遇、会話、探索、汎用から選択<br />
-            3. <strong>詳細設定</strong>: 時間帯、NPC、カスタム指示を設定<br />
-            4. <strong>AI対話開始</strong>: 豊富なコンテキスト情報でAIが応答<br />
-            <br />
-            AIは場所の特徴、文化、環境、天候を考慮した適切な応答を提供します。
-          </Typography>
+          <List dense sx={{ pl: 0 }}>
+            <ListItem sx={{ pl: 0 }}>
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <Map fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="拠点選択" 
+                secondary="現在いるキャンペーン拠点を選択してセッション舞台を設定"
+              />
+            </ListItem>
+            <ListItem sx={{ pl: 0 }}>
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <DiceIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="シーン設定" 
+                secondary="戦闘、ロールプレイ、探索、汎用から状況を選択"
+              />
+            </ListItem>
+            <ListItem sx={{ pl: 0 }}>
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <TimelineIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="時間・環境" 
+                secondary="時間帯、セッション日数、特別な指示を設定"
+              />
+            </ListItem>
+            <ListItem sx={{ pl: 0 }}>
+              <ListItemIcon sx={{ minWidth: 32 }}>
+                <Psychology fontSize="small" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="AI GMモード" 
+                secondary="拠点データ、天候、文化的背景を統合したAIゲームマスター体験"
+              />
+            </ListItem>
+          </List>
         </Alert>
       </Stack>
 
@@ -399,7 +442,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
         fullWidth
       >
         <DialogTitle>
-          生成されたコンテキスト情報
+          TRPGキャンペーン世界観コンテキスト情報
         </DialogTitle>
         <DialogContent>
           <TextField

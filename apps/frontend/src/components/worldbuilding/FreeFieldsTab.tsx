@@ -19,7 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRecoilState } from "recoil";
 import { currentProjectState } from "../../store/atoms";
 import { v4 as uuidv4 } from "uuid";
-import { FreeFieldElement, NovelProject } from "@novel-ai-assistant/types";
+import { FreeFieldElement, TRPGCampaign } from "@trpg-ai-gm/types";
 
 const FreeFieldsTab: React.FC = () => {
   // Recoilからデータを取得
@@ -66,7 +66,7 @@ const FreeFieldsTab: React.FC = () => {
       (freeField: FreeFieldElement) => freeField.id !== id
     );
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return null;
       return {
         ...prevProject,
@@ -74,7 +74,7 @@ const FreeFieldsTab: React.FC = () => {
           ...prevProject.worldBuilding,
           freeFields: updatedFreeFields,
         },
-      } as NovelProject;
+      } as TRPGCampaign;
     });
   };
 
@@ -92,7 +92,7 @@ const FreeFieldsTab: React.FC = () => {
       const updatedFreeFields = freeFields.map((freeField: FreeFieldElement) =>
         freeField.id === currentFreeField.id ? currentFreeField : freeField
       );
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -100,10 +100,10 @@ const FreeFieldsTab: React.FC = () => {
             ...prevProject.worldBuilding,
             freeFields: updatedFreeFields,
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     } else {
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -114,7 +114,7 @@ const FreeFieldsTab: React.FC = () => {
               currentFreeField,
             ],
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     }
     handleCloseDialog();

@@ -5,7 +5,7 @@
 import {
   WorldBuildingElement,
   WorldBuildingElementData,
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 
 // 標準的なAPIレスポンスの基本型
 export interface ApiResponse<T> {

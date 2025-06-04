@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRecoilState } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { currentCampaignState } from "../store/atoms";
-import { TRPGCampaign } from "@novel-ai-assistant/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { TRPGLocalStorageManager } from "../utils/trpgLocalStorage";
 
 export function useTRPGHome() {

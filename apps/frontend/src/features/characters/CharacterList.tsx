@@ -18,7 +18,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { Character } from "@novel-ai-assistant/types";
+import { Character } from "@trpg-ai-gm/types";
 import CharacterCard from "./CharacterCard";
 // import { useCharactersContext } from "../../contexts/CharactersContext"; // 未使用のためコメントアウト
 

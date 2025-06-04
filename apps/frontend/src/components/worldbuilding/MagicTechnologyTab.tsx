@@ -21,8 +21,8 @@ import { currentProjectState } from "../../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import {
   MagicTechnologyElement,
-  NovelProject,
-} from "@novel-ai-assistant/types";
+  TRPGCampaign,
+} from "@trpg-ai-gm/types";
 
 const MagicTechnologyTab: React.FC = () => {
   // Recoilからデータを取得
@@ -73,7 +73,7 @@ const MagicTechnologyTab: React.FC = () => {
       (magicTech: MagicTechnologyElement) => magicTech.id !== id
     );
 
-    setCurrentProject((prevProject: NovelProject | null) => {
+    setCurrentProject((prevProject: TRPGCampaign | null) => {
       if (!prevProject) return null;
       return {
         ...prevProject,
@@ -81,7 +81,7 @@ const MagicTechnologyTab: React.FC = () => {
           ...prevProject.worldBuilding,
           magicTechnology: updatedMagicTechnologies,
         },
-      } as NovelProject;
+      } as TRPGCampaign;
     });
   };
 
@@ -100,7 +100,7 @@ const MagicTechnologyTab: React.FC = () => {
         (magicTech: MagicTechnologyElement) =>
           magicTech.id === currentMagicTech.id ? currentMagicTech : magicTech
       );
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -108,10 +108,10 @@ const MagicTechnologyTab: React.FC = () => {
             ...prevProject.worldBuilding,
             magicTechnology: updatedMagicTechnologies,
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     } else {
-      setCurrentProject((prevProject: NovelProject | null) => {
+      setCurrentProject((prevProject: TRPGCampaign | null) => {
         if (!prevProject) return null;
         return {
           ...prevProject,
@@ -122,7 +122,7 @@ const MagicTechnologyTab: React.FC = () => {
               currentMagicTech,
             ],
           },
-        } as NovelProject;
+        } as TRPGCampaign;
       });
     }
     handleCloseDialog();

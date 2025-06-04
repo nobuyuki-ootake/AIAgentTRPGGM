@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   Box,
   List,
@@ -14,6 +14,7 @@ import {
   Send,
   Casino,
 } from "@mui/icons-material";
+import ChatSearchFilter, { ChatSearchCriteria } from "./ChatSearchFilter";
 
 export interface DiceRoll {
   dice: string;
@@ -47,10 +48,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onOpenDiceDialog,
 }) => {
   const chatEndRef = useRef<null | HTMLDivElement>(null);
+  
+  // 検索・フィルター状態
+  const [searchCriteria, setSearchCriteria] = useState<ChatSearchCriteria>({
+    searchText: "",
+    senderFilter: "all",
+    hasSpellCheck: false,
+    timeRange: "all",
+  });
+  const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>(messages);
 
-  // チャットを自動スクロール
+  // フィルターされたメッセージが変更されたときに自動スクロール
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [filteredMessages]);
+
+  // 元のメッセージが変更されたときにフィルターを再適用
+  useEffect(() => {
+    setFilteredMessages(messages);
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -64,11 +79,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h6">セッションログ</Typography>
+        <ChatSearchFilter
+          messages={messages}
+          searchCriteria={searchCriteria}
+          onSearchCriteriaChange={setSearchCriteria}
+          onFilteredMessagesChange={setFilteredMessages}
+        />
       </Box>
       
       <Box sx={{ flex: 1, overflow: "auto", p: 2 }}>
         <List>
-          {messages.map((msg) => (
+          {filteredMessages.map((msg) => (
             <ListItem key={msg.id} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
                 <Avatar

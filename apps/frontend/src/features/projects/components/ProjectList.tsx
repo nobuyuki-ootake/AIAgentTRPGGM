@@ -64,12 +64,12 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
 
   // コンポーネントマウント時にLocalStorageの内容を確認するためのデバッグログ
   useEffect(() => {
-    const projectsStr = localStorage.getItem("novelProjects");
+    const projectsStr = localStorage.getItem("trpgCampaigns");
     const currentProjectId = localStorage.getItem("currentProjectId");
     const managerProjectList = localStorage.getItem("novel_project_list");
 
     console.log("=== ProjectList マウント時のデバッグ ===");
-    console.log("LocalStorage - novelProjects:", projectsStr);
+    console.log("LocalStorage - trpgCampaigns:", projectsStr);
     console.log("LocalStorage - currentProjectId:", currentProjectId);
     console.log("LocalStorage - novel_project_list:", managerProjectList);
 
@@ -120,7 +120,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
       "onProjectSelectがないため、直接ナビゲーションを実行します (リストアイテム)"
     );
     // プロジェクトのデータをローカルストレージから取得
-    const projectsStr = localStorage.getItem("novelProjects");
+    const projectsStr = localStorage.getItem("trpgCampaigns");
     console.log(
       "localStorageから取得したデータ (リストアイテム):",
       projectsStr
@@ -154,7 +154,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
       }
     } else {
       console.error(
-        "novelProjectsがlocalStorageに存在しません (リストアイテム)"
+        "trpgCampaignsがlocalStorageに存在しません (リストアイテム)"
       );
     }
   };
@@ -191,7 +191,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
     if (onProjectSelect) {
       console.log("onProjectSelectを使用します (編集ボタン)");
 
-      // LocalStorageManagerからプロジェクト情報を取得してNovelProject形式に変換
+      // LocalStorageManagerからプロジェクト情報を取得してTRPGCampaign形式に変換
       const managerProject = LocalStorageManager.loadProject(projectId);
       console.log(
         "LocalStorageManagerから取得したプロジェクト:",
@@ -221,8 +221,8 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
           feedback: [],
         };
 
-        // novelProjectsにもプロジェクトを保存
-        const existingProjects = localStorage.getItem("novelProjects");
+        // trpgCampaignsにもプロジェクトを保存
+        const existingProjects = localStorage.getItem("trpgCampaigns");
         let projects = existingProjects ? JSON.parse(existingProjects) : [];
 
         // 既存のプロジェクトを置き換えるか、新しく追加
@@ -235,7 +235,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
           projects.push(novelProjectData);
         }
 
-        localStorage.setItem("novelProjects", JSON.stringify(projects));
+        localStorage.setItem("trpgCampaigns", JSON.stringify(projects));
         localStorage.setItem("currentProjectId", projectId);
 
         console.log("変換したプロジェクトデータ:", novelProjectData);
@@ -247,7 +247,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
 
     console.log("onProjectSelectがないため、直接ナビゲーションを実行します");
     // プロジェクトのデータをローカルストレージから取得
-    const projectsStr = localStorage.getItem("novelProjects");
+    const projectsStr = localStorage.getItem("trpgCampaigns");
     console.log("localStorageから取得したデータ:", projectsStr);
 
     if (projectsStr) {
@@ -277,7 +277,7 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
         console.error("プロジェクトの読み込みエラー:", error);
       }
     } else {
-      console.error("novelProjectsがlocalStorageに存在しません");
+      console.error("trpgCampaignsがlocalStorageに存在しません");
     }
   };
 

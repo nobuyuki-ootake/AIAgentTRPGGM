@@ -18,7 +18,7 @@ import {
 } from "@mui/icons-material";
 import TimelineEventCard from "./TimelineEventCard";
 import { TimelineItem } from "../../hooks/useTimeline";
-import { TimelineEvent } from "@novel-ai-assistant/types";
+import { TimelineEvent } from "@trpg-ai-gm/types";
 
 interface TimelineEventListProps {
   timelineItems: TimelineItem[];

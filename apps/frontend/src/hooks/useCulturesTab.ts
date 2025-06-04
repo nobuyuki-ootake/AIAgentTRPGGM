@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { CultureElement } from "@novel-ai-assistant/types";
+import { CultureElement } from "@trpg-ai-gm/types";
 import { useElementAccumulator } from "./useElementAccumulator";
 
 export function useCulturesTab() {

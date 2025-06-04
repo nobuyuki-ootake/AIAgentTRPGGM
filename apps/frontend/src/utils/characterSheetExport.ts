@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { TRPGCharacter, TRPGCampaign } from '@novel-ai-assistant/types';
+import { TRPGCharacter, TRPGCampaign } from '@trpg-ai-gm/types';
 
 // PDF生成用のフォント設定
 const setupJapaneseFonts = (doc: jsPDF) => {

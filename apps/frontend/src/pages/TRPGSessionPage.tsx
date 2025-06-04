@@ -43,6 +43,8 @@ import {
   GameMasterIcon,
   BaseIcon,
 } from "../components/icons/TRPGIcons";
+import CombatLogger from "../components/combat/CombatLogger";
+import DynamicDifficultyAdjuster from "../components/ai/DynamicDifficultyAdjuster";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom, developerModeState } from "../store/atoms";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
@@ -60,7 +62,7 @@ import {
   PositionInfo,
   EncounterRule,
   CollisionDetectionConfig
-} from "@novel-ai-assistant/types";
+} from "@trpg-ai-gm/types";
 import ChatInterface, { ChatMessage, DiceRoll } from "../components/trpg-session/ChatInterface";
 import DiceRollUI from "../components/trpg-session/DiceRollUI";
 import CharacterDisplay from "../components/trpg-session/CharacterDisplay";
@@ -145,6 +147,7 @@ const TRPGSessionPage: React.FC = () => {
   
   // UI状態
   const [tabValue, setTabValue] = useState(0);
+  const [rightPanelTab, setRightPanelTab] = useState(0);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [diceDialog, setDiceDialog] = useState(false);
@@ -155,6 +158,14 @@ const TRPGSessionPage: React.FC = () => {
   const [lockedCharacterId, setLockedCharacterId] = useState<string | null>(null); // 🔒 固定されたキャラクターID
   const [aiDiceDialog, setAiDiceDialog] = useState(false);
   const [aiRequiredDice, setAiRequiredDice] = useState<any>(null);
+
+  // 戦闘ログ状態
+  const [currentCombatSession, setCurrentCombatSession] = useState<any>(null);
+  const [combatSessions, setCombatSessions] = useState<any[]>([]);
+
+  // 動的難易度調整状態
+  const [currentDifficulty, setCurrentDifficulty] = useState<any>(null);
+  const [recentCombatActions, setRecentCombatActions] = useState<any[]>([]);
 
   const { openAIAssist } = useAIChatIntegration();
 
@@ -2172,6 +2183,126 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
     setAiRequiredDice(null);
   };
 
+  // 戦闘ログハンドラー
+  const handleNewCombatSession = (session: any) => {
+    setCurrentCombatSession(session);
+    setCombatSessions(prev => [...prev, session]);
+    
+    // セッション開始をチャットに通知
+    const startMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "システム",
+      senderType: "system",
+      message: `⚔️ 戦闘セッション「${session.name}」を開始しました！`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, startMessage]);
+  };
+
+  const handleEndCombatSession = (sessionId: string, summary: any) => {
+    setCurrentCombatSession(null);
+    setCombatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed", summary, endTime: new Date() } : s
+    ));
+    
+    // セッション終了をチャットに通知
+    const endMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "システム", 
+      senderType: "system",
+      message: `⚔️ 戦闘セッション終了！ MVP: ${summary.mvpCharacterId ? 
+        playerCharacters.find(p => p.id === summary.mvpCharacterId)?.name || "不明" : "なし"}`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, endMessage]);
+  };
+
+  const handleLogCombatAction = (action: any) => {
+    if (!currentCombatSession) return;
+    
+    // セッションにアクションを追加
+    setCurrentCombatSession(prev => ({
+      ...prev,
+      actions: [...prev.actions, action],
+      totalRounds: Math.max(prev.totalRounds, action.round)
+    }));
+
+    // アクションをチャットに追加
+    const actionMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: action.actorName,
+      senderType: action.actorType === "player" ? "player" : "gm",
+      message: `${action.description}${action.diceRoll ? ` (${action.diceRoll.notation} = ${action.diceRoll.result})` : ""}`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, actionMessage]);
+
+    // 動的難易度調整用にアクションを追跡
+    trackCombatAction(action);
+  };
+
+  const handleExportCombatLog = (sessionId: string, format: "json" | "pdf" | "csv") => {
+    const session = combatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    if (format === "json") {
+      const dataStr = JSON.stringify(session, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `combat-log-${session.name}-${sessionId}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    // 他のフォーマットは後で実装
+  };
+
+  // 動的難易度調整ハンドラー
+  const handleDifficultyChange = (difficulty: any) => {
+    setCurrentDifficulty(difficulty);
+    
+    // 難易度変更をチャットに通知
+    const difficultyMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "AIシステム",
+      senderType: "system", 
+      message: `🎯 難易度が ${difficulty.finalDifficulty.toFixed(1)} に調整されました（信頼度: ${Math.round(difficulty.confidence * 100)}%）`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, difficultyMessage]);
+  };
+
+  const handleDifficultySuggestion = (suggestion: string, priority: "low" | "medium" | "high") => {
+    const priorityColors = {
+      low: "info",
+      medium: "warning", 
+      high: "error"
+    };
+    
+    // AI提案をチャットに表示
+    const suggestionMessage: ChatMessage = {
+      id: uuidv4(),
+      sender: "AI難易度調整",
+      senderType: "gm",
+      message: `💡 [${priority.toUpperCase()}] ${suggestion}`,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, suggestionMessage]);
+  };
+
+  // 戦闘アクションを難易度調整用データに追加
+  const trackCombatAction = (action: any) => {
+    setRecentCombatActions(prev => [...prev, {
+      ...action,
+      timestamp: new Date(),
+      type: action.actionType,
+      result: action.result,
+      damage: action.damage?.amount || 0,
+      healing: action.healing?.amount || 0,
+    }].slice(-50)); // 最新50アクションを保持
+  };
+
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", bgcolor: "background.default" }}>
       {/* ヘッダー */}
@@ -2395,13 +2526,13 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
 
         {/* 右側 - 詳細情報 */}
         <Paper sx={{ width: 300, p: 2 }}>
-          <Tabs value={0} onChange={() => {}}>
+          <Tabs value={rightPanelTab} onChange={(e, newValue) => setRightPanelTab(newValue)}>
             <Tab label="ステータス" />
             <Tab label="施設" />
-            <Tab label="ログ" />
+            <Tab label="戦闘ログ" />
           </Tabs>
           
-          <TabPanel value={0} index={0}>
+          <TabPanel value={rightPanelTab} index={0}>
             {selectedCharacter && (
               <Box>
                 <Typography variant="h6" gutterBottom>
@@ -2467,7 +2598,7 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
             )}
           </TabPanel>
 
-          <TabPanel value={0} index={1}>
+          <TabPanel value={rightPanelTab} index={1}>
             {/* 🏛️ 施設インタラクション */}
             <FacilityInteractionPanel 
               currentBase={getCurrentBase()}
@@ -2502,10 +2633,15 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
             </Stack>
           </TabPanel>
 
-          <TabPanel value={0} index={2}>
-            <Typography variant="body2" color="text.secondary">
-              セッションログ（実装予定）
-            </Typography>
+          <TabPanel value={rightPanelTab} index={2}>
+            <CombatLogger
+              currentSession={currentCombatSession}
+              characters={playerCharacters}
+              onNewSession={handleNewCombatSession}
+              onEndSession={handleEndCombatSession}
+              onLogAction={handleLogCombatAction}
+              onExportLog={handleExportCombatLog}
+            />
           </TabPanel>
         </Paper>
       </Box>
@@ -2553,6 +2689,23 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
               };
               setChatMessages(prev => [...prev, facilityMessage]);
             }}
+          />
+        </Paper>
+      )}
+
+      {/* 🎯 動的難易度調整システム（開発者モード） */}
+      {developerMode && (
+        <Paper elevation={2} sx={{ p: 2, mt: 2, border: 2, borderColor: 'warning.main' }}>
+          <Typography variant="h6" color="warning.main" gutterBottom>
+            🎯 動的難易度調整システム
+          </Typography>
+          <DynamicDifficultyAdjuster
+            characters={playerCharacters}
+            campaign={currentCampaign}
+            currentEncounter={currentCombatSession}
+            recentActions={recentCombatActions}
+            onDifficultyChange={handleDifficultyChange}
+            onSuggestion={handleDifficultySuggestion}
           />
         </Paper>
       )}

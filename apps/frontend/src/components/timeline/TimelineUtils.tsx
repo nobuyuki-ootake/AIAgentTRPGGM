@@ -1,5 +1,5 @@
 import React from "react";
-import { TRPGCharacter } from "@novel-ai-assistant/types";
+import { TRPGCharacter } from "@trpg-ai-gm/types";
 import {
   Event as EventIcon,
   SportsKabaddi as BattleIcon,

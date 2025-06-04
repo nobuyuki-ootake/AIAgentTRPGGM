@@ -14,7 +14,7 @@ import {
   TimelineEvent,
   PlaceElement,
   PlotElement,
-} from "@novel-ai-assistant/types"; // Plotの代わりにPlotElementを使用
+} from "@trpg-ai-gm/types"; // Plotの代わりにPlotElementを使用
 // import { getCharacterIcon } from "./TimelineUtils"; // EventCardやPlaceColumnへ
 import PlaceColumn from "./PlaceColumn"; // デフォルトインポートに変更
 import moment from "moment"; // momentを追加

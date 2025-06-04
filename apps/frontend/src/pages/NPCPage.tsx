@@ -44,7 +44,7 @@ import { currentCampaignState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { NPCCharacter } from "@novel-ai-assistant/types";
+import { NPCCharacter } from "@trpg-ai-gm/types";
 
 const NPCPage: React.FC = () => {
   const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
