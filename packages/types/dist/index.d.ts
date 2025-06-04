@@ -327,21 +327,210 @@ export interface WorldBuilding {
 }
 export interface GameSession {
     id: string;
+    campaignId: string;
     sessionNumber: number;
     title: string;
     date: Date;
     duration: number;
-    attendees: string[];
-    gamemaster: string;
+    attendees?: string[];
+    gamemaster?: string;
     synopsis?: string;
-    content: Descendant[];
-    events: SessionEvent[];
-    combats: CombatEncounter[];
-    questsAdvanced: string[];
-    questsCompleted: string[];
-    experienceAwarded: number;
-    status: "planned" | "inProgress" | "completed" | "cancelled";
+    content?: Descendant[];
+    events?: SessionEvent[];
+    combats?: CombatEncounter[];
+    questsAdvanced?: string[];
+    questsCompleted?: string[];
+    experienceAwarded?: number;
+    status?: "planned" | "inProgress" | "completed" | "cancelled";
     notes?: string;
+    currentState: SessionCurrentState;
+    spatialTracking: SpatialTrackingSystem;
+    encounterHistory: EncounterRecord[];
+    summary?: string;
+    npcsEncountered?: string[];
+    combatEncounters?: string[];
+    lootObtained?: string[];
+    questProgress?: Record<string, any>;
+    playerNotes?: Record<string, any>;
+    gmNotes?: string;
+    recordingUrl?: string;
+}
+export interface SessionCurrentState {
+    currentDay: number;
+    currentTimeOfDay: TimeOfDay;
+    actionCount: number;
+    maxActionsPerDay: number;
+    currentLocation: string;
+    currentLocationId?: string;
+    coordinates?: Coordinates;
+    activeCharacter: string;
+    partyLocation: PartyLocationState;
+    partyStatus: PartyStatus;
+    activeEvents: string[];
+    completedEvents: string[];
+    triggeredEvents: TriggeredEvent[];
+}
+export type TimeOfDay = "morning" | "noon" | "afternoon" | "evening" | "night" | "late_night";
+export interface EncounterChance {
+    probability: number;
+    type: string;
+    description?: string;
+}
+export interface WeatherModifier {
+    condition: string;
+    modifier: number;
+    effects: string[];
+}
+export interface ConditionalEvent {
+    condition: string;
+    event: string;
+    probability: number;
+}
+export type ClimateType = "temperate" | "tropical" | "arctic" | "desert" | "mountain" | "coastal" | "magical";
+export type TerrainType = "plains" | "forest" | "mountain" | "desert" | "swamp" | "urban" | "ruins" | "underground" | "aerial";
+export interface WeatherPattern {
+    season: string;
+    conditions: string[];
+    temperature: {
+        min: number;
+        max: number;
+    };
+    precipitation: number;
+}
+export interface Coordinates {
+    x: number;
+    y: number;
+    z?: number;
+    region?: string;
+}
+export interface PartyLocationState {
+    groupLocation: string;
+    memberLocations: {
+        [characterId: string]: {
+            location: string;
+            coordinates?: Coordinates;
+            timeArrived: string;
+            isWithGroup: boolean;
+        };
+    };
+    movementHistory: MovementRecord[];
+}
+export type PartyStatus = "exploring" | "resting" | "combat" | "shopping" | "dialogue" | "traveling";
+export interface MovementRecord {
+    characterId: string;
+    fromLocation: string;
+    toLocation: string;
+    timestamp: Date;
+    dayNumber: number;
+    timeOfDay: TimeOfDay;
+}
+export interface TriggeredEvent {
+    eventId: string;
+    triggeredAt: Date;
+    dayNumber: number;
+    timeOfDay: TimeOfDay;
+    location: string;
+    triggerType: "scheduled" | "encounter" | "manual" | "ai_initiated";
+    participants: string[];
+    result?: "success" | "failure" | "ongoing" | "cancelled";
+}
+export interface SpatialTrackingSystem {
+    currentPositions: {
+        players: {
+            [characterId: string]: PositionInfo;
+        };
+        npcs: {
+            [npcId: string]: PositionInfo;
+        };
+        enemies: {
+            [enemyId: string]: PositionInfo;
+        };
+    };
+    collisionDetection: CollisionDetectionConfig;
+    definedAreas: GameArea[];
+    encounterRules: EncounterRule[];
+}
+export interface PositionInfo {
+    location: string;
+    coordinates?: Coordinates;
+    arrivalTime: Date;
+    dayNumber: number;
+    timeOfDay: TimeOfDay;
+    isActive: boolean;
+    visibilityRange?: number;
+    movementSpeed?: number;
+}
+export interface CollisionDetectionConfig {
+    enableSpatialCollision: boolean;
+    enableTemporalCollision: boolean;
+    collisionRadius: number;
+    timeWindow: number;
+    automaticEncounters: boolean;
+    encounterProbability: {
+        npc: number;
+        enemy: number;
+        event: number;
+    };
+}
+export interface GameArea {
+    id: string;
+    name: string;
+    type: "safe" | "dangerous" | "neutral" | "special";
+    boundaries?: Coordinates[];
+    encounterModifiers: {
+        npcMultiplier: number;
+        enemyMultiplier: number;
+        eventMultiplier: number;
+    };
+    restrictions?: string[];
+}
+export interface EncounterRule {
+    id: string;
+    name: string;
+    conditions: EncounterCondition[];
+    actions: EncounterAction[];
+    priority: number;
+    isActive: boolean;
+}
+export interface EncounterCondition {
+    type: "location" | "time" | "character" | "event" | "probability";
+    operator: "equals" | "contains" | "greater_than" | "less_than" | "in_range";
+    value: any;
+    characterId?: string;
+}
+export interface EncounterAction {
+    type: "spawn_enemy" | "trigger_event" | "spawn_npc" | "force_dialogue" | "require_dice_roll";
+    parameters: Record<string, any>;
+    description: string;
+}
+export interface EncounterRecord {
+    id: string;
+    timestamp: Date;
+    dayNumber: number;
+    timeOfDay: TimeOfDay;
+    location: string;
+    encounterType: "npc_dialogue" | "enemy_combat" | "event_trigger" | "location_discovery" | "trap_activation";
+    participants: {
+        players: string[];
+        npcs?: string[];
+        enemies?: string[];
+    };
+    result: {
+        outcome: "success" | "failure" | "escape" | "negotiation" | "ongoing";
+        damageDealt?: number;
+        damageReceived?: number;
+        itemsGained?: string[];
+        experienceGained?: number;
+        questProgress?: Record<string, any>;
+    };
+    aiDecisions: {
+        wasAIInitiated: boolean;
+        difficultyCalculated: number;
+        surpriseRound?: boolean;
+        tacticalAdvantage?: "player" | "enemy" | "neutral";
+    };
+    description: string;
+    tags: string[];
 }
 export interface SessionEvent {
     id: string;
@@ -871,6 +1060,33 @@ export interface BaseLocation {
         priceModifier: number;
         localGoods: string[];
         tradeGoods: string[];
+    };
+    encounterRules?: {
+        timeOfDay: Record<TimeOfDay, EncounterChance>;
+        weatherEffects?: WeatherModifier[];
+        specialEvents?: ConditionalEvent[];
+    };
+    npcSchedule?: {
+        [npcId: string]: {
+            availability: TimeOfDay[];
+            services: string[];
+            questTriggers: string[];
+        };
+    };
+    culturalModifiers?: {
+        negotiationDC: number;
+        priceModifier: number;
+        reputationImpact: number;
+    };
+    environmentalFactors?: {
+        climate: ClimateType;
+        terrain: TerrainType;
+        weatherPatterns: WeatherPattern[];
+        naturalHazards?: string[];
+    };
+    coordinates?: {
+        lat: number;
+        lng: number;
     };
     meta: {
         locationId: string;

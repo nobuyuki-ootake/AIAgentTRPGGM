@@ -9,6 +9,7 @@ import {
   Paper
 } from '@mui/material';
 import Dice2D from './Dice2D';
+import { DiceTheme } from './DiceVisualization';
 
 // Lazy load the 3D component to handle potential loading issues
 const DiceVisualization = React.lazy(() => import('./DiceVisualization'));
@@ -21,6 +22,7 @@ interface DiceDisplayProps {
   size?: number;
   showModeToggle?: boolean;
   defaultMode?: '2d' | '3d';
+  theme?: DiceTheme;
 }
 
 const DiceDisplay: React.FC<DiceDisplayProps> = ({
@@ -30,7 +32,8 @@ const DiceDisplay: React.FC<DiceDisplayProps> = ({
   onRollComplete,
   size = 80,
   showModeToggle = true,
-  defaultMode = '2d'
+  defaultMode = '2d',
+  theme
 }) => {
   const [mode, setMode] = useState<'2d' | '3d'>(defaultMode);
   const [has3DSupport, setHas3DSupport] = useState(true);
@@ -85,6 +88,7 @@ const DiceDisplay: React.FC<DiceDisplayProps> = ({
               result={result}
               isRolling={isRolling}
               onRollComplete={onRollComplete}
+              theme={theme}
             />
           </ErrorBoundary>
         </Suspense>
@@ -99,6 +103,7 @@ const DiceDisplay: React.FC<DiceDisplayProps> = ({
           isRolling={isRolling}
           size={size}
           onRollComplete={onRollComplete}
+          theme={theme}
         />
       </Box>
     );

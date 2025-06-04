@@ -7,20 +7,24 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "npx turbo run dev",
     "dev:frontend": "cd apps/frontend && pnpm run dev",
     "dev:proxy": "cd apps/proxy-server && pnpm run dev",
-    "build": "turbo build",
+    "build": "npx turbo run build",
     "build:frontend": "cd apps/frontend && pnpm run build",
     "build:proxy": "cd apps/proxy-server && pnpm run build",
     "start": "pnpm run start:frontend",
     "start:frontend": "cd apps/frontend && pnpm run preview",
     "start:proxy": "cd apps/proxy-server && pnpm run start",
-    "lint": "turbo lint",
+    "lint": "npx turbo run lint",
     "lint:frontend": "cd apps/frontend && pnpm run lint",
     "lint:proxy": "cd apps/proxy-server && pnpm run lint",
     "storybook": "cd apps/frontend && pnpm run storybook",
-    "build-storybook": "cd apps/frontend && pnpm run build-storybook"
+    "build-storybook": "cd apps/frontend && pnpm run build-storybook",
+    "test:e2e": "cd apps/frontend && pnpm run test:e2e",
+    "test:e2e:ui": "cd apps/frontend && pnpm run test:e2e:ui",
+    "test:trpg-session": "cd apps/frontend && pnpm run test:trpg-session",
+    "test:ai-enhanced": "cd apps/frontend && pnpm run test:ai-enhanced"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

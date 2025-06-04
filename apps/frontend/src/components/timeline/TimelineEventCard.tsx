@@ -22,6 +22,7 @@ import {
   LocationOn as LocationIcon,
   Person as PersonIcon,
   ExpandMore as ExpandMoreIcon,
+  Assessment as ResultIcon,
 } from "@mui/icons-material";
 import { TimelineEvent } from "@trpg-ai-gm/types";
 import moment from "moment";
@@ -34,6 +35,7 @@ interface TimelineEventCardProps {
   plotName?: string;
   onEdit: (id: string) => void;
   onDelete?: (id: string) => void;
+  onEventResultClick?: (event: TimelineEvent) => void;
   getCharacterNameById?: (id: string) => string;
   dndContextType: "list" | "chart" | "overlay";
 }
@@ -44,6 +46,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
   plotName,
   onEdit,
   onDelete,
+  onEventResultClick,
   getCharacterNameById,
   dndContextType,
 }) => {
@@ -181,6 +184,20 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                   <EditIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
+              {onEventResultClick && (
+                <Tooltip title="結果を記録">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventResultClick(event);
+                    }}
+                    color="secondary"
+                  >
+                    <ResultIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Box>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 0, pb: 1, px: 2 }}>

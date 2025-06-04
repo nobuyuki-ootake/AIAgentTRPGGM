@@ -49,6 +49,8 @@ import {
 } from "@trpg-ai-gm/types";
 import moment from "moment";
 import TimelineEventCard from "../components/timeline/TimelineEventCard";
+import TimelineEventResultHandler, { EventResult } from "../components/timeline/TimelineEventResultHandler";
+import WorldStateManager from "../components/world/WorldStateManager";
 // import { TimelineProvider } from "../contexts/TimelineContext"; // Unused and path error
 
 const convertSeedToTimelineEvent = (
@@ -135,6 +137,11 @@ const TimelinePage: React.FC = () => {
   const [activeDragItem, setActiveDragItem] = useState<TimelineEvent | null>(
     null
   );
+
+  // Event result handler state
+  const [eventResultDialogOpen, setEventResultDialogOpen] = useState(false);
+  const [selectedEventForResult, setSelectedEventForResult] = useState<TimelineEvent | null>(null);
+  const [worldState, setWorldState] = useState<any>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -463,6 +470,47 @@ const TimelinePage: React.FC = () => {
     closeAIAssist();
   };
 
+  // Event result handlers
+  const handleEventResultClick = (event: TimelineEvent) => {
+    setSelectedEventForResult(event);
+    setEventResultDialogOpen(true);
+  };
+
+  const handleEventResultSubmit = (result: EventResult) => {
+    console.log('Event result submitted:', result);
+    
+    // Convert event result to world state change format
+    const worldStateChange = {
+      eventId: result.eventId,
+      eventName: result.eventName,
+      eventType: result.eventType,
+      success: result.outcome === 'success' || result.outcome === 'partial_success',
+      playerActions: result.playerActions,
+      consequences: result.consequences,
+      affectedLocations: result.affectedLocations,
+    };
+
+    // Apply to world state if WorldStateManager is available
+    if (worldState) {
+      // This would trigger world state changes
+      console.log('Applying world state changes:', worldStateChange);
+    }
+
+    // Update the event with result information
+    // This could be added to the timeline event for reference
+    setEventResultDialogOpen(false);
+    setSelectedEventForResult(null);
+  };
+
+  const handleWorldStateChange = (newState: any) => {
+    setWorldState(newState);
+  };
+
+  const handleWorldStateSuggestion = (suggestion: string, priority: "low" | "medium" | "high") => {
+    console.log(`World state suggestion (${priority}):`, suggestion);
+    // Could show a snackbar or notification
+  };
+
   console.log(
     "[TimelinePage] definedCharacterStatuses from useTimeline:",
     definedCharacterStatuses
@@ -766,6 +814,7 @@ const TimelinePage: React.FC = () => {
                   safeMaxY={safeMaxY}
                   onEventClick={handleEventClick}
                   onDeleteEvent={handleDeleteEvent}
+                  onEventResultClick={handleEventResultClick}
                 />
               )}
             </>
@@ -815,6 +864,18 @@ const TimelinePage: React.FC = () => {
             </>
           )}
 
+          {/* プレイモード: 世界状態管理 */}
+          {!developerMode && (
+            <Box sx={{ mt: 3 }}>
+              <WorldStateManager
+                campaign={currentCampaign}
+                locations={places || []}
+                onStateChange={handleWorldStateChange}
+                onSuggestion={handleWorldStateSuggestion}
+              />
+            </Box>
+          )}
+
           <Snackbar
             open={snackbarOpen}
             autoHideDuration={6000}
@@ -828,6 +889,16 @@ const TimelinePage: React.FC = () => {
               {snackbarMessage}
             </Alert>
           </Snackbar>
+
+          {/* Event Result Handler Dialog */}
+          <TimelineEventResultHandler
+            open={eventResultDialogOpen}
+            event={selectedEventForResult}
+            onClose={() => setEventResultDialogOpen(false)}
+            onSubmit={handleEventResultSubmit}
+            availableLocations={places?.map(p => ({ id: p.id, name: p.name })) || []}
+            availableFactions={currentCampaign?.factions?.map(f => ({ id: f.id, name: f.name })) || []}
+          />
         </Paper>
       </Box>
       <DragOverlay dropAnimation={null}>

@@ -18,10 +18,16 @@ import {
   Tooltip,
   Tabs,
   Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
+import { ExpandMore } from "@mui/icons-material";
 import { DiceD20Icon, DiceD6Icon } from "../icons/TRPGIcons";
 import UnifiedDiceInterface from "../dice/UnifiedDiceInterface";
 import DiceDisplay from "../dice/DiceDisplay";
+import DiceThemeSelector from "../dice/DiceThemeSelector";
+import DiceVisualization, { DICE_THEMES } from "../dice/DiceVisualization";
 import { useRecoilValue } from "recoil";
 import { currentCampaignState } from "../../store/atoms";
 
@@ -60,6 +66,17 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
   const [isRolling, setIsRolling] = useState(false);
   const [rollResults, setRollResults] = useState<number[]>([]);
   const [totalResult, setTotalResult] = useState<number | null>(null);
+  
+  // ダイステーマ用
+  const [selectedDiceTheme, setSelectedDiceTheme] = useState<string>(() => {
+    return localStorage.getItem('dice-theme') || 'classic';
+  });
+
+  // テーマ変更ハンドラー
+  const handleThemeChange = (themeKey: string) => {
+    setSelectedDiceTheme(themeKey);
+    localStorage.setItem('dice-theme', themeKey);
+  };
 
   // よく使われるダイス組み合わせのプリセット
   const presets = [
@@ -292,6 +309,25 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
               </Button>
             </Tooltip>
           </Box>
+
+          {/* ダイステーマ設定 */}
+          {showDiceVisualization && (
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle2">
+                  ダイステーマ設定 ({DICE_THEMES[selectedDiceTheme]?.name || 'クラシック'})
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <DiceThemeSelector
+                  selectedTheme={selectedDiceTheme}
+                  onThemeChange={handleThemeChange}
+                  showPreview={false}
+                  compact={true}
+                />
+              </AccordionDetails>
+            </Accordion>
+          )}
         </Stack>
         )}
 
@@ -308,6 +344,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
                       size={120}
                       showModeToggle={index === 0}
                       defaultMode="2d"
+                      theme={DICE_THEMES[selectedDiceTheme]}
                     />
                   </Grid>
                 ))}
