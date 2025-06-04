@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, keyframes } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { DiceTheme, DICE_THEMES } from './DiceVisualization';
 
 interface Dice2DProps {
   type: 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20';
@@ -8,6 +9,7 @@ interface Dice2DProps {
   isRolling?: boolean;
   size?: number;
   onRollComplete?: (result: number) => void;
+  theme?: DiceTheme;
 }
 
 const rollAnimation = keyframes`
@@ -97,23 +99,15 @@ const DiceShape = styled(Box)<{ diceType: string; size: number; color: string }>
   }
 });
 
-const getDiceColor = (type: string): string => {
-  switch (type) {
-    case 'd4': return '#e74c3c';
-    case 'd6': return '#3498db';
-    case 'd8': return '#9b59b6';
-    case 'd10': return '#e67e22';
-    case 'd12': return '#f39c12';
-    case 'd20': return '#2ecc71';
-    default: return '#95a5a6';
-  }
+const getDiceColor = (type: string, theme: DiceTheme): string => {
+  return theme.colors[type as keyof DiceTheme['colors']] || theme.colors.d6;
 };
 
 const getMaxValue = (type: string): number => {
   return parseInt(type.substring(1));
 };
 
-const DicePattern: React.FC<{ type: string; value: number; size: number }> = ({ type, value, size }) => {
+const DicePattern: React.FC<{ type: string; value: number; size: number; theme: DiceTheme }> = ({ type, value, size, theme }) => {
   if (type === 'd6' && value <= 6) {
     // d6の場合は点のパターンを表示
     const dots = [];
@@ -157,7 +151,7 @@ const DicePattern: React.FC<{ type: string; value: number; size: number }> = ({ 
       sx={{
         fontSize: Math.max(12, size * 0.25),
         fontWeight: 'bold',
-        color: 'white',
+        color: theme.textColor || 'white',
         textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
       }}
     >
@@ -171,7 +165,8 @@ const Dice2D: React.FC<Dice2DProps> = ({
   value,
   isRolling = false,
   size = 80,
-  onRollComplete
+  onRollComplete,
+  theme = DICE_THEMES.classic
 }) => {
   const [currentValue, setCurrentValue] = useState<number | undefined>(value);
   const [rollingValue, setRollingValue] = useState<number>(1);
@@ -203,14 +198,14 @@ const Dice2D: React.FC<Dice2DProps> = ({
   }, [isRolling, value, type, onRollComplete]);
 
   const displayValue = isRolling ? rollingValue : currentValue;
-  const color = getDiceColor(type);
+  const color = getDiceColor(type, theme);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <DiceContainer isRolling={isRolling} size={size}>
         <DiceShape diceType={type} size={size} color={color}>
           {displayValue && (
-            <DicePattern type={type} value={displayValue} size={size} />
+            <DicePattern type={type} value={displayValue} size={size} theme={theme} />
           )}
         </DiceShape>
       </DiceContainer>

@@ -26,7 +26,18 @@
       "Bash(npm --version)",
       "Bash(npm install:*)",
       "Bash(chmod:*)",
-      "Bash(./find-novel-refs.sh:*)"
+      "Bash(./find-novel-refs.sh:*)",
+      "Bash(touch:*)",
+      "Bash(npm run test:e2e:list:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(mkdir:*)",
+      "Bash(./node_modules/.bin/turbo:*)",
+      "Bash(npx turbo dev:*)",
+      "Bash(npx turbo run:*)",
+      "Bash(timeout 30s pnpm dev)",
+      "Bash(timeout:*)",
+      "Bash(./node_modules/.bin/vite:*)",
+      "Bash(./start-dev.sh:*)"
     ],
     "deny": []
   }

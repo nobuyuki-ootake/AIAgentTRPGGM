@@ -4,7 +4,7 @@ import {
   clearTestData,
   verifyPageLoad,
   takeScreenshot,
-  openAIAssistPanel,
+  openAIChatPanel,
   waitForDialog,
   checkForErrors,
   waitForLoadingComplete,

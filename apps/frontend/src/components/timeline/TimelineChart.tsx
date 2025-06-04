@@ -28,6 +28,7 @@ interface TimelineChartProps {
   safeMaxY: number; // 追加
   onEventClick: (id: string) => void;
   onDeleteEvent?: (id: string) => void;
+  onEventResultClick?: (event: TimelineEvent) => void;
 }
 
 const TimelineChart: React.FC<TimelineChartProps> = ({
@@ -39,6 +40,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
   safeMaxY, // 追加
   onEventClick,
   onDeleteEvent,
+  onEventResultClick,
 }) => {
   const theme = useTheme();
 
@@ -255,6 +257,7 @@ const TimelineChart: React.FC<TimelineChartProps> = ({
                 events={eventsByPlace.get(place.id) || []}
                 onEventClick={onEventClick}
                 onDeleteEvent={onDeleteEvent}
+                onEventResultClick={onEventResultClick}
                 droppableId={`place-column-${place.id}`}
                 calculateYPositionPercent={calculateYPositionPercent}
                 sx={{

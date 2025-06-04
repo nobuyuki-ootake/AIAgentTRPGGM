@@ -4,7 +4,7 @@ import {
   clearTestData,
   verifyPageLoad,
   takeScreenshot,
-  openAIAssistPanel,
+  openAIChatPanel,
   waitForDialog,
   checkForErrors,
   waitForLoadingComplete,
@@ -108,7 +108,7 @@ test.describe("TimelinePage Tests", () => {
 
     try {
       // AIアシストボタンをクリック
-      await openAIAssistPanel(page);
+      await openAIChatPanel(page);
 
       // チャットパネルが表示されることを確認
       const chatPanel = page
