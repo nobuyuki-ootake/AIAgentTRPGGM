@@ -17,6 +17,7 @@ import TRPGSessionPage from "./pages/TRPGSessionPage";
 import { appModeState, currentCampaignState } from "./store/atoms";
 import { Toaster } from "sonner";
 import { WorldBuildingProvider } from "./contexts/WorldBuildingContext";
+import CampaignDataInitializer from "./components/common/CampaignDataInitializer";
 
 // メインコンテンツを表示するコンポーネント
 const MainContent = () => {
@@ -61,27 +62,33 @@ const MainContent = () => {
 function App() {
   return (
     <RecoilRoot>
-      <Router>
-        <Toaster position="bottom-right" richColors />
-        <WorldBuildingProvider>
-          <Routes>
-            <Route
-              path="/"
-              element={
+      <CampaignDataInitializer>
+        <Router>
+          <Toaster position="bottom-right" richColors />
+          <WorldBuildingProvider>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <AppLayout>
+                    <MainContent />
+                  </AppLayout>
+                }
+              />
+              <Route path="/campaigns" element={<ProjectsPage />} />
+              <Route path="/new" element={<NewProjectPage />} />
+              <Route path="/worldbuilding" element={<WorldBuildingPage />} />
+              <Route path="/enemy" element={<EnemyPage />} />
+              <Route path="/npc" element={<NPCPage />} />
+              <Route path="/session" element={
                 <AppLayout>
-                  <MainContent />
+                  <TRPGSessionPage />
                 </AppLayout>
-              }
-            />
-            <Route path="/campaigns" element={<ProjectsPage />} />
-            <Route path="/new" element={<NewProjectPage />} />
-            <Route path="/worldbuilding" element={<WorldBuildingPage />} />
-            <Route path="/enemy" element={<EnemyPage />} />
-            <Route path="/npc" element={<NPCPage />} />
-            <Route path="/session" element={<TRPGSessionPage />} />
-          </Routes>
-        </WorldBuildingProvider>
-      </Router>
+              } />
+            </Routes>
+          </WorldBuildingProvider>
+        </Router>
+      </CampaignDataInitializer>
     </RecoilRoot>
   );
 }

@@ -674,6 +674,7 @@ export const useTRPGSession = () => {
   return {
     // セッション状態
     sessionState,
+    setSessionState,
     currentDay,
     actionCount,
     maxActionsPerDay,
@@ -697,6 +698,8 @@ export const useTRPGSession = () => {
     // アクション
     setSelectedCharacter,
     setCurrentLocation,
+    setCurrentDay,
+    setActionCount,
     getAvailableActions,
     executeAction,
     advanceDay,

@@ -15,29 +15,46 @@ export const loadTestCampaignData = (): TRPGCampaign => {
 export const applyTestDataToLocalStorage = (): void => {
   const testData = loadTestCampaignData();
   
+  // basesデータを正しく変換
+  const processedTestData = {
+    ...testData,
+    bases: testData.worldBuilding?.bases || [],
+    worldBuilding: {
+      ...testData.worldBuilding,
+      bases: testData.worldBuilding?.bases || []
+    }
+  };
+  
   // TRPGLocalStorageManagerを使って正しく保存
-  TRPGLocalStorageManager.saveCampaign(testData);
-  TRPGLocalStorageManager.setCurrentCampaignId(testData.id);
+  TRPGLocalStorageManager.saveCampaign(processedTestData);
+  TRPGLocalStorageManager.setCurrentCampaignId(processedTestData.id);
   
   // 互換性のため旧キーも設定
-  localStorage.setItem('currentCampaign', JSON.stringify(testData));
-  localStorage.setItem('currentCampaignId', testData.id);
+  localStorage.setItem('currentCampaign', JSON.stringify(processedTestData));
+  localStorage.setItem('currentCampaignId', processedTestData.id);
   
   console.log('✅ テストデータを適用しました:', {
-    id: testData.id,
-    title: testData.title,
-    characters: testData.characters?.length,
-    npcs: testData.npcs?.length,
-    enemies: testData.enemies?.length,
-    quests: testData.quests?.length,
-    bases: testData.worldBuilding?.bases?.length
+    id: processedTestData.id,
+    title: processedTestData.title,
+    characters: processedTestData.characters?.length,
+    npcs: processedTestData.npcs?.length,
+    enemies: processedTestData.enemies?.length,
+    quests: processedTestData.quests?.length,
+    bases: processedTestData.bases?.length,
+    worldBuildingBases: processedTestData.worldBuilding?.bases?.length
   });
   
   // 詳細ログを出力してデータ内容を確認
-  console.log('📝 キャラクターデータ詳細:', testData.characters?.map(c => ({ 
+  console.log('📝 キャラクターデータ詳細:', processedTestData.characters?.map(c => ({ 
     id: c.id, 
     name: c.name, 
     characterType: c.characterType 
+  })));
+  
+  console.log('🏢 拠点データ詳細:', processedTestData.bases?.map(b => ({ 
+    id: b.id, 
+    name: b.name, 
+    type: b.type 
   })));
 };
 

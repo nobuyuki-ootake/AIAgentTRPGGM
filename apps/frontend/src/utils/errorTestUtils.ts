@@ -299,7 +299,7 @@ export const MockErrorComponents = {
         throw new Error(`Test error: ${errorType}`);
       }
     }, [errorType]);
-    return <div>Component that throws errors</div>;
+    return React.createElement('div', null, 'Component that throws errors');
   },
 
   AsyncErrorThrowingComponent: ({ errorType }: { errorType: string }) => {
@@ -310,7 +310,7 @@ export const MockErrorComponents = {
         }, 100);
       }
     }, [errorType]);
-    return <div>Component that throws async errors</div>;
+    return React.createElement('div', null, 'Component that throws async errors');
   },
 
   NetworkErrorComponent: () => {
@@ -319,7 +319,7 @@ export const MockErrorComponents = {
         throw new Error('Network request failed');
       });
     }, []);
-    return <div>Component that makes failing network requests</div>;
+    return React.createElement('div', null, 'Component that makes failing network requests');
   },
 };
 

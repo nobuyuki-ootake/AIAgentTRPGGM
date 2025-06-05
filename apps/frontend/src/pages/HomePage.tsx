@@ -21,6 +21,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Stack,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -37,6 +38,7 @@ import { styled } from "@mui/material/styles";
 import { useTRPGHome } from "../hooks/useTRPGHome";
 import CampaignCreationWizard from "../components/campaign/CampaignCreationWizard";
 import { TRPGCampaign } from "@trpg-ai-gm/types";
+import { loadTestCampaignData, applyTestDataToLocalStorage } from "../utils/testDataLoader";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -62,6 +64,7 @@ const HomePage: React.FC = () => {
     handleOpenDeleteDialog,
     handleCloseDeleteDialog,
     handleDeleteCampaign,
+    refreshCampaigns,
   } = useTRPGHome();
 
   // ウィザード関連の状態
@@ -169,9 +172,51 @@ const HomePage: React.FC = () => {
         </Box>
 
         <StyledPaper>
-          <Typography variant="h5" gutterBottom>
-            キャンペーン一覧
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h5">
+              キャンペーン一覧
+            </Typography>
+            
+            {/* 🧪 常に表示されるテストデータ読み込みボタン（開発用） */}
+            {campaigns.length < 5 && (
+              <Button
+                variant="text"
+                color="warning"
+                size="small"
+                startIcon={<DiceD20Icon />}
+                onClick={() => {
+                  console.log('🧪 テストキャンペーンデータを追加...');
+                  const testData = loadTestCampaignData();
+                  
+                  // 既にテストデータが存在するかチェック
+                  if (campaigns.some(c => c.id === testData.id)) {
+                    console.log('⚠️ テストデータは既に存在します');
+                    // 既存のテストデータを選択
+                    handleSelectCampaign(testData.id);
+                    return;
+                  }
+                  
+                  // データを整形してTRPGCampaignとして保存
+                  const processedTestData: TRPGCampaign = {
+                    ...testData,
+                    bases: testData.worldBuilding?.bases || [],
+                    createdAt: new Date(testData.createdAt || Date.now()),
+                    updatedAt: new Date(testData.updatedAt || Date.now())
+                  };
+                  
+                  // localStorageに保存
+                  applyTestDataToLocalStorage();
+                  
+                  // キャンペーンリストを更新
+                  refreshCampaigns();
+                  
+                  console.log('✅ テストキャンペーンを追加しました');
+                }}
+              >
+                🧪 テストデータ
+              </Button>
+            )}
+          </Box>
           
           {campaigns.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 8 }}>
@@ -182,13 +227,49 @@ const HomePage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 新規キャンペーンを作成して、TRPG管理を始めましょう
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleOpenDialog}
-              >
-                最初のキャンペーンを作成
-              </Button>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenDialog}
+                >
+                  最初のキャンペーンを作成
+                </Button>
+                
+                {/* 🧪 テストデータ読み込みボタン */}
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<DiceD20Icon />}
+                  onClick={() => {
+                    console.log('🧪 テストキャンペーンデータを読み込み中...');
+                    const testData = loadTestCampaignData();
+                    
+                    // データを整形してTRPGCampaignとして保存
+                    const processedTestData: TRPGCampaign = {
+                      ...testData,
+                      bases: testData.worldBuilding?.bases || [],
+                      createdAt: new Date(testData.createdAt || Date.now()),
+                      updatedAt: new Date(testData.updatedAt || Date.now())
+                    };
+                    
+                    // localStorageに保存
+                    applyTestDataToLocalStorage();
+                    
+                    // 現在のキャンペーンとして選択
+                    handleSelectCampaign(processedTestData.id);
+                    
+                    console.log('✅ テストキャンペーンを読み込みました:', {
+                      title: processedTestData.title,
+                      charactersCount: processedTestData.characters?.length,
+                      npcsCount: processedTestData.npcs?.length,
+                      questsCount: processedTestData.quests?.length
+                    });
+                  }}
+                >
+                  テストキャンペーンを読み込む
+                </Button>
+              </Stack>
             </Box>
           ) : (
             <Grid container spacing={3}>

@@ -1,23 +1,17 @@
 {
   "mcp": {
-    "inputs": [],
     "servers": {
-      "mcp-server-time": {
-        "command": "python",
-        "args": [
-          "-m",
-          "mcp_server_time",
-          "--local-timezone=America/Los_Angeles"
-        ],
-        "env": {}
-      },
       "playwright": {
         "command": "npx",
-        "args": ["@playwright/mcp@latest"]
+        "args": ["@playwright/mcp"],
+        "env": {
+          "PLAYWRIGHT_HEADLESS": "true",
+          "NODE_ENV": "production"
+        }
+      },
+      "mastra-docs": {
+        "url": "https://gitmcp.io/mastra-ai/mastra/"
       }
-    },
-    "mastra Docs": {
-      "url": "https://gitmcp.io/mastra-ai/mastra/"
     }
   }
 }
