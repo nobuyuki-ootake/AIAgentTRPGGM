@@ -9,7 +9,7 @@ RUN npm install -g turbo
 # Turbo prune でフロントエンド用に最適化されたワークスペースを作成
 FROM base AS builder
 COPY . .
-RUN turbo prune --scope=frontend --docker
+RUN turbo prune --scope=trpg-ai-gm-frontend --docker
 
 # 依存関係のインストール (最適化されたレイヤーキャッシュ)
 FROM base AS installer
@@ -34,7 +34,7 @@ ARG TURBO_TOKEN
 ENV TURBO_TOKEN=$TURBO_TOKEN
 
 # フロントエンドをビルド
-RUN turbo run build --filter=frontend
+RUN turbo run build --filter=trpg-ai-gm-frontend
 
 # 本番環境用の軽量イメージ
 FROM nginx:alpine AS runner
