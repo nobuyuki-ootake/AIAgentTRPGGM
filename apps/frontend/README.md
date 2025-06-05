@@ -1,6 +1,15 @@
-# React + TypeScript + Vite
+# TRPG GM Assistant Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend application for the AI-powered TRPG campaign management and game master assistance tool.
+
+## Deployment Test
+- Cloud Build setup: ✅ Complete
+- Deployment test: In progress (2025-06-05)
+
+## Tech Stack
+- React + TypeScript + Vite
+- Material UI for components
+- Recoil for state management
 
 Currently, two official plugins are available:
 
