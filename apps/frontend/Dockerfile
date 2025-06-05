@@ -7,7 +7,8 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # package.json と pnpm-lock.yaml をコピー
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY packages ./packages
 
