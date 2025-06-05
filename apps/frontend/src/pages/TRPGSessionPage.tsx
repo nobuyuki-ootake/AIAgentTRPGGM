@@ -431,11 +431,12 @@ const TRPGSessionPage: React.FC = () => {
     if (currentCampaign && selectedCharacter && setAvailableActions) {
       // 少し遅延してからupdateAvailableActionsを実行
       const timer = setTimeout(() => {
+        // updateAvailableActions関数を直接呼び出すため、依存配列から除外
         updateAvailableActions();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [currentLocation, selectedCharacter, currentDay, currentCampaign, updateAvailableActions, setAvailableActions]);
+  }, [currentLocation, selectedCharacter, currentDay, currentCampaign, setAvailableActions]);
 
   // ゲーム導入
   const handleGameIntroduction = async () => {
@@ -2713,13 +2714,13 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
       </Box>
 
       {/* 🌍 世界観コンテキストAI デモ（開発者モード） */}
-      {developerMode && currentBase && (
+      {developerMode && getCurrentBase() && (
         <Paper elevation={2} sx={{ p: 2, mt: 2, border: 2, borderColor: 'primary.main' }}>
           <Typography variant="h6" color="primary" gutterBottom>
             🌍 世界観コンテキストAI デモ
           </Typography>
           <WorldContextDemo
-            currentLocation={currentBase}
+            currentLocation={getCurrentBase()}
             activeCharacters={selectedCharacter ? [selectedCharacter] : []}
             onLocationChange={(location) => {
               setCurrentLocation(location.name);
@@ -2735,13 +2736,13 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
       )}
 
       {/* 🏛️ 施設利用パネル（開発者モード） */}
-      {developerMode && currentBase && (
+      {developerMode && getCurrentBase() && (
         <Paper elevation={2} sx={{ p: 2, mt: 2, border: 2, borderColor: 'secondary.main' }}>
           <Typography variant="h6" color="secondary" gutterBottom>
             🏛️ 施設利用パネル
           </Typography>
           <FacilityInteractionPanel
-            currentBase={currentBase}
+            currentBase={getCurrentBase()}
             onFacilityAction={(facilityType, action) => {
               console.log(`🏛️ 施設アクション: ${facilityType} - ${action}`);
               
