@@ -177,33 +177,7 @@ const TRPGSessionPage: React.FC = () => {
   const [aiDiceDialog, setAiDiceDialog] = useState(false);
   const [aiRequiredDice, setAiRequiredDice] = useState<any>(null);
   
-  // 追加の行動選択肢状態（setAvailableActionsをsafeな関数として定義）
-  const [availableActionsAI, setAvailableActionsState] = useState<ActionChoice[]>([]);
-  const [isActionsInitialized, setIsActionsInitialized] = useState(false);
-  
-  // setAvailableActionsを安全に実行する関数
-  const setAvailableActions = useCallback((actions: ActionChoice[]) => {
-    try {
-      console.log('✅ setAvailableActions呼び出し成功:', actions?.length || 0);
-      setAvailableActionsState(actions);
-      setIsActionsInitialized(true);
-    } catch (error) {
-      console.error('setAvailableActions安全実行エラー:', error);
-    }
-  }, []);
-  
-  // グローバルレベルでのsetAvailableActionsエラーを防ぐ
-  useEffect(() => {
-    // setAvailableActionsがグローバルスコープで呼ばれることを防ぐ
-    if (typeof window !== 'undefined') {
-      (window as any).setAvailableActions = setAvailableActions;
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        delete (window as any).setAvailableActions;
-      }
-    };
-  }, [setAvailableActions]);
+  // 削除: setAvailableActions関連のコードは不要
 
   // 戦闘ログ状態
   const [currentCombatSession, setCurrentCombatSession] = useState<any>(null);
@@ -426,17 +400,16 @@ const TRPGSessionPage: React.FC = () => {
     }
   }, [currentCampaign]);
 
-  // 利用可能な行動の更新（setAvailableActionsが定義された後に実行）
+  // 利用可能な行動の更新
   useEffect(() => {
-    if (currentCampaign && selectedCharacter && setAvailableActions) {
+    if (currentCampaign && selectedCharacter) {
       // 少し遅延してからupdateAvailableActionsを実行
       const timer = setTimeout(() => {
-        // updateAvailableActions関数を直接呼び出すため、依存配列から除外
         updateAvailableActions();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [currentLocation, selectedCharacter, currentDay, currentCampaign, setAvailableActions]);
+  }, [currentLocation, selectedCharacter, currentDay, currentCampaign]);
 
   // ゲーム導入
   const handleGameIntroduction = async () => {
@@ -469,14 +442,12 @@ const TRPGSessionPage: React.FC = () => {
   // AI主導で利用可能な行動を更新
   const updateAvailableActions = useCallback(async () => {
     try {
-      if (!currentCampaign || !selectedCharacter || !setAvailableActions) {
-        if (setAvailableActions) {
-          setAvailableActions([]);
-        }
+      if (!currentCampaign || !selectedCharacter) {
+        setBaseAvailableActions([]);
         return;
       }
     } catch (error) {
-      console.error('setAvailableActions error in updateAvailableActions:', error);
+      console.error('setBaseAvailableActions error in updateAvailableActions:', error);
       return;
     }
 
@@ -581,9 +552,7 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
                   !basicActions.some(basic => basic.label === ai.label)
                 )];
                 
-                if (setAvailableActions) {
-                  setAvailableActions(allActions);
-                }
+                setBaseAvailableActions(allActions);
               } else {
                 console.log("AI応答の形式が不正:", result);
                 // フォールバックは既に setDefaultActions() で設定済み
@@ -600,7 +569,7 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
       console.error("AI行動選択肢生成エラー:", error);
       // フォールバックは既に setDefaultActions() で設定済み
     }
-  }, [currentCampaign, selectedCharacter, currentLocation, currentDay, setAvailableActions, setDefaultActions]);
+  }, [currentCampaign, selectedCharacter, currentLocation, currentDay, setDefaultActions]);
 
   // アイコン取得ヘルパー
   const getActionIcon = (iconType: string) => {
@@ -658,10 +627,8 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
       }
     });
 
-    if (setAvailableActions) {
-      setAvailableActions(actions);
-    }
-  }, [currentLocation, setAvailableActions]);
+    setBaseAvailableActions(actions);
+  }, [currentLocation]);
 
   // 行動選択処理
   const handleActionChoice = async (action: ActionChoice) => {
