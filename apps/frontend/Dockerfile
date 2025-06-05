@@ -1,22 +1,23 @@
-# フロントエンド用Dockerfile - Cloud Run対応 (簡単版)
+# フロントエンド用Dockerfile - Cloud Run対応
 FROM node:18-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# pnpm インストール
+# pnpm インストール  
 RUN npm install -g pnpm
 
-# package.json と pnpm-lock.yaml をコピー
-COPY package.json ./
-COPY pnpm-lock.yaml ./
+# package.json ファイルを先にコピー（キャッシュ効率化）
+COPY package.json pnpm-lock.yaml ./
 COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/proxy-server/package.json ./apps/proxy-server/
 COPY packages ./packages
 
 # 依存関係をインストール
 RUN pnpm install --frozen-lockfile
 
-# ソースコードをコピー
-COPY . .
+# 残りのソースコードをコピー
+COPY apps/frontend ./apps/frontend/
+COPY turbo.json ./
 
 # フロントエンドをビルド
 RUN cd apps/frontend && pnpm run build
