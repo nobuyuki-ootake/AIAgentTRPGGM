@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, keyframes } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { DiceTheme, DICE_THEMES } from './DiceVisualization';
+import { DiceTheme, DICE_THEMES } from './DiceTheme';
 
 interface Dice2DProps {
   type: 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20';

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG Session Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        iframe {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h2>TRPG セッション画面</h2>
+        <p>下記のフレームでTRPGセッション画面が表示されます。フロントエンドサーバーが起動している必要があります。</p>
+        <p>直接アクセス: <a href="http://localhost:5173/session" target="_blank">http://localhost:5173/session</a></p>
+    </div>
+    
+    <iframe src="http://localhost:5173/session" title="TRPG Session Page">
+        <p>フレームが表示できません。<a href="http://localhost:5173/session">こちらをクリック</a>してください。</p>
+    </iframe>
+</body>
+</html>

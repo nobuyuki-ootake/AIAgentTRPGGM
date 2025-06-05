@@ -23,7 +23,7 @@ import {
   Preview as PreviewIcon,
   Casino as DiceIcon,
 } from '@mui/icons-material';
-import { DiceTheme, DICE_THEMES } from './DiceVisualization';
+import { DiceTheme, DICE_THEMES } from './DiceTheme';
 import DiceVisualization from './DiceVisualization';
 
 interface DiceThemeSelectorProps {

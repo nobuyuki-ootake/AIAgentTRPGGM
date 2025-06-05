@@ -25,6 +25,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["@novel-ai-assistant/types"],
+    include: ["@trpg-ai-gm/types"],
   },
 });
