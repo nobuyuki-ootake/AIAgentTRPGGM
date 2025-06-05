@@ -274,13 +274,11 @@ const CharactersPageContent: React.FC = () => {
 
       {/* タブナビゲーション */}
       <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 3 }}>
-        <Tab icon={<Group />} label="パーティー全体" />
-        <Tab icon={<PersonOutline />} label={`PC (${characters.filter((c: any) => c.characterType === 'PC').length})`} />
-        <Tab icon={<PersonOutline />} label={`NPC (${characters.filter((c: any) => c.characterType === 'NPC').length})`} />
+        <Tab icon={<Group />} label="パーティ" />
         <Tab icon={<AssessmentIcon />} label="バランス評価" />
       </Tabs>
 
-      {/* パーティー全体タブ */}
+      {/* パーティタブ */}
       <TabPanel value={tabValue} index={0}>
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
@@ -305,62 +303,8 @@ const CharactersPageContent: React.FC = () => {
         </Box>
       </TabPanel>
 
-      {/* PCタブ */}
-      <TabPanel value={tabValue} index={1}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            プレイヤーキャラクター一覧
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-            gap: 3,
-          }}
-        >
-          {characters
-            .filter((c: any) => c.characterType === 'PC')
-            .map((character: TRPGCharacter) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                onEdit={() => handleOpenDialog(character.id)}
-                onDelete={() => handleOpenConfirmDelete(character.id)}
-              />
-            ))}
-        </Box>
-      </TabPanel>
-
-      {/* NPCタブ */}
-      <TabPanel value={tabValue} index={2}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            ノンプレイヤーキャラクター一覧
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-            gap: 3,
-          }}
-        >
-          {characters
-            .filter((c: any) => c.characterType === 'NPC')
-            .map((character: TRPGCharacter) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                onEdit={() => handleOpenDialog(character.id)}
-                onDelete={() => handleOpenConfirmDelete(character.id)}
-              />
-            ))}
-        </Box>
-      </TabPanel>
-
       {/* バランス評価タブ */}
-      <TabPanel value={tabValue} index={3}>
+      <TabPanel value={tabValue} index={1}>
         <PartyBalanceEvaluator 
           characters={characters}
           campaign={currentProject}
