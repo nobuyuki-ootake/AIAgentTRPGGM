@@ -4,20 +4,13 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # pnpm インストール  
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.10.0
 
-# package.json ファイルを先にコピー（キャッシュ効率化）
-COPY package.json pnpm-lock.yaml ./
-COPY apps/frontend/package.json ./apps/frontend/
-COPY apps/proxy-server/package.json ./apps/proxy-server/
-COPY packages ./packages
+# 全てのファイルをコピー（簡単な方法）
+COPY . .
 
 # 依存関係をインストール
 RUN pnpm install --frozen-lockfile
-
-# 残りのソースコードをコピー
-COPY apps/frontend ./apps/frontend/
-COPY turbo.json ./
 
 # フロントエンドをビルド
 RUN cd apps/frontend && pnpm run build

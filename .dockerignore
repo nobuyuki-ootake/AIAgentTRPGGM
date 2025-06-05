@@ -58,9 +58,7 @@ e2e/test-results
 .gitignore
 
 # ドキュメント（不要）
-*.md
 docs
-README*
 
 # 設定ファイル（一部）
 .eslintrc*
