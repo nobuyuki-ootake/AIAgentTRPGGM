@@ -1,5 +1,5 @@
 import { TRPGCampaign, TRPGCharacter } from "@trpg-ai-gm/types";
-import { trpgLocalStorage } from "./trpgLocalStorage";
+import { TRPGLocalStorageManager } from "./trpgLocalStorage";
 import { v4 as uuidv4 } from "uuid";
 
 /**
@@ -78,7 +78,7 @@ export class TRPGImportUtil {
       }
 
       // IDの重複チェックと新規ID生成
-      const existingCampaign = trpgLocalStorage.loadCampaign(data.id);
+      const existingCampaign = TRPGLocalStorageManager.loadCampaign(data.id);
       if (existingCampaign) {
         data.id = uuidv4(); // 新しいIDを生成
         data.title = `${data.title} (インポート)`;

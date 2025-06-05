@@ -732,34 +732,7 @@ ${currentCampaign?.quests?.filter(q => q.scheduledDay === currentDay)
     );
   };
 
-  // 遭遇検出と処理
-  const checkForEncounters = async () => {
-    if (!currentCampaign || !selectedCharacter) return;
-
-    const currentBase = bases.find(base => base.name === currentLocation);
-    if (!currentBase) return;
-
-    const context: EncounterContext = {
-      location: currentBase,
-      time: { 
-        day: currentDay, 
-        timeOfDay: getTimeOfDay(actionCount) 
-      },
-      playerCharacters: playerCharacters.filter(pc => pc.id === selectedCharacter.id),
-      npcs: npcs,
-      enemies: enemies,
-      events: currentCampaign.timeline || [],
-    };
-
-    const { encounters, immediateAction } = EncounterDetectionSystem.detectEncounters(context);
-
-    // 即座に対応が必要な遭遇がある場合
-    if (immediateAction) {
-      setAiRequiredDice(immediateAction.requiredCheck);
-      setPendingEncounterResult(immediateAction);
-      setAiDiceDialog(true);
-    }
-  };
+  // 遭遇検出と処理 (useTRPGSession フックから使用)
 
   // 時刻を取得
   const getTimeOfDay = (actions: number): 'morning' | 'afternoon' | 'evening' | 'night' => {
@@ -2159,29 +2132,7 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
     setPowerCheckDialog(false);
   };
 
-  // AI制御ダイスロール結果処理
-  const handleAIDiceRollResult = async (result: any) => {
-    console.log("AI制御ダイス結果:", result);
-    
-    // ダイスロール結果をチャットに追加
-    const diceMessage: ChatMessage = {
-      id: uuidv4(),
-      sender: "システム",
-      senderType: "system",
-      message: `🎲 ${aiDiceRequest?.skillName}判定: ${result.dice} = [${result.rolls.join(", ")}] + ${result.modifier} = ${result.total} ${result.success !== undefined ? (result.success ? "✅成功！" : "❌失敗...") : ""}`,
-      timestamp: new Date(),
-    };
-    setChatMessages(prev => [...prev, diceMessage]);
-
-    // 結果を処理
-    if (aiDiceRequest) {
-      await processDiceResult(result);
-    }
-
-    // ダイアログを閉じる
-    setAiDiceDialog(false);
-    setAiRequiredDice(null);
-  };
+  // AI制御ダイスロール結果処理 (上部で既に定義済み)
 
   // 戦闘ログハンドラー
   const handleNewCombatSession = (session: any) => {

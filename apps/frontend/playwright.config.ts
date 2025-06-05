@@ -101,15 +101,13 @@ export default defineConfig({
   ],
 
   /* Global test setup and teardown */
-  globalSetup: require.resolve("./e2e/global-setup.ts"),
-  globalTeardown: require.resolve("./e2e/global-teardown.ts"),
+  // globalSetup: require.resolve("./e2e/global-setup.ts"),
+  // globalTeardown: require.resolve("./e2e/global-teardown.ts"),
 
-  /* ローカル開発サーバーの設定 - 手動起動のため一時的にコメントアウト */
-  /*
+  /* ローカル開発サーバーの設定 */
   webServer: {
-    command: "npm run dev",
+    command: "pnpm dev",
     port: 5173,
     reuseExistingServer: !process.env.CI,
   },
-  */
 });

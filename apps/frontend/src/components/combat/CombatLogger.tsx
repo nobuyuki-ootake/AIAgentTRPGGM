@@ -32,7 +32,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import {
-  Swords as CombatIcon,
+  GamesOutlined as CombatIcon,
   Shield as DefenseIcon,
   LocalHospital as HealIcon,
   AutoAwesome as MagicIcon,

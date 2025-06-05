@@ -27,7 +27,8 @@ import { DiceD20Icon, DiceD6Icon } from "../icons/TRPGIcons";
 import UnifiedDiceInterface from "../dice/UnifiedDiceInterface";
 import DiceDisplay from "../dice/DiceDisplay";
 import DiceThemeSelector from "../dice/DiceThemeSelector";
-import DiceVisualization, { DICE_THEMES } from "../dice/DiceVisualization";
+import DiceVisualization from "../dice/DiceVisualization";
+import { DICE_THEMES } from "../dice/DiceTheme";
 import { useRecoilValue } from "recoil";
 import { currentCampaignState } from "../../store/atoms";
 

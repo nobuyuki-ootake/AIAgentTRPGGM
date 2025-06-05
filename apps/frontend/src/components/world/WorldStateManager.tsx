@@ -31,6 +31,8 @@ import {
   IconButton,
   Tooltip,
   Divider,
+} from "@mui/material";
+import {
   Timeline,
   TimelineItem,
   TimelineSeparator,
@@ -38,7 +40,7 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-} from "@mui/material";
+} from "@mui/lab";
 import {
   Public as WorldIcon,
   TrendingUp as ImpactIcon,

@@ -9,7 +9,7 @@ import {
   Paper
 } from '@mui/material';
 import Dice2D from './Dice2D';
-import { DiceTheme } from './DiceVisualization';
+import { DiceTheme } from './DiceTheme';
 
 // Lazy load the 3D component to handle potential loading issues
 const DiceVisualization = React.lazy(() => import('./DiceVisualization'));
