@@ -1,0 +1,136 @@
+2025-06-05T04:00:51.905163Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cookies\\1.cookie"), AnchoredSystemPathBuf(".turbo\\cookies")}
+2025-06-05T04:00:51.905232Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:00:53.113605Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\daemon")}
+2025-06-05T04:00:53.113624Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:03:55.604866Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-browser-mcp.js")}
+2025-06-05T04:03:55.604886Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:04:12.609611Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-browser-mcp.js")}
+2025-06-05T04:04:12.609625Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:06.911633Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\e2e\\browser-check.spec.ts"), AnchoredSystemPathBuf("apps\\frontend\\e2e")}
+2025-06-05T04:05:06.911650Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:21.920783Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\junit.xml"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\results.json"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:05:21.920802Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:22.211838Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json")}
+2025-06-05T04:05:22.211852Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:35.419693Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results")}
+2025-06-05T04:05:35.419705Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:35.618581Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results")}
+2025-06-05T04:05:35.618597Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:49.416360Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json")}
+2025-06-05T04:05:49.416378Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:05:49.619618Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:05:49.619633Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:06:10.006775Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend\\test-results")}
+2025-06-05T04:06:10.006789Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:06:10.208073Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json")}
+2025-06-05T04:06:10.208086Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:06:41.007996Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:06:41.008012Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:06:41.209033Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-results\\.last-run.json"), AnchoredSystemPathBuf("apps\\frontend\\test-results"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:06:41.209051Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:07:48.517504Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\capture-localhost.js"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:07:48.517531Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:09:03.407882Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\fetch-localhost-info.js"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:09:03.407898Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:10:20.508013Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\browser-mcp-verification-report.md")}
+2025-06-05T04:10:20.508029Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:13:11.717196Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\show-browser.js")}
+2025-06-05T04:13:11.717213Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:13:37.206171Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\show-browser.mjs"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:13:37.206187Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:13:52.610773Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\trpg-app-screenshot.png")}
+2025-06-05T04:13:52.610789Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:15:25.219732Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\show-browser-interactive.mjs")}
+2025-06-05T04:15:25.219755Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:16:33.317157Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\trpg-app-interactive-screenshot.png")}
+2025-06-05T04:16:33.317175Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:18:17.805133Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\src\\components\\world\\WorldStateManager.tsx")}
+2025-06-05T04:18:17.805147Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:18:32.005536Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("_tmp_6126_e0b16aee2819a9ec20e938b771bc3a7a")}
+2025-06-05T04:18:32.005558Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:18:32.914002Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:18:32.914013Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:20:48.316122Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\package.json")}
+2025-06-05T04:20:48.316138Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:21:17.807664Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\refresh-browser.mjs"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:21:17.807680Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:21:37.617766Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\trpg-app-current.png")}
+2025-06-05T04:21:37.617779Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:23:36.113479Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\proxy-server\\combined.log")}
+2025-06-05T04:23:36.113497Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }, WorkspacePackage { name: Other("trpg-ai-gm-proxy"), path: AnchoredSystemPathBuf("apps\\proxy-server") }}))
+2025-06-05T04:23:36.248500Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-05T04:23:36.248882Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\proxy-server"), AnchoredSystemPathBuf("packages\\types")}
+2025-06-05T04:23:36.248891Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@trpg-ai-gm/types"), path: AnchoredSystemPathBuf("packages\\types") }, WorkspacePackage { name: Other("trpg-ai-gm-proxy"), path: AnchoredSystemPathBuf("apps\\proxy-server") }}))
+2025-06-05T04:23:36.248950Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-06-05T04:23:36.604845Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_31016_1024f5c6a067e298fe5def44e1ad4c91"), AnchoredSystemPathBuf("")}
+2025-06-05T04:23:36.604862Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:23:47.316969Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\package.json")}
+2025-06-05T04:23:47.316981Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:25:04.405241Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".claude\\settings.local.json")}
+2025-06-05T04:25:04.405256Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:25:41.718044Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\show-app-now.mjs")}
+2025-06-05T04:25:41.718057Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:28:55.407790Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("_tmp_6919_d503d254720849ad02a0c3826ab30ae7")}
+2025-06-05T04:28:55.407810Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:28:55.507613Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_6919_d503d254720849ad02a0c3826ab30ae7"), AnchoredSystemPathBuf("")}
+2025-06-05T04:28:55.507637Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:28:55.812493Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:28:55.812503Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:29:03.319745Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("pnpm-lock.yaml"), AnchoredSystemPathBuf("pnpm-lock.yaml.321150913"), AnchoredSystemPathBuf("")}
+2025-06-05T04:29:03.319763Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:30:40.806028Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("_tmp_7034_8412acc5137e4928a8d8e4b20acd4e7b")}
+2025-06-05T04:30:40.806043Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:30:41.818127Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:30:41.818142Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:30:41.911621Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:30:41.911635Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:32:23.211876Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\check-app-status.js"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:32:23.211895Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:32:36.005991Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\check-app-status.js")}
+2025-06-05T04:32:36.006004Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:32:48.414992Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\check-app-status.js")}
+2025-06-05T04:32:48.415007Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:33:04.817052Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_7237_bedb0c452c7b107b4f08626175314fd9"), AnchoredSystemPathBuf("")}
+2025-06-05T04:33:04.817068Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:33:05.216825Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:33:05.216835Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:33:12.007635Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("pnpm-lock.yaml"), AnchoredSystemPathBuf("pnpm-lock.yaml.1788151671")}
+2025-06-05T04:33:12.007650Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:34:15.211172Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\test-app-status.spec.ts"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:34:15.211189Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:35:05.508388Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_7584_ec2a2f15ab6c5619de7b31d56bfd0efa"), AnchoredSystemPathBuf("")}
+2025-06-05T04:35:05.508400Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:35:06.517130Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:35:06.517144Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:35:06.610499Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:35:06.610513Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:36:42.517083Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend"), AnchoredSystemPathBuf("apps\\frontend\\manual-test.html")}
+2025-06-05T04:36:42.517105Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:37:00.608896Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\check-status.js"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:37:00.608912Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:37:30.314285Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\check-status.js")}
+2025-06-05T04:37:30.314320Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:38:35.420189Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".claude\\settings.local.json")}
+2025-06-05T04:38:35.420203Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:38:52.914162Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps\\frontend\\STATUS_REPORT.md"), AnchoredSystemPathBuf("apps\\frontend")}
+2025-06-05T04:38:52.914182Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("trpg-ai-gm-frontend"), path: AnchoredSystemPathBuf("apps\\frontend") }}))
+2025-06-05T04:41:07.019826Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo\\cache")}
+2025-06-05T04:41:07.019838Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:41:21.505283Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("turbo.json")}
+2025-06-05T04:41:21.505295Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(All)
+2025-06-05T04:41:34.718700Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(""), AnchoredSystemPathBuf("_tmp_8783_8cf4e31b54ed9fd7171d7a4d9299f02f")}
+2025-06-05T04:41:34.718716Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:41:35.710285Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:41:35.710299Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:41:35.805692Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:41:35.805708Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:43:39.509733Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".claude\\settings.local.json")}
+2025-06-05T04:43:39.509764Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:43:40.016681Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("_tmp_8948_5624d235175b1732d183bca0dbb117ff"), AnchoredSystemPathBuf("")}
+2025-06-05T04:43:40.016695Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-06-05T04:43:40.110050Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:43:40.110062Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:43:40.514660Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("")}
+2025-06-05T04:43:40.514676Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({}))
+2025-06-05T04:45:03.417071Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".claude\\settings.local.json")}
+2025-06-05T04:45:03.417085Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))

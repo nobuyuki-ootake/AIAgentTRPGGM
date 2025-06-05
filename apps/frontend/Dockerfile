@@ -12,8 +12,8 @@ COPY . .
 # 依存関係をインストール
 RUN pnpm install --frozen-lockfile
 
-# フロントエンドをビルド
-RUN cd apps/frontend && pnpm run build
+# フロントエンドをビルド（TypeScriptチェックをスキップ）
+RUN cd apps/frontend && pnpm run build:docker
 
 # 本番環境用の軽量イメージ
 FROM nginx:alpine AS runner

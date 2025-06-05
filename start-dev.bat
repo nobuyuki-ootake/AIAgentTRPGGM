@@ -39,13 +39,19 @@ echo Press Ctrl+C to stop all servers
 echo.
 
 :: Use concurrently to run both servers
-where npx >nul 2>nul
+where concurrently >nul 2>nul
 if %errorlevel% equ 0 (
-    npx concurrently --names "TYPES,FRONTEND,PROXY" --prefix-colors "blue,green,yellow" "cd packages/types && pnpm run dev" "cd apps/frontend && pnpm run dev" "cd apps/proxy-server && pnpm run dev"
+    concurrently --names "TYPES,FRONTEND,PROXY" --prefix-colors "blue,green,yellow" "cd packages/types && pnpm run dev" "cd apps/frontend && pnpm run dev" "cd apps/proxy-server && pnpm run dev"
 ) else (
-    echo npx not available. Please run the following commands in separate terminals:
-    echo 1. cd packages\types ^&^& pnpm run dev
-    echo 2. cd apps\frontend ^&^& pnpm run dev
-    echo 3. cd apps\proxy-server ^&^& pnpm run dev
-    pause
+    echo concurrently not available globally. Using npx...
+    where npx >nul 2>nul
+    if %errorlevel% equ 0 (
+        npx concurrently --names "TYPES,FRONTEND,PROXY" --prefix-colors "blue,green,yellow" "cd packages/types && pnpm run dev" "cd apps/frontend && pnpm run dev" "cd apps/proxy-server && pnpm run dev"
+    ) else (
+        echo Please run the following commands in separate terminals:
+        echo 1. cd packages\types ^&^& pnpm run dev
+        echo 2. cd apps\frontend ^&^& pnpm run dev
+        echo 3. cd apps\proxy-server ^&^& pnpm run dev
+        pause
+    )
 )

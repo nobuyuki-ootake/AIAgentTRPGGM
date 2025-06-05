@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -49,6 +49,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom, developerModeState } from "../store/atoms";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
+import { useTRPGSession } from "../hooks/useTRPGSession";
 import { v4 as uuidv4 } from "uuid";
 import WorldContextDemo from "../components/ai/WorldContextDemo";
 import FacilityInteractionPanel from "../components/worldbuilding/FacilityInteractionPanel";
@@ -69,7 +70,6 @@ import CharacterDisplay from "../components/trpg-session/CharacterDisplay";
 import SkillCheckUI, { SkillCheckResult } from "../components/trpg-session/SkillCheckUI";
 import PowerCheckUI, { PowerCheckResult } from "../components/trpg-session/PowerCheckUI";
 import AIControlledDiceDialog from "../components/trpg-session/AIControlledDiceDialog";
-import { useTRPGSession } from "../hooks/useTRPGSession";
 import { 
   loadTestCampaignData, 
   applyTestDataToLocalStorage, 
@@ -118,11 +118,14 @@ const TRPGSessionPage: React.FC = () => {
   // useTRPGSessionフックを使用
   const {
     sessionState,
+    setSessionState,
     sessionMessages,
     selectedCharacter,
     setSelectedCharacter,
     currentDay,
+    setCurrentDay,
     actionCount,
+    setActionCount,
     maxActionsPerDay,
     currentLocation,
     setCurrentLocation,
@@ -144,6 +147,21 @@ const TRPGSessionPage: React.FC = () => {
     processDiceResult,
     updatePartyStatus
   } = useTRPGSession();
+
+  // 利用可能なアクションを取得（安全に）
+  const [baseAvailableActions, setBaseAvailableActions] = useState<SessionAction[]>([]);
+  
+  useEffect(() => {
+    try {
+      const actions = getAvailableActions();
+      setBaseAvailableActions(actions);
+    } catch (error) {
+      console.error('getAvailableActions error:', error);
+      setBaseAvailableActions([]);
+    }
+  }, [getAvailableActions]);
+  
+  const availableActions = baseAvailableActions;
   
   // UI状態
   const [tabValue, setTabValue] = useState(0);
@@ -158,6 +176,34 @@ const TRPGSessionPage: React.FC = () => {
   const [lockedCharacterId, setLockedCharacterId] = useState<string | null>(null); // 🔒 固定されたキャラクターID
   const [aiDiceDialog, setAiDiceDialog] = useState(false);
   const [aiRequiredDice, setAiRequiredDice] = useState<any>(null);
+  
+  // 追加の行動選択肢状態（setAvailableActionsをsafeな関数として定義）
+  const [availableActionsAI, setAvailableActionsState] = useState<ActionChoice[]>([]);
+  const [isActionsInitialized, setIsActionsInitialized] = useState(false);
+  
+  // setAvailableActionsを安全に実行する関数
+  const setAvailableActions = useCallback((actions: ActionChoice[]) => {
+    try {
+      console.log('✅ setAvailableActions呼び出し成功:', actions?.length || 0);
+      setAvailableActionsState(actions);
+      setIsActionsInitialized(true);
+    } catch (error) {
+      console.error('setAvailableActions安全実行エラー:', error);
+    }
+  }, []);
+  
+  // グローバルレベルでのsetAvailableActionsエラーを防ぐ
+  useEffect(() => {
+    // setAvailableActionsがグローバルスコープで呼ばれることを防ぐ
+    if (typeof window !== 'undefined') {
+      (window as any).setAvailableActions = setAvailableActions;
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).setAvailableActions;
+      }
+    };
+  }, [setAvailableActions]);
 
   // 戦闘ログ状態
   const [currentCombatSession, setCurrentCombatSession] = useState<any>(null);
@@ -203,6 +249,27 @@ const TRPGSessionPage: React.FC = () => {
 
   // セッション初期化
   useEffect(() => {
+    // 🧪 まず、テストデータが確実に読み込まれているかチェック
+    if (!currentCampaign) {
+      console.log('🔄 TRPGSessionPage: キャンペーンデータがありません。テストデータを強制ロード中...');
+      const testData = loadTestCampaignData();
+      
+      // basesデータを正しく設定
+      const processedTestData = {
+        ...testData,
+        bases: testData.worldBuilding?.bases || [],
+      };
+      
+      setCurrentCampaign(processedTestData);
+      console.log('✅ TRPGSessionPage: テストデータを強制設定しました:', {
+        title: processedTestData.title,
+        charactersCount: processedTestData.characters?.length,
+        npcsCount: processedTestData.npcs?.length,
+        basesCount: processedTestData.bases?.length
+      });
+      return;
+    }
+    
     if (!sessionState && currentCampaign) {
       const initialTimeOfDay: TimeOfDay = "morning";
       
@@ -350,7 +417,7 @@ const TRPGSessionPage: React.FC = () => {
     if (!selectedCharacter && playerCharacters.length > 0) {
       setSelectedCharacter(playerCharacters[0]);
     }
-  }, [sessionState, setSessionState, currentCampaign, selectedCharacter, playerCharacters, currentLocation, bases, npcs, enemies]);
+  }, [sessionState, setSessionState, currentCampaign, setCurrentCampaign, selectedCharacter, playerCharacters, currentLocation, bases, npcs, enemies]);
 
   // ゲーム開始時のAI解説
   useEffect(() => {
@@ -359,10 +426,16 @@ const TRPGSessionPage: React.FC = () => {
     }
   }, [currentCampaign]);
 
-  // 利用可能な行動の更新
+  // 利用可能な行動の更新（setAvailableActionsが定義された後に実行）
   useEffect(() => {
-    updateAvailableActions();
-  }, [currentLocation, selectedCharacter, currentDay]);
+    if (currentCampaign && selectedCharacter && setAvailableActions) {
+      // 少し遅延してからupdateAvailableActionsを実行
+      const timer = setTimeout(() => {
+        updateAvailableActions();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentLocation, selectedCharacter, currentDay, currentCampaign, updateAvailableActions, setAvailableActions]);
 
   // ゲーム導入
   const handleGameIntroduction = async () => {
@@ -393,9 +466,16 @@ const TRPGSessionPage: React.FC = () => {
   };
 
   // AI主導で利用可能な行動を更新
-  const updateAvailableActions = async () => {
-    if (!currentCampaign || !selectedCharacter) {
-      setAvailableActions([]);
+  const updateAvailableActions = useCallback(async () => {
+    try {
+      if (!currentCampaign || !selectedCharacter || !setAvailableActions) {
+        if (setAvailableActions) {
+          setAvailableActions([]);
+        }
+        return;
+      }
+    } catch (error) {
+      console.error('setAvailableActions error in updateAvailableActions:', error);
       return;
     }
 
@@ -500,7 +580,9 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
                   !basicActions.some(basic => basic.label === ai.label)
                 )];
                 
-                setAvailableActions(allActions);
+                if (setAvailableActions) {
+                  setAvailableActions(allActions);
+                }
               } else {
                 console.log("AI応答の形式が不正:", result);
                 // フォールバックは既に setDefaultActions() で設定済み
@@ -517,7 +599,7 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
       console.error("AI行動選択肢生成エラー:", error);
       // フォールバックは既に setDefaultActions() で設定済み
     }
-  };
+  }, [currentCampaign, selectedCharacter, currentLocation, currentDay, setAvailableActions, setDefaultActions]);
 
   // アイコン取得ヘルパー
   const getActionIcon = (iconType: string) => {
@@ -532,7 +614,7 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
   };
 
   // デフォルトの行動設定（フォールバック用）
-  const setDefaultActions = () => {
+  const setDefaultActions = useCallback(() => {
     const testLocations = getTestLocationOptions();
     const actions: ActionChoice[] = [
       {
@@ -575,8 +657,10 @@ ${bases.map(base => `- ${base.name}: ${base.description}`).join('\n')}
       }
     });
 
-    setAvailableActions(actions);
-  };
+    if (setAvailableActions) {
+      setAvailableActions(actions);
+    }
+  }, [currentLocation, setAvailableActions]);
 
   // 行動選択処理
   const handleActionChoice = async (action: ActionChoice) => {
@@ -2290,6 +2374,37 @@ ${chatMessages.slice(-3).map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
                 variant="filled"
               />
             )}
+            
+            {/* 🧪 デバッグ: テストデータ読み込みボタン（常に表示） */}
+            <Button 
+              variant="outlined" 
+              color="warning" 
+              size="small"
+              onClick={() => {
+                console.log('🧪 手動でテストデータを読み込み中...');
+                const testData = loadTestCampaignData();
+                const processedTestData = {
+                  ...testData,
+                  bases: testData.worldBuilding?.bases || [],
+                };
+                setCurrentCampaign(processedTestData);
+                console.log('✅ テストデータを強制設定:', {
+                  title: processedTestData.title,
+                  charactersCount: processedTestData.characters?.length,
+                  npcsCount: processedTestData.npcs?.length,
+                  basesCount: processedTestData.bases?.length
+                });
+                
+                // ページをリロードして確実に反映
+                setTimeout(() => {
+                  console.log('🔄 ページをリロードしてデータを反映');
+                  window.location.reload();
+                }, 500);
+              }}
+            >
+              🧪 テストデータ読込
+            </Button>
+            
             <Button
               variant="contained"
               startIcon={<GameMasterIcon />}

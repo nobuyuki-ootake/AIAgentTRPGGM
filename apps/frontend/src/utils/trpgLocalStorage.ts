@@ -403,6 +403,13 @@ export class TRPGLocalStorageManager {
    * 初期データをセットアップ（サンプルキャンペーンを作成）
    */
   static setupInitialData(): void {
+    // テスト用の無効化フラグをチェック
+    const disableSampleCreation = localStorage.getItem('disable_sample_creation');
+    if (disableSampleCreation === 'true') {
+      console.log("サンプルキャンペーンの自動作成が無効化されています");
+      return;
+    }
+    
     // 既存のキャンペーンがあるかチェック
     const existingCampaigns = this.getCampaignList();
     
