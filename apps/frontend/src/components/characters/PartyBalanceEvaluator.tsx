@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import PartyRadarChart from "./PartyRadarChart";
 import {
   Shield as TankIcon,
   LocalHospital as HealerIcon,
@@ -59,13 +60,17 @@ interface RoleAnalysis {
 }
 
 interface PartyBalanceResult {
-  overallScore: number; // 0-100の総合評価
   roleAnalysis: RoleAnalysis[];
   strengths: string[];
   weaknesses: string[];
   recommendations: string[];
   riskFactors: string[];
   synergies: string[];
+  radarData: Array<{
+    label: string;
+    value: number;
+    maxValue: number;
+  }>;
 }
 
 const PARTY_ROLES: PartyRole[] = [
@@ -209,14 +214,24 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
       };
     });
 
-    // 総合評価の計算
-    const weightedScore = roleAnalysis.reduce((sum, analysis) => {
-      const roleScore = Math.min(analysis.coverage, 100);
-      return sum + (roleScore * analysis.role.weight);
-    }, 0);
-
-    const maxPossibleScore = PARTY_ROLES.reduce((sum, role) => sum + (100 * role.weight), 0);
-    const overallScore = Math.round((weightedScore / maxPossibleScore) * 100);
+    // レーダーチャート用データの生成（5段階評価）
+    const radarData = roleAnalysis.map(analysis => {
+      // coverageを0-100から1-5の範囲に変換
+      let value = 1; // 最低値は1
+      if (analysis.currentCount >= analysis.role.maxEffective) {
+        value = 5; // 最適人数以上なら最高評価
+      } else if (analysis.currentCount >= analysis.role.minRecommended) {
+        value = 3 + Math.min(2, analysis.currentCount - analysis.role.minRecommended); // 推奨以上なら3-5
+      } else if (analysis.currentCount > 0) {
+        value = 1 + Math.round((analysis.currentCount / analysis.role.minRecommended) * 2); // 不足でも1人以上いれば2-3
+      }
+      
+      return {
+        label: analysis.role.name.split('/')[0], // "タンク/前衛" → "タンク"
+        value: Math.min(5, Math.max(1, value)),
+        maxValue: 5,
+      };
+    });
 
     // 強みと弱みの分析
     const strengths: string[] = [];
@@ -257,22 +272,15 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
     }
 
     return {
-      overallScore,
       roleAnalysis,
       strengths,
       weaknesses,
       recommendations,
       riskFactors,
       synergies,
+      radarData,
     };
   }, [characters]);
-
-  // 評価色の取得
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "success";
-    if (score >= 60) return "warning";
-    return "error";
-  };
 
   // 役割状態の色
   const getRoleStatusColor = (status: RoleAnalysis["status"]) => {
@@ -296,26 +304,16 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
         パーティバランス評価
       </Typography>
 
-      {/* 総合評価 */}
+      {/* パーティ構成の可視化 */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-            <Typography variant="h6">
-              総合評価スコア
-            </Typography>
-            <Chip
-              label={`${partyAnalysis.overallScore}/100`}
-              color={getScoreColor(partyAnalysis.overallScore)}
-              size="large"
-            />
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            パーティ構成バランス
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <PartyRadarChart data={partyAnalysis.radarData} />
           </Box>
-          <LinearProgress
-            variant="determinate"
-            value={partyAnalysis.overallScore}
-            color={getScoreColor(partyAnalysis.overallScore)}
-            sx={{ height: 10, borderRadius: 5, mb: 2 }}
-          />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" align="center">
             パーティメンバー: {characters.length}人
             {campaign && ` | ゲームシステム: ${campaign.gameSystem || "未設定"}`}
           </Typography>
