@@ -6,9 +6,6 @@ import { TRPGCampaign } from "@trpg-ai-gm/types";
 export class LocalStorageManager {
   private static readonly PROJECT_KEY_PREFIX = "trpg_campaign_";
   private static readonly PROJECT_LIST_KEY = "trpg_campaign_list";
-  // 後方互換性のための旧キー
-  private static readonly LEGACY_PROJECT_KEY_PREFIX = "novel_project_";
-  private static readonly LEGACY_PROJECT_LIST_KEY = "novel_project_list";
 
   /**
    * キャンペーンをローカルストレージに保存する
@@ -45,12 +42,6 @@ export class LocalStorageManager {
         `${this.PROJECT_KEY_PREFIX}${campaignId}`
       );
       
-      // 新キーで見つからない場合は旧キーで試す
-      if (!campaignJson) {
-        campaignJson = localStorage.getItem(
-          `${this.LEGACY_PROJECT_KEY_PREFIX}${campaignId}`
-        );
-      }
       
       if (!campaignJson) return null;
 
@@ -70,8 +61,6 @@ export class LocalStorageManager {
     try {
       // キャンペーンデータを削除
       localStorage.removeItem(`${this.PROJECT_KEY_PREFIX}${campaignId}`);
-      // 旧キーも削除
-      localStorage.removeItem(`${this.LEGACY_PROJECT_KEY_PREFIX}${campaignId}`);
 
       // キャンペーンリストから削除
       this.removeProjectFromList(campaignId);
@@ -95,15 +84,6 @@ export class LocalStorageManager {
     try {
       let listJson = localStorage.getItem(this.PROJECT_LIST_KEY);
       
-      // 新キーで見つからない場合は旧キーで試す
-      if (!listJson) {
-        listJson = localStorage.getItem(this.LEGACY_PROJECT_LIST_KEY);
-        // 旧キーから新キーへ移行
-        if (listJson) {
-          localStorage.setItem(this.PROJECT_LIST_KEY, listJson);
-          localStorage.removeItem(this.LEGACY_PROJECT_LIST_KEY);
-        }
-      }
       
       if (!listJson) return [];
 

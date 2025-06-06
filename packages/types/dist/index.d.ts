@@ -31,9 +31,6 @@ export interface TRPGCampaign {
     }[];
     imageUrl?: string;
 }
-export interface NovelProject extends TRPGCampaign {
-    chapters: Chapter[];
-}
 export interface Player {
     id: string;
     name: string;
@@ -55,13 +52,6 @@ export interface QuestElement {
     sessionId?: string;
     relatedCharacterIds?: string[];
     relatedPlaceIds?: string[];
-}
-export interface PlotElement {
-    id: string;
-    title: string;
-    description: string;
-    order: number;
-    status: "決定" | "検討中";
 }
 export interface CharacterTrait {
     id: string;
@@ -277,24 +267,6 @@ export interface SpecialSkill {
     cooldown?: number;
     cost?: string;
 }
-export interface Character {
-    id: string;
-    name: string;
-    role: "protagonist" | "antagonist" | "supporting";
-    gender?: string;
-    birthDate?: string;
-    age?: string;
-    appearance?: string;
-    personality?: string;
-    description: string;
-    background: string;
-    motivation: string;
-    traits: CharacterTrait[];
-    relationships: Relationship[];
-    imageUrl?: string;
-    customFields?: CustomField[];
-    statuses?: CharacterStatus[];
-}
 export type CharacterRoleType = "protagonist" | "antagonist" | "supporting";
 export interface BatchProcessResult {
     batchResponse?: boolean;
@@ -323,7 +295,6 @@ export interface WorldBuilding {
         startDate: string;
     };
     worldMapImageUrl?: string;
-    description?: string;
 }
 export interface GameSession {
     id: string;
@@ -346,14 +317,6 @@ export interface GameSession {
     currentState: SessionCurrentState;
     spatialTracking: SpatialTrackingSystem;
     encounterHistory: EncounterRecord[];
-    summary?: string;
-    npcsEncountered?: string[];
-    combatEncounters?: string[];
-    lootObtained?: string[];
-    questProgress?: Record<string, any>;
-    playerNotes?: Record<string, any>;
-    gmNotes?: string;
-    recordingUrl?: string;
 }
 export interface SessionCurrentState {
     currentDay: number;
@@ -588,22 +551,6 @@ export interface CombatCondition {
     duration: number;
     effects: string[];
 }
-export interface TimelineEvent {
-    id: string;
-    title: string;
-    description: string;
-    date: string;
-    dayNumber?: number;
-    relatedCharacters: string[];
-    relatedPlaces: string[];
-    order: number;
-    eventType?: string;
-    postEventCharacterStatuses?: {
-        [characterId: string]: CharacterStatus[];
-    };
-    relatedPlotIds?: string[];
-    placeId?: string;
-}
 export interface TimelineEventSeed {
     id: string;
     eventName: string;
@@ -697,18 +644,6 @@ export interface CampaignMetadata {
     totalPlayTime?: number;
 }
 export type CampaignStatus = "planning" | "active" | "paused" | "completed" | "archived";
-/**
- * プロジェクトのメタデータ（後方互換性のため維持）
- */
-export interface ProjectMetadata {
-    version: string;
-    tags?: string[];
-    genre?: string[];
-    targetAudience?: string;
-    wordCountGoal?: number;
-    status: ProjectStatus;
-    lastBackupDate?: string;
-}
 /**
  * タイムラインイベントの重要度 (project.ts オリジナル)
  */
@@ -862,22 +797,6 @@ export declare enum WorldBuildingElementType {
     MAGIC_TECHNOLOGY = "magic_technology",
     STATE_DEFINITION = "state_definition",
     FREE_FIELD = "free_field"
-}
-/**
- * @deprecated Use specific element types instead. This is a legacy type.
- * 世界観構築要素の共通プロパティ（古い定義の可能性あり、要レビュー）
- */
-export interface WorldBuildingCommonProps {
-    id: string;
-    name: string;
-    type: string;
-    description: string;
-    importance: string;
-    fields: CustomField[] | {
-        [key: string]: CustomField | CustomField[];
-    };
-    relations?: string;
-    img?: string;
 }
 export interface WorldBuildingCategory {
     id: string;

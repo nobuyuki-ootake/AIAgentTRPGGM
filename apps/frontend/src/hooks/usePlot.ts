@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
-import { currentProjectState } from "../store/atoms";
-import { PlotElement, TRPGCampaign } from "@trpg-ai-gm/types";
+import { currentCampaignState } from "../store/atoms";
+import { QuestElement, TRPGCampaign } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 import { SelectChangeEvent } from "@mui/material";
 import { DropResult } from "react-beautiful-dnd";
 
 export function usePlot() {
-  const [currentProject, setCurrentProject] =
-    useRecoilState(currentProjectState);
-  const [plotItems, setPlotItems] = useState<PlotElement[]>([]);
+  const [currentCampaign, setCurrentCampaign] =
+    useRecoilState(currentCampaignState);
+  const [plotItems, setPlotItems] = useState<QuestElement[]>([]);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [editItemId, setEditItemId] = useState<string | null>(null);
@@ -24,11 +24,11 @@ export function usePlot() {
 
   // プロジェクトからプロットアイテムを読み込み
   useEffect(() => {
-    if (currentProject?.plot) {
+    if (currentCampaign?.plot) {
       // orderでソートしてから設定
-      setPlotItems([...currentProject.plot].sort((a, b) => a.order - b.order));
+      setPlotItems([...currentCampaign.plot].sort((a, b) => a.order - b.order));
     }
-  }, [currentProject]);
+  }, [currentCampaign]);
 
   // プロットアイテムを追加
   const handleAddItem = () => {
@@ -141,9 +141,9 @@ export function usePlot() {
 
   // プロジェクトに保存
   const handleSave = () => {
-    if (currentProject) {
+    if (currentCampaign) {
       setCurrentProject({
-        ...currentProject,
+        ...currentCampaign,
         plot: plotItems,
         updatedAt: new Date(),
       });
@@ -156,7 +156,7 @@ export function usePlot() {
         try {
           const projects = JSON.parse(projectsStr);
           const updatedProjects = projects.map((p: TRPGCampaign) =>
-            p.id === currentProject.id
+            p.id === currentCampaign.id
               ? {
                   ...p,
                   plot: plotItems,
@@ -181,7 +181,7 @@ export function usePlot() {
   };
 
   return {
-    currentProject,
+    currentCampaign,
     plotItems,
     newItemTitle,
     setNewItemTitle,

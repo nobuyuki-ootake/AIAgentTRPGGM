@@ -14,6 +14,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import EnemyPage from "./pages/EnemyPage";
 import NPCPage from "./pages/NPCPage";
 import TRPGSessionPage from "./pages/TRPGSessionPage";
+import MinimalTRPGSessionTest from "./pages/MinimalTRPGSessionTest";
 import { appModeState, currentCampaignState } from "./store/atoms";
 import { Toaster } from "sonner";
 import { WorldBuildingProvider } from "./contexts/WorldBuildingContext";
@@ -85,6 +86,12 @@ function App() {
                   <TRPGSessionPage />
                 </AppLayout>
               } />
+              <Route path="/trpg-session" element={
+                <AppLayout>
+                  <TRPGSessionPage />
+                </AppLayout>
+              } />
+              <Route path="/test-dice" element={<MinimalTRPGSessionTest />} />
             </Routes>
           </WorldBuildingProvider>
         </Router>

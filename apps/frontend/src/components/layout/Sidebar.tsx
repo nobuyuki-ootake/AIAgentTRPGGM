@@ -27,7 +27,12 @@ import {
   PlayArrow as SessionIcon,
   DeveloperMode as DeveloperIcon,
 } from "@mui/icons-material";
-import { QuestScrollIcon, DiceD20Icon, CampaignIcon, PartyIcon } from "../icons/TRPGIcons";
+import {
+  QuestScrollIcon,
+  DiceD20Icon,
+  CampaignIcon,
+  PartyIcon,
+} from "../icons/TRPGIcons";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   appModeState,
@@ -48,7 +53,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const [, setCurrentCampaign] = useRecoilState(currentCampaignState);
   const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
 
-  const handleModeChange = (mode: AppMode) => {
+  const handleModeChange = React.useCallback((mode: AppMode) => {
+    // 同じモードが選択された場合は何もしない
+    if (appMode === mode) {
+      return;
+    }
+
     // 編集中の場合はイベントを発火してモード変更を試みる
     const event = new CustomEvent("modeChangeAttempt", {
       detail: { mode },
@@ -61,14 +71,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     // イベントがキャンセルされなかった場合はモードを変更
     if (proceedWithChange) {
       setAppMode(mode);
-      // モード変更時に創作メニューを閉じる
-      setSidebarOpen(false);
-      // 外部から提供されたonCloseが存在すれば実行
-      if (onClose) {
-        onClose();
-      }
+      // モード変更時に創作メニューを閉じる（遅延実行で無限ループを防止）
+      setTimeout(() => {
+        setSidebarOpen(false);
+        // 外部から提供されたonCloseが存在すれば実行
+        if (onClose) {
+          onClose();
+        }
+      }, 0);
     }
-  };
+  }, [appMode, setAppMode, setSidebarOpen, onClose]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -104,66 +116,66 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
   // 開発者モードに応じて表示するメニューアイテムをフィルタリング
   const allMenuItems = [
-    { 
-      mode: "synopsis" as AppMode, 
-      text: "キャンペーン背景", 
+    {
+      mode: "synopsis" as AppMode,
+      text: "キャンペーン背景",
       icon: <SynopsisIcon />,
-      developerOnly: true 
+      developerOnly: true,
     },
-    { 
-      mode: "plot" as AppMode, 
-      text: "クエスト", 
+    {
+      mode: "plot" as AppMode,
+      text: "クエスト",
       icon: <QuestScrollIcon />,
-      developerOnly: true 
+      developerOnly: true,
     },
     {
       mode: "characters" as AppMode,
       text: "パーティー",
       icon: <PartyIcon />,
-      developerOnly: false
+      developerOnly: false,
     },
     {
       mode: "enemy" as AppMode,
       text: "エネミー",
       icon: <EnemyIcon />,
-      developerOnly: true
+      developerOnly: true,
     },
     {
       mode: "npc" as AppMode,
       text: "NPC",
       icon: <NPCIcon />,
-      developerOnly: true
+      developerOnly: true,
     },
     {
       mode: "worldbuilding" as AppMode,
       text: "世界観構築",
       icon: <WorldIcon />,
-      developerOnly: true
+      developerOnly: true,
     },
     {
       mode: "timeline" as AppMode,
       text: developerMode ? "キャンペーンのイベント管理" : "セッション履歴",
       icon: <TimelineIcon />,
-      developerOnly: false
+      developerOnly: false,
     },
-    { 
-      mode: "writing" as AppMode, 
-      text: "セッションノート", 
+    {
+      mode: "writing" as AppMode,
+      text: "セッションノート",
       icon: <WritingIcon />,
-      developerOnly: true 
+      developerOnly: true,
     },
     {
       mode: "session" as AppMode,
       text: "TRPGセッション",
       icon: <SessionIcon />,
-      developerOnly: false
+      developerOnly: false,
     },
   ];
 
   // 開発者モードでない場合は、開発者専用項目を除外
-  const menuItems = developerMode 
-    ? allMenuItems 
-    : allMenuItems.filter(item => !item.developerOnly);
+  const menuItems = developerMode
+    ? allMenuItems
+    : allMenuItems.filter((item) => !item.developerOnly);
 
   return (
     <Drawer
@@ -204,11 +216,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           color: "primary.contrastText",
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
           <DiceD20Icon sx={{ mr: 1 }} />
-          <Typography variant="h6">
-            キャンペーンメニュー
-          </Typography>
+          <Typography variant="h6">キャンペーンメニュー</Typography>
         </Box>
         <IconButton onClick={toggleSidebar} color="inherit">
           <ChevronLeftIcon />
@@ -219,7 +229,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* メニューリスト */}
       <List sx={{ flexGrow: 1, overflow: "auto" }}>
         {menuItems.map((item) => (
-          <ListItem key={item.mode} disablePadding>
+          <ListItem key={item.mode}>
             <ListItemButton
               selected={appMode === item.mode}
               onClick={() => handleModeChange(item.mode)}
@@ -236,10 +246,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <FormControlLabel
           control={
             <Switch
+              id="developer-toggle"
               checked={developerMode}
               onChange={(e) => setDeveloperMode(e.target.checked)}
               icon={<DeveloperIcon />}
               checkedIcon={<DeveloperIcon />}
+              inputProps={{
+                "aria-label": "developer mode toggle",
+                "data-testid": "developer-toggle",
+              }}
             />
           }
           label={
@@ -253,11 +268,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             </Box>
           }
           labelPlacement="start"
-          sx={{ 
-            display: 'flex',
-            justifyContent: 'space-between',
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
             m: 0,
-            width: '100%'
+            width: "100%",
           }}
         />
       </Box>

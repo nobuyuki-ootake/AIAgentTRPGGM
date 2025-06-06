@@ -3,7 +3,6 @@ import { useRecoilState } from "recoil";
 import { currentCampaignState } from "../store/atoms";
 import {
   TRPGCharacter,
-  Character,
   CustomField,
   CharacterTrait,
   Relationship,
@@ -65,42 +64,6 @@ const convertToTRPGCharacter = (character: TRPGCharacter): TRPGCharacter => {
   };
 };
 
-// 後方互換性のための変換関数
-const convertLegacyCharacter = (character: Character): TRPGCharacter => {
-  const defaultStats: CharacterStats = {
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
-    hitPoints: { current: 10, max: 10, temp: 0 },
-    manaPoints: { current: 0, max: 0 },
-    armorClass: 10,
-    speed: 30,
-    level: 1,
-    experience: 0,
-    proficiencyBonus: 2,
-  };
-  
-  return {
-    ...character,
-    characterType: "NPC" as const,
-    stats: defaultStats,
-    skills: [],
-    equipment: [],
-    progression: [],
-    race: "",
-    class: "",
-    background: character.background || "",
-    alignment: "",
-    age: "",
-    appearance: character.description || "",
-    personality: "",
-    motivation: character.motivation || "",
-    notes: "",
-  };
-};
 
 export function useCharacters() {
   // Recoilの状態
@@ -180,15 +143,8 @@ export function useCharacters() {
   // プロジェクト（キャンペーン）からキャラクターを読み込む
   useEffect(() => {
     if (currentProject?.characters) {
-      // キャラクターデータの互換性を確保
       const convertedCharacters = currentProject.characters.map((character) => {
-        // 既にTRPGCharacter型の場合はそのまま使用
-        if ('characterType' in character && 'stats' in character) {
-          return convertToTRPGCharacter(character as TRPGCharacter);
-        }
-        
-        // 古いCharacter型の場合はTRPGCharacterに変換
-        return convertLegacyCharacter(character as Character);
+        return convertToTRPGCharacter(character as TRPGCharacter);
       });
       setCharacters(convertedCharacters);
     }

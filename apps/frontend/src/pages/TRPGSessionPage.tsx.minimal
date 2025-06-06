@@ -1,0 +1,45 @@
+import React from "react";
+import { Box, Typography, Paper, Button } from "@mui/material";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { currentCampaignState, developerModeState } from "../store/atoms";
+
+const TRPGSessionPage: React.FC = () => {
+  try {
+    const [currentCampaign] = useRecoilState(currentCampaignState);
+    const developerMode = useRecoilValue(developerModeState);
+
+    return (
+      <Box sx={{ p: 3 }}>
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Typography variant="h4" gutterBottom>
+            TRPGセッション
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            キャンペーン: {currentCampaign?.title || "未設定"}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            開発者モード: {developerMode ? "ON" : "OFF"}
+          </Typography>
+          <Button variant="contained">
+            テストボタン
+          </Button>
+        </Paper>
+      </Box>
+    );
+  } catch (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Typography variant="h5" color="error">
+            エラーが発生しました
+          </Typography>
+          <Typography variant="body1">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+};
+
+export default TRPGSessionPage;

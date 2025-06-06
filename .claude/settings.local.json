@@ -65,7 +65,13 @@
       "Bash(git push:*)",
       "Bash(docker build:*)",
       "Bash(git rev-parse:*)",
-      "Bash(gcloud run services describe:*)"
+      "Bash(gcloud run services describe:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(kill:*)",
+      "Bash(VITE_HOST=0.0.0.0 pnpm run dev --force)",
+      "Bash(cat:*)",
+      "Bash(pgrep:*)",
+      "Bash(jq:*)"
     ],
     "deny": []
   }

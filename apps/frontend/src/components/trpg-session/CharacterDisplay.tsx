@@ -102,11 +102,28 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     return "error";
   };
 
+  // 安全にHPの値を取得
+  const getHPValue = (hp: any): number => {
+    if (typeof hp === 'number') return hp;
+    if (typeof hp === 'object' && hp !== null) {
+      return hp.current || hp.value || 0;
+    }
+    return 0;
+  };
+
+  const getMaxHPValue = (maxHp: any): number => {
+    if (typeof maxHp === 'number') return maxHp;
+    if (typeof maxHp === 'object' && maxHp !== null) {
+      return maxHp.max || maxHp.value || 100;
+    }
+    return 100;
+  };
+
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
-    const hp = character.stats.hitPoints || 0;
-    const maxHp = character.stats.maxHitPoints || 100;
-    const percentage = (hp / maxHp) * 100;
+    const hp = getHPValue(character.stats?.hitPoints);
+    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
+    const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
     
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
     if (percentage <= 25) return { status: 'critical', icon: Warning, color: 'error', label: '重傷' };
@@ -150,8 +167,8 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     const isSelectionDisabled = combatMode || !onCharacterSelect;
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
-    const hp = character.stats.hitPoints || 0;
-    const maxHp = character.stats.maxHitPoints || 100;
+    const hp = getHPValue(character.stats?.hitPoints);
+    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
     
     return (
       <Card 
@@ -231,7 +248,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
         </Box>
 
         {/* ステータス表示 */}
-        {character.stats && (
+        {character.stats && typeof character.stats === 'object' && (
           <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -314,7 +331,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="アーマークラス">
                 <Chip
                   icon={<Shield />}
-                  label={`AC:${character.stats.armorClass}`}
+                  label={`AC:${character.stats?.armorClass || 10}`}
                   size="small"
                   variant="outlined"
                 />
@@ -322,7 +339,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="移動速度">
                 <Chip
                   icon={<Speed />}
-                  label={`速度:${character.stats.speed}`}
+                  label={`速度:${character.stats?.speed || 30}`}
                   size="small"
                   variant="outlined"
                 />
@@ -330,7 +347,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="レベル">
                 <Chip
                   icon={<Bolt />}
-                  label={`Lv.${character.stats.level}`}
+                  label={`Lv.${character.stats?.level || 1}`}
                   size="small"
                   variant="outlined"
                 />

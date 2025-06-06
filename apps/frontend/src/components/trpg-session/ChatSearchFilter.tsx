@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   TextField,
@@ -45,7 +45,7 @@ const ChatSearchFilter: React.FC<ChatSearchFilterProps> = ({
   const [expanded, setExpanded] = useState(false);
 
   // フィルター処理
-  const applyFilters = (criteria: ChatSearchCriteria) => {
+  const applyFilters = useCallback((criteria: ChatSearchCriteria) => {
     let filtered = [...messages];
 
     // テキスト検索
@@ -90,9 +90,14 @@ const ChatSearchFilter: React.FC<ChatSearchFilterProps> = ({
     }
 
     onFilteredMessagesChange(filtered);
-  };
+  }, [messages]);
 
-  // 検索条件更新
+  // メッセージが変更された時のみフィルターを適用（検索条件変更時は除く）
+  useEffect(() => {
+    applyFilters(searchCriteria);
+  }, [messages, applyFilters, searchCriteria]); // 必要な依存関係のみ
+
+  // 検索条件更新（明示的にフィルター適用）
   const updateCriteria = (updates: Partial<ChatSearchCriteria>) => {
     const newCriteria = { ...searchCriteria, ...updates };
     onSearchCriteriaChange(newCriteria);
@@ -108,7 +113,7 @@ const ChatSearchFilter: React.FC<ChatSearchFilterProps> = ({
       timeRange: "all",
     };
     onSearchCriteriaChange(resetCriteria);
-    onFilteredMessagesChange(messages);
+    // applyFiltersはuseEffectで自動的に呼ばれるので、ここでは呼ばない
   };
 
   // アクティブフィルター数計算

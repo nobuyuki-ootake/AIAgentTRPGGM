@@ -10,8 +10,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: "localhost",
-    open: true,
+    host: '0.0.0.0', // WSL環境対応
+    open: false,
+    hmr: {
+      port: 5173,
+      host: 'localhost'
+    },
+    watch: {
+      usePolling: true, // WSL環境でのファイル監視改善
+    },
     proxy: {
       "/api": {
         target: "http://localhost:4001", // バックエンドサーバーのポートを4001に指定

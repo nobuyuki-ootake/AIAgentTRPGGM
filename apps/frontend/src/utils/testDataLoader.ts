@@ -29,9 +29,6 @@ export const applyTestDataToLocalStorage = (): void => {
   TRPGLocalStorageManager.saveCampaign(processedTestData);
   TRPGLocalStorageManager.setCurrentCampaignId(processedTestData.id);
   
-  // 互換性のため旧キーも設定
-  localStorage.setItem('currentCampaign', JSON.stringify(processedTestData));
-  localStorage.setItem('currentCampaignId', processedTestData.id);
   
   console.log('✅ テストデータを適用しました:', {
     id: processedTestData.id,
@@ -75,12 +72,6 @@ export const clearTestData = (): void => {
   // TRPGLocalStorageManagerを使って正しく削除
   TRPGLocalStorageManager.deleteCampaign(testData.id);
   
-  // 互換性のため旧キーも削除
-  const currentCampaign = JSON.parse(localStorage.getItem('currentCampaign') || '{}');
-  if (currentCampaign.id === testData.id) {
-    localStorage.removeItem('currentCampaign');
-    localStorage.removeItem('currentCampaignId');
-  }
   
   console.log('✅ テストデータをクリアしました');
 };

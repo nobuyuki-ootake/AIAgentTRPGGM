@@ -4,22 +4,22 @@ import {
   // DefaultValue, // 未使用のためコメントアウト
 } from "recoil";
 import { Chapter } from "@trpg-ai-gm/types";
-import { currentProjectState, currentChapterIdState } from "./atoms";
+import { currentCampaignState, currentSessionIdState } from "./atoms";
 
 // 現在選択されている章を取得するセレクタ
 export const currentChapterSelector = selector<Chapter | null>({
   key: "currentChapter",
   get: ({ get }) => {
-    const currentProject = get(currentProjectState);
-    const currentChapterId = get(currentChapterIdState);
+    const currentCampaign = get(currentCampaignState);
+    const currentSessionId = get(currentSessionIdState);
 
-    if (!currentProject || !currentChapterId) {
+    if (!currentCampaign || !currentSessionId) {
       return null;
     }
 
     const foundChapter =
-      currentProject.chapters.find(
-        (chapter) => chapter.id === currentChapterId
+      currentCampaign.sessions?.find(
+        (session) => session.id === currentSessionId
       ) || null;
 
     return foundChapter;
@@ -30,13 +30,13 @@ export const currentChapterSelector = selector<Chapter | null>({
 export const sortedChaptersSelector = selector({
   key: "sortedChapters",
   get: ({ get }) => {
-    const currentProject = get(currentProjectState);
+    const currentCampaign = get(currentCampaignState);
 
-    if (!currentProject) {
+    if (!currentCampaign) {
       return [];
     }
 
-    return [...currentProject.chapters].sort((a, b) => a.order - b.order);
+    return [...(currentCampaign.sessions || [])].sort((a, b) => a.sessionNumber - b.sessionNumber);
   },
 });
 
@@ -44,13 +44,13 @@ export const sortedChaptersSelector = selector({
 export const characterNamesSelector = selector({
   key: "characterNames",
   get: ({ get }) => {
-    const currentProject = get(currentProjectState);
+    const currentCampaign = get(currentCampaignState);
 
-    if (!currentProject) {
+    if (!currentCampaign) {
       return [];
     }
 
-    return currentProject.characters.map((character) => ({
+    return currentCampaign.characters.map((character) => ({
       id: character.id,
       name: character.name,
       role: character.role,

@@ -33,13 +33,13 @@ import {
 import { BaseLocation } from '@trpg-ai-gm/types';
 
 interface FacilityInteractionPanelProps {
-  currentBase: BaseLocation | undefined;
-  onFacilityAction: (facilityType: string, action: string) => void;
+  base: any;
+  onInteract: (facility: any) => void;
 }
 
 export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> = ({
-  currentBase,
-  onFacilityAction,
+  base: currentBase,
+  onInteract: onFacilityAction,
 }) => {
   const [selectedFacility, setSelectedFacility] = useState<any>(null);
   const [facilityDialog, setFacilityDialog] = useState(false);

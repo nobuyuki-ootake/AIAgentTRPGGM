@@ -196,9 +196,5 @@ export function useTRPGHome() {
     updateAndSaveCurrentCampaign,
     handleReturnToHome,
     refreshCampaigns,
-    
-    // 互換性のため旧名も保持
-    currentProject: currentCampaign,
-    updateAndSaveCurrentProject: updateAndSaveCurrentCampaign,
   };
 }

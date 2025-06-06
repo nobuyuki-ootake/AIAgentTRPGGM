@@ -16,16 +16,7 @@ export function useHome() {
 
   // ローカルストレージからキャンペーン一覧を取得
   useEffect(() => {
-    let savedCampaigns = localStorage.getItem("trpgCampaigns");
-    // 旧キーからの移行
-    if (!savedCampaigns) {
-      const legacyCampaigns = localStorage.getItem("novelProjects");
-      if (legacyCampaigns) {
-        savedCampaigns = legacyCampaigns;
-        localStorage.setItem("trpgCampaigns", legacyCampaigns);
-        localStorage.removeItem("novelProjects");
-      }
-    }
+    const savedCampaigns = localStorage.getItem("trpgCampaigns");
     if (savedCampaigns) {
       setCampaigns(JSON.parse(savedCampaigns));
     }

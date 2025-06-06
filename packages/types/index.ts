@@ -34,10 +34,6 @@ export interface TRPGCampaign {
   imageUrl?: string; // キャンペーン画像
 }
 
-// 後方互換性のためのエイリアス
-export interface NovelProject extends TRPGCampaign {
-  chapters: Chapter[]; // 後方互換性のため維持
-}
 
 // プレイヤーの型定義
 export interface Player {
@@ -65,14 +61,6 @@ export interface QuestElement {
   relatedPlaceIds?: string[]; // 関連場所
 }
 
-// プロット要素の型定義（後方互換性のため維持）
-export interface PlotElement {
-  id: string;
-  title: string;
-  description: string;
-  order: number;
-  status: "決定" | "検討中";
-}
 
 // キャラクターの特性（traits）の型定義
 export interface CharacterTrait {
@@ -342,25 +330,6 @@ export interface SpecialSkill {
   cost?: string;
 }
 
-// キャラクターの型定義（後方互換性のため維持）
-export interface Character {
-  id: string;
-  name: string;
-  role: "protagonist" | "antagonist" | "supporting";
-  gender?: string;
-  birthDate?: string;
-  age?: string;
-  appearance?: string;
-  personality?: string;
-  description: string;
-  background: string;
-  motivation: string;
-  traits: CharacterTrait[];
-  relationships: Relationship[];
-  imageUrl?: string;
-  customFields?: CustomField[];
-  statuses?: CharacterStatus[];
-}
 
 // キャラクターの役割の型エイリアス
 export type CharacterRoleType = "protagonist" | "antagonist" | "supporting";
@@ -395,7 +364,6 @@ export interface WorldBuilding {
     startDate: string;
   };
   worldMapImageUrl?: string;
-  description?: string; // 後方互換性のため残すが、setting配列を優先
 }
 
 // ルール、文化、場所の型定義は worldBuilding 内の型を使用
@@ -425,15 +393,6 @@ export interface GameSession {
   spatialTracking: SpatialTrackingSystem;
   encounterHistory: EncounterRecord[];
   
-  // レガシー互換性のためのフィールド
-  summary?: string;
-  npcsEncountered?: string[];
-  combatEncounters?: string[];
-  lootObtained?: string[];
-  questProgress?: Record<string, any>;
-  playerNotes?: Record<string, any>;
-  gmNotes?: string;
-  recordingUrl?: string;
 }
 
 // 🎯 **現在のセッション状態（詳細管理）**
@@ -727,23 +686,6 @@ export interface CombatCondition {
   effects: string[];
 }
 
-// タイムラインイベントの型定義（後方互換性のため維持）
-export interface TimelineEvent {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  dayNumber?: number; // イベント発生日（1日目～X日目）
-  relatedCharacters: string[];
-  relatedPlaces: string[];
-  order: number;
-  eventType?: string; // 例: "battle", "rest", "dialogue", "journey", "discovery", "turning_point", "info"
-  postEventCharacterStatuses?: {
-    [characterId: string]: CharacterStatus[];
-  };
-  relatedPlotIds?: string[]; // 関連するプロットのID配列
-  placeId?: string; // タイムラインチャート表示用の主要な場所ID (オプショナル)
-}
 
 // AIが生成するイベントの「種」の型定義
 export interface TimelineEventSeed {
@@ -858,18 +800,6 @@ export interface CampaignMetadata {
 // キャンペーンステータス
 export type CampaignStatus = "planning" | "active" | "paused" | "completed" | "archived";
 
-/**
- * プロジェクトのメタデータ（後方互換性のため維持）
- */
-export interface ProjectMetadata {
-  version: string;
-  tags?: string[];
-  genre?: string[];
-  targetAudience?: string;
-  wordCountGoal?: number;
-  status: ProjectStatus;
-  lastBackupDate?: string;
-}
 
 /**
  * タイムラインイベントの重要度 (project.ts オリジナル)
@@ -1051,21 +981,6 @@ export enum WorldBuildingElementType {
   FREE_FIELD = "free_field",
 }
 
-/**
- * @deprecated Use specific element types instead. This is a legacy type.
- * 世界観構築要素の共通プロパティ（古い定義の可能性あり、要レビュー）
- */
-export interface WorldBuildingCommonProps {
-  id: string;
-  name: string;
-  type: string; // 例: 'place', 'rule', 'culture'
-  description: string;
-  importance: string; // 例: 'High', 'Medium', 'Low'
-  // fields can be either an array of CustomField or a nested structure
-  fields: CustomField[] | { [key: string]: CustomField | CustomField[] };
-  relations?: string; // 関連する他の要素のIDや説明
-  img?: string; // 画像URL
-}
 
 // 世界観タブのカテゴリ定義
 export interface WorldBuildingCategory {

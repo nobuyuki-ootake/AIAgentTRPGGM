@@ -8,33 +8,6 @@ export class TRPGLocalStorageManager {
   private static readonly CAMPAIGN_LIST_KEY = "trpg_campaign_list";
   private static readonly CURRENT_CAMPAIGN_KEY = "currentCampaignId";
 
-  /**
-   * 旧い形式のデータをクリアする
-   */
-  static clearOldNovelData(): void {
-    try {
-      const keysToRemove: string[] = [];
-      
-      // 旧形式のキーを検索
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (
-          key.startsWith("novel_project_") ||
-          key === "novel_project_list" ||
-          key === "currentProjectId"
-        )) {
-          keysToRemove.push(key);
-        }
-      }
-
-      // 一括削除
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      console.log(`旧いデータをクリアしました: ${keysToRemove.length}件`);
-    } catch (error) {
-      console.error("旧データのクリアに失敗:", error);
-    }
-  }
 
   /**
    * キャンペーンをローカルストレージに保存する
@@ -174,7 +147,7 @@ export class TRPGLocalStorageManager {
       campaigns[index] = {
         id: campaign.id,
         title: campaign.title,
-        updatedAt: campaign.updatedAt.toISOString(),
+        updatedAt: campaign.updatedAt instanceof Date ? campaign.updatedAt.toISOString() : new Date().toISOString(),
         summary: campaign.summary,
       };
     } else {
@@ -182,7 +155,7 @@ export class TRPGLocalStorageManager {
       campaigns.push({
         id: campaign.id,
         title: campaign.title,
-        updatedAt: campaign.updatedAt.toISOString(),
+        updatedAt: campaign.updatedAt instanceof Date ? campaign.updatedAt.toISOString() : new Date().toISOString(),
         summary: campaign.summary,
       });
     }

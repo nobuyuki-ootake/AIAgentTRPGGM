@@ -104,6 +104,10 @@ const DynamicDifficultyAdjuster: React.FC<DynamicDifficultyAdjusterProps> = ({
   onDifficultyChange,
   onSuggestion,
 }) => {
+  // Null safety check for required props
+  if (!characters || !Array.isArray(characters) || !campaign) {
+    return null;
+  }
   const [isEnabled, setIsEnabled] = useState(true);
   const [adjustmentHistory, setAdjustmentHistory] = useState<DifficultyAdjustment[]>([]);
   const [currentDifficulty, setCurrentDifficulty] = useState<EncounterDifficulty>({

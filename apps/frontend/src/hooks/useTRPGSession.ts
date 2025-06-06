@@ -9,11 +9,11 @@ import { aiTacticalEngine, TacticalDecision } from "../utils/AITacticalEngine";
 // セッション用の追加型定義
 export interface SessionAction {
   id: string;
-  type: "move" | "shop" | "talk" | "interact" | "skill" | "custom";
+  type: "move" | "shop" | "talk" | "interact" | "skill" | "custom" | "attack";
   label: string;
   description: string;
   requiresTarget?: boolean;
-  targetType?: "location" | "npc" | "character" | "item";
+  targetType?: "location" | "npc" | "character" | "item" | "enemy";
 }
 
 export interface SessionMessage {
@@ -52,7 +52,7 @@ export const useTRPGSession = () => {
   const [currentDay, setCurrentDay] = useState(1);
   const [actionCount, setActionCount] = useState(0);
   const [maxActionsPerDay] = useState(5);
-  const [currentLocation, setCurrentLocation] = useState<string>("街の中心");
+  const [currentLocation, setCurrentLocation] = useState<string>("");
   const [selectedCharacter, setSelectedCharacter] = useState<TRPGCharacter | null>(null);
   const [sessionMessages, setSessionMessages] = useState<SessionMessage[]>([]);
   const [combatMode, setCombatMode] = useState(false);
@@ -167,17 +167,21 @@ export const useTRPGSession = () => {
       }
     }
 
-    // 戦闘中の場合の行動
+    // 敵がいる場合は攻撃アクションを追加
+    if (enemies.length > 0) {
+      baseActions.push({
+        id: "attack",
+        type: "attack",
+        label: "攻撃",
+        description: "敵を攻撃する",
+        requiresTarget: true,
+        targetType: "enemy",
+      });
+    }
+
+    // 戦闘中の場合の追加行動
     if (combatMode) {
       baseActions.push(
-        {
-          id: "attack",
-          type: "custom",
-          label: "攻撃",
-          description: "敵を攻撃する",
-          requiresTarget: true,
-          targetType: "character",
-        },
         {
           id: "defend",
           type: "custom",
@@ -194,7 +198,7 @@ export const useTRPGSession = () => {
     }
 
     return baseActions;
-  }, [getCurrentBase, combatMode]);
+  }, [getCurrentBase, combatMode, enemies.length]);
 
   // 行動実行
   const executeAction = useCallback(async (action: SessionAction, target?: any) => {

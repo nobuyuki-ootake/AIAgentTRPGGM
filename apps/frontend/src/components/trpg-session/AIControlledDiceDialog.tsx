@@ -64,6 +64,11 @@ export const AIControlledDiceDialog: React.FC<AIControlledDiceDialogProps> = ({
   const [attemptCount, setAttemptCount] = useState(0);
   const { rollDice } = useTRPGSession();
 
+  // aiRequiredDiceがnullまたはundefinedの場合は何も表示しない
+  if (!aiRequiredDice || !aiRequiredDice.dice) {
+    return null;
+  }
+
   // ダイス記法をパース
   const parseDiceNotation = (notation: string): { count: number; sides: number; modifier: number } => {
     const match = notation.match(/^(\d*)d(\d+)([+-]\d+)?$/);

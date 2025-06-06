@@ -49,23 +49,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 }) => {
   const chatEndRef = useRef<null | HTMLDivElement>(null);
   
-  // 検索・フィルター状態
-  const [searchCriteria, setSearchCriteria] = useState<ChatSearchCriteria>({
-    searchText: "",
-    senderFilter: "all",
-    hasSpellCheck: false,
-    timeRange: "all",
-  });
-  const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>(messages);
+  // 一時的にフィルター機能を無効化
+  // const [searchCriteria, setSearchCriteria] = useState<ChatSearchCriteria>({
+  //   searchText: "",
+  //   senderFilter: "all",
+  //   hasSpellCheck: false,
+  //   timeRange: "all",
+  // });
+  // const [filteredMessages, setFilteredMessages] = useState<ChatMessage[]>(messages);
 
-  // フィルターされたメッセージが変更されたときに自動スクロール
+  // メッセージが変更されたときに自動スクロール
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [filteredMessages]);
-
-  // 元のメッセージが変更されたときにフィルターを再適用
-  useEffect(() => {
-    setFilteredMessages(messages);
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -79,17 +74,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h6">セッションログ</Typography>
-        <ChatSearchFilter
+        {/* 一時的にChatSearchFilterを無効化 */}
+        {/* <ChatSearchFilter
           messages={messages}
           searchCriteria={searchCriteria}
           onSearchCriteriaChange={setSearchCriteria}
           onFilteredMessagesChange={setFilteredMessages}
-        />
+        /> */}
       </Box>
       
       <Box sx={{ flex: 1, overflow: "auto", p: 2 }}>
         <List>
-          {filteredMessages.map((msg) => (
+          {messages.map((msg) => (
             <ListItem key={msg.id} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
                 <Avatar
@@ -135,8 +131,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <TextField
           fullWidth
           placeholder="メッセージを入力... (Shift+Enterで改行)"
-          value={chatInput}
-          onChange={(e) => onChatInputChange(e.target.value)}
+          value={chatInput || ""}
+          onChange={(e) => {
+            e.preventDefault();
+            onChatInputChange(e.target.value);
+          }}
           onKeyPress={handleKeyPress}
           size="small"
           multiline
@@ -145,7 +144,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <IconButton onClick={onOpenDiceDialog} color="primary">
           <Casino />
         </IconButton>
-        <IconButton onClick={onSendMessage} color="primary" disabled={!chatInput.trim()}>
+        <IconButton onClick={onSendMessage} color="primary" disabled={!chatInput?.trim()}>
           <Send />
         </IconButton>
       </Box>

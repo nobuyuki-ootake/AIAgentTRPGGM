@@ -272,9 +272,3 @@ export const agents = {
   aiCooperationCoordinator,
 };
 
-// 下位互換性のためのエイリアス
-export const novelAssistant = trpgGameMaster;
-export const plotAdvisor = scenarioDesigner;
-export const characterDesigner = trpgCharacterCreator;
-export const styleEditor = sessionNarrator;
-export const worldBuildingAssistant = campaignWorldBuilder;

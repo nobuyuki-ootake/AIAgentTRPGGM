@@ -1,4 +1,4 @@
-import { TRPGCampaign, PlaceElement, GameSession } from "@trpg-ai-gm/types";
+import { TRPGCampaign, GameSession } from "@trpg-ai-gm/types";
 import {
   atom,
   // RecoilEnv, // 未使用のためコメントアウト (または削除)
@@ -17,9 +17,6 @@ export const currentCampaignState = atom<TRPGCampaign | null>({
   default: null,
 });
 
-// 互換性のために旧名も一時的に保持
-export const currentProjectIdState = currentCampaignIdState;
-export const currentProjectState = currentCampaignState;
 
 // アプリの現在のモード（プロット、キャラクター、セッションなど）
 export type AppMode =
@@ -46,8 +43,6 @@ export const currentSessionIdState = atom<string | null>({
   default: null,
 });
 
-// 互換性のために旧名も一時的に保持
-export const currentChapterIdState = currentSessionIdState;
 
 // AIアシスタントとの会話履歴
 export interface Message {
@@ -204,7 +199,7 @@ export const pendingPlacesState = atom<PlaceElement[]>({
 // 開発者モードの状態管理
 export const developerModeState = atom<boolean>({
   key: "developerMode",
-  default: false,
+  default: false, // 無限ループ防止のため一旦falseに戻す
 });
 
 // TRPGセッションの状態管理

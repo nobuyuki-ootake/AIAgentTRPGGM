@@ -1,12 +1,26 @@
 {
   "id": "test-campaign-001",
   "title": "竜の谷の秘宝",
-  "description": "古代竜が眠ると言われる谷に隠された秘宝を求める冒険",
-  "gameSystem": "D&D 5e",
-  "maxDays": 7,
-  "synopsis": "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z",
+  "gameSystem": "D&D 5e",
+  "gamemaster": "AI GM",
+  "players": [
+    {
+      "id": "player-1",
+      "name": "プレイヤー1",
+      "characterIds": ["char-1", "char-2"],
+      "isOnline": true
+    }
+  ],
+  "synopsis": "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
+  "plot": [],
+  "timeline": [],
+  "sessions": [],
+  "rules": [],
+  "handouts": [],
+  "feedback": [],
+  "bases": [],
   "characters": [
     {
       "id": "char-1",
@@ -202,189 +216,306 @@
     {
       "id": "bandit-leader",
       "name": "盗賊団の頭領",
-      "description": "翠の森道を根城にする盗賊団のリーダー。狡猾で剣の腕は確か。",
+      "rank": "中ボス",
       "type": "人間",
-      "location": "翠の森道",
-      "behavior": "待ち伏せ",
-      "stats": {
-        "HP": 45,
-        "MP": 10,
-        "ATK": 12,
-        "DEF": 8,
-        "SPD": 10,
-        "INT": 8
+      "description": "翠の森道を根城にする盗賊団のリーダー。狡猾で剣の腕は確か。",
+      "level": 3,
+      "attributes": {
+        "strength": 14,
+        "dexterity": 16,
+        "constitution": 13,
+        "intelligence": 12,
+        "wisdom": 11
       },
-      "skills": [
-        { "name": "剣術", "level": 3, "description": "熟練した剣技" },
-        { "name": "隠密", "level": 2, "description": "森での隠れ身" },
-        { "name": "威嚇", "level": 1, "description": "相手を萎縮させる" }
-      ],
-      "equipment": [
-        { "name": "短剣", "type": "武器", "description": "よく手入れされた短剣" },
-        { "name": "革の鎧", "type": "防具", "description": "軽量で動きやすい" }
-      ],
-      "combatBehavior": {
-        "aggressiveness": "中",
-        "preferredRange": "近接",
-        "specialAbilities": ["急所狙い", "煙玉逃走"]
+      "derivedStats": {
+        "hp": 45,
+        "mp": 10,
+        "attack": 12,
+        "defense": 8,
+        "magicAttack": 5,
+        "magicDefense": 6,
+        "accuracy": 75,
+        "evasion": 65,
+        "criticalRate": 10,
+        "initiative": 16
       },
-      "loot": ["金貨15-25", "盗賊の地図", "治療薬"],
-      "experienceValue": 50,
-      "dangerLevel": 2,
-      "groupSize": "単体",
-      "territoryRadius": 100,
-      "patrolPattern": "定点監視",
-      "hostilityLevel": "中立→敵対（プレイヤー発見時）"
+      "skills": {
+        "basicAttack": "短剣による斬撃",
+        "specialSkills": [
+          {
+            "name": "急所狙い",
+            "description": "相手の急所を狙い、高いダメージを与える",
+            "cost": 3,
+            "cooldown": 2,
+            "effect": "ダメージ+50%、クリティカル率+20%"
+          },
+          {
+            "name": "煙玉逃走",
+            "description": "煙玉を使用して戦闘から離脱する",
+            "cost": 5,
+            "cooldown": 5,
+            "effect": "戦闘から逃走、成功率80%"
+          }
+        ],
+        "passives": ["隠密行動", "森林での優位性"]
+      },
+      "behavior": {
+        "aiPattern": "HP50%以下で煙玉逃走を使用",
+        "targeting": "最も攻撃力の高いPCを優先的に狙う"
+      },
+      "drops": {
+        "exp": 50,
+        "gold": 20,
+        "items": ["盗賊の地図", "治療薬"],
+        "rareDrops": ["盗賊団の印章"]
+      },
+      "status": {
+        "currentHp": 45,
+        "currentMp": 10,
+        "statusEffects": [],
+        "location": "翠の森道"
+      }
     },
     {
       "id": "bandit-scout-1",
       "name": "盗賊の斥候A",
-      "description": "頭領に従う盗賊団の見張り役。素早い動きで情報収集を担当。",
+      "rank": "モブ",
       "type": "人間",
-      "location": "翠の森道",
-      "behavior": "パトロール",
-      "stats": {
-        "HP": 25,
-        "MP": 5,
-        "ATK": 8,
-        "DEF": 5,
-        "SPD": 13,
-        "INT": 6
+      "description": "頭領に従う盗賊団の見張り役。素早い動きで情報収集を担当。",
+      "level": 1,
+      "attributes": {
+        "strength": 10,
+        "dexterity": 16,
+        "constitution": 11,
+        "intelligence": 10,
+        "wisdom": 14
       },
-      "skills": [
-        { "name": "弓術", "level": 2, "description": "遠距離攻撃" },
-        { "name": "隠密", "level": 3, "description": "優れた隠れ身術" },
-        { "name": "偵察", "level": 2, "description": "情報収集能力" }
-      ],
-      "equipment": [
-        { "name": "短弓", "type": "武器", "description": "軽量な狩猟弓" },
-        { "name": "革の服", "type": "防具", "description": "動きを妨げない軽装" }
-      ],
-      "combatBehavior": {
-        "aggressiveness": "低",
-        "preferredRange": "遠距離",
-        "specialAbilities": ["警報", "回避行動"]
+      "derivedStats": {
+        "hp": 25,
+        "mp": 5,
+        "attack": 8,
+        "defense": 5,
+        "magicAttack": 3,
+        "magicDefense": 4,
+        "accuracy": 80,
+        "evasion": 75,
+        "criticalRate": 8,
+        "initiative": 18
       },
-      "loot": ["金貨5-10", "矢束", "縄"],
-      "experienceValue": 25,
-      "dangerLevel": 1,
-      "groupSize": "単体",
-      "territoryRadius": 200,
-      "patrolPattern": "巡回",
-      "hostilityLevel": "警戒→逃走（単独時）"
+      "skills": {
+        "basicAttack": "短弓による射撃",
+        "specialSkills": [
+          {
+            "name": "警報",
+            "description": "他の仲間に敵の位置を知らせる",
+            "cost": 2,
+            "cooldown": 3,
+            "effect": "味方の命中率+10%、3ターン持続"
+          }
+        ],
+        "passives": ["隠密行動", "偵察能力"]
+      },
+      "behavior": {
+        "aiPattern": "遠距離を保ち、HP30%以下で逃走を試みる",
+        "targeting": "最も近い敵を狙う"
+      },
+      "drops": {
+        "exp": 25,
+        "gold": 8,
+        "items": ["矢束", "縄"],
+        "rareDrops": []
+      },
+      "status": {
+        "currentHp": 25,
+        "currentMp": 5,
+        "statusEffects": [],
+        "location": "翠の森道"
+      }
     },
     {
       "id": "ancient-guardian",
       "name": "古代の守護者",
-      "description": "忘却の遺跡を守る石造りの自動人形。古代魔法で動いている。",
+      "rank": "ボス",
       "type": "構築体",
-      "location": "忘却の遺跡",
-      "behavior": "守護",
-      "stats": {
-        "HP": 80,
-        "MP": 30,
-        "ATK": 15,
-        "DEF": 18,
-        "SPD": 5,
-        "INT": 3
+      "description": "忘却の遺跡を守る石造りの自動人形。古代魔法で動いている。",
+      "level": 5,
+      "attributes": {
+        "strength": 18,
+        "dexterity": 8,
+        "constitution": 16,
+        "intelligence": 6,
+        "wisdom": 12
       },
-      "skills": [
-        { "name": "魔法攻撃", "level": 4, "description": "古代魔法による攻撃" },
-        { "name": "物理耐性", "level": 3, "description": "物理攻撃への耐性" },
-        { "name": "再生", "level": 1, "description": "ゆっくりとしたHP回復" }
-      ],
-      "equipment": [
-        { "name": "石の拳", "type": "武器", "description": "巨大な石の腕" },
-        { "name": "古代の外殻", "type": "防具", "description": "魔法で強化された石造り" }
-      ],
-      "combatBehavior": {
-        "aggressiveness": "高",
-        "preferredRange": "近接",
-        "specialAbilities": ["魔法の盾", "大地震動"]
+      "derivedStats": {
+        "hp": 80,
+        "mp": 30,
+        "attack": 15,
+        "defense": 18,
+        "magicAttack": 12,
+        "magicDefense": 15,
+        "accuracy": 60,
+        "evasion": 20,
+        "criticalRate": 5,
+        "initiative": 8
       },
-      "loot": ["古代の結晶", "魔法の粉末", "石材"],
-      "experienceValue": 100,
-      "dangerLevel": 4,
-      "groupSize": "単体",
-      "territoryRadius": 50,
-      "patrolPattern": "定点守護",
-      "hostilityLevel": "侵入者への即座敵対"
+      "skills": {
+        "basicAttack": "石の拳による強打",
+        "specialSkills": [
+          {
+            "name": "魔法の盾",
+            "description": "古代魔法で防御力を大幅に上昇させる",
+            "cost": 8,
+            "cooldown": 4,
+            "effect": "防御力+50%、3ターン持続"
+          },
+          {
+            "name": "大地震動",
+            "description": "地面を震わせて全ての敵にダメージを与える",
+            "cost": 12,
+            "cooldown": 6,
+            "effect": "全体攻撃、威力120%"
+          }
+        ],
+        "passives": ["物理耐性", "魔法構築体"]
+      },
+      "behavior": {
+        "aiPattern": "HP30%以下で魔法の盾を使用、複数の敵がいる場合は大地震動を優先",
+        "targeting": "最も近い敵を優先的に攻撃"
+      },
+      "drops": {
+        "exp": 100,
+        "gold": 0,
+        "items": ["古代の結晶", "魔法の粉末"],
+        "rareDrops": ["古代守護者の核"]
+      },
+      "status": {
+        "currentHp": 80,
+        "currentMp": 30,
+        "statusEffects": [],
+        "location": "忘却の遺跡"
+      }
     },
     {
       "id": "giant-eagle",
       "name": "巨大な鷲",
-      "description": "鷲の峠に住む巨大な猛禽類。知性が高く、時には人と意思疎通も可能。",
+      "rank": "中ボス",
       "type": "魔獣",
-      "location": "鷲の峠",
-      "behavior": "縄張り防衛",
-      "stats": {
-        "HP": 60,
-        "MP": 20,
-        "ATK": 14,
-        "DEF": 10,
-        "SPD": 18,
-        "INT": 12
+      "description": "鷲の峠に住む巨大な猛禽類。知性が高く、時には人と意思疎通も可能。",
+      "level": 4,
+      "attributes": {
+        "strength": 16,
+        "dexterity": 18,
+        "constitution": 14,
+        "intelligence": 12,
+        "wisdom": 15
       },
-      "skills": [
-        { "name": "飛行", "level": 5, "description": "高速飛行能力" },
-        { "name": "急降下攻撃", "level": 3, "description": "上空からの急襲" },
-        { "name": "野生の直感", "level": 4, "description": "危険感知能力" }
-      ],
-      "equipment": [
-        { "name": "鋭い爪", "type": "武器", "description": "巨大で鋭利な爪" },
-        { "name": "厚い羽毛", "type": "防具", "description": "防御力のある羽毛" }
-      ],
-      "combatBehavior": {
-        "aggressiveness": "可変",
-        "preferredRange": "空中",
-        "specialAbilities": ["威嚇鳴き", "突風攻撃"]
+      "derivedStats": {
+        "hp": 60,
+        "mp": 20,
+        "attack": 14,
+        "defense": 10,
+        "magicAttack": 8,
+        "magicDefense": 12,
+        "accuracy": 85,
+        "evasion": 90,
+        "criticalRate": 15,
+        "initiative": 18
       },
-      "loot": ["巨鷲の羽", "上質な肉", "空の欠片"],
-      "experienceValue": 75,
-      "dangerLevel": 3,
-      "groupSize": "単体",
-      "territoryRadius": 500,
-      "patrolPattern": "上空旋回",
-      "hostilityLevel": "中立（交渉可能）"
+      "skills": {
+        "basicAttack": "鋭い爪による攻撃",
+        "specialSkills": [
+          {
+            "name": "急降下攻撃",
+            "description": "上空からの急襲攻撃",
+            "cost": 5,
+            "cooldown": 3,
+            "effect": "ダメージ+75%、命中率+30%"
+          },
+          {
+            "name": "突風攻撃",
+            "description": "翼で強い風を起こして敵を吹き飛ばす",
+            "cost": 8,
+            "cooldown": 4,
+            "effect": "全体攻撃、ノックバック効果"
+          }
+        ],
+        "passives": ["飛行能力", "野生の直感", "威嚇鳴き"]
+      },
+      "behavior": {
+        "aiPattern": "空中を維持し、HP50%以下で突風攻撃を優先使用",
+        "targeting": "威嚇で敵を萎縮させ、最も近い敵を優先攻撃"
+      },
+      "drops": {
+        "exp": 75,
+        "gold": 15,
+        "items": ["巨鷲の羽", "上質な肉"],
+        "rareDrops": ["空の欠片"]
+      },
+      "status": {
+        "currentHp": 60,
+        "currentMp": 20,
+        "statusEffects": [],
+        "location": "鷲の峠"
+      }
     },
     {
       "id": "village-wolf",
       "name": "迷子の狼",
-      "description": "ハーベスト村近くをうろつく一匹狼。飢えているが、本来は人を襲わない。",
+      "rank": "モブ",
       "type": "野生動物",
-      "location": "ハーベスト村",
-      "behavior": "彷徨",
-      "stats": {
-        "HP": 30,
-        "MP": 0,
-        "ATK": 10,
-        "DEF": 6,
-        "SPD": 15,
-        "INT": 4
+      "description": "ハーベスト村近くをうろつく一匹狼。飢えているが、本来は人を襲わない。",
+      "level": 1,
+      "attributes": {
+        "strength": 12,
+        "dexterity": 15,
+        "constitution": 10,
+        "intelligence": 4,
+        "wisdom": 12
       },
-      "skills": [
-        { "name": "噛み付き", "level": 2, "description": "鋭い牙での攻撃" },
-        { "name": "敏捷性", "level": 3, "description": "素早い動き" },
-        { "name": "嗅覚", "level": 4, "description": "優れた嗅覚" }
-      ],
-      "equipment": [
-        { "name": "鋭い牙", "type": "武器", "description": "野生動物の牙" },
-        { "name": "毛皮", "type": "防具", "description": "天然の毛皮" }
-      ],
-      "combatBehavior": {
-        "aggressiveness": "低",
-        "preferredRange": "近接",
-        "specialAbilities": ["遠吠え", "逃走"]
+      "derivedStats": {
+        "hp": 30,
+        "mp": 0,
+        "attack": 10,
+        "defense": 6,
+        "magicAttack": 0,
+        "magicDefense": 3,
+        "accuracy": 70,
+        "evasion": 75,
+        "criticalRate": 5,
+        "initiative": 15
       },
-      "loot": ["狼の毛皮", "鋭い牙", "野生の肉"],
-      "experienceValue": 20,
-      "dangerLevel": 1,
-      "groupSize": "単体",
-      "territoryRadius": 300,
-      "patrolPattern": "無作為移動",
-      "hostilityLevel": "飢餓時のみ敵対"
+      "skills": {
+        "basicAttack": "噛み付きによる攻撃",
+        "specialSkills": [
+          {
+            "name": "遠吠え",
+            "description": "遠吠えで敵を威嚇し、逃走の機会を作る",
+            "cost": 2,
+            "cooldown": 3,
+            "effect": "相手の攻撃力-20%、2ターン持続"
+          }
+        ],
+        "passives": ["敏捷性", "嗅覚", "夜間視力"]
+      },
+      "behavior": {
+        "aiPattern": "HP30%以下で遠吠えを使用し逃走を試みる",
+        "targeting": "最も近い敵を攻撃、基本的に防御的"
+      },
+      "drops": {
+        "exp": 20,
+        "gold": 5,
+        "items": ["狼の毛皮", "野生の肉"],
+        "rareDrops": ["鋭い牙"]
+      },
+      "status": {
+        "currentHp": 30,
+        "currentMp": 0,
+        "statusEffects": ["飢餓状態"],
+        "location": "ハーベスト村"
+      }
     }
   ],
+  "bases": [],
   "quests": [
     {
       "id": "test-event-1",
