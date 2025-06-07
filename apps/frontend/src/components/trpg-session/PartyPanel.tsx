@@ -39,7 +39,14 @@ const PartyPanel: React.FC<PartyPanelProps> = ({
   };
 
   return (
-    <Paper elevation={2} sx={{ height: '600px', display: 'flex', flexDirection: 'column' }}>
+    <Paper elevation={2} sx={{ 
+      height: '100%',
+      maxHeight: '100%', // 親の高さを超えないよう明示的に制限
+      display: 'flex', 
+      flexDirection: 'column',
+      minHeight: 0, // flexbox子要素として適切に動作
+      overflow: 'hidden'
+    }}>
       {/* 現在地表示エリア */}
       <Card sx={{ m: 1, mb: 0 }}>
         <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>

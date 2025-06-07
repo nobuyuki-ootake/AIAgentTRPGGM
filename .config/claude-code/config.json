@@ -2,15 +2,30 @@
   "mcp": {
     "servers": {
       "playwright": {
-        "command": "npx",
-        "args": ["@playwright/mcp"],
+        "command": "/home/irure/.nvm/versions/node/v18.20.8/bin/npx",
+        "args": ["-y", "@modelcontextprotocol/server-playwright"],
         "env": {
-          "PLAYWRIGHT_HEADLESS": "true",
+          "PLAYWRIGHT_HEADLESS": "false",
           "NODE_ENV": "production"
         }
       },
       "mastra-docs": {
         "url": "https://gitmcp.io/mastra-ai/mastra/"
+      },
+      "taskmaster-ai": {
+        "command": "/home/irure/.nvm/versions/node/v18.20.8/bin/npx",
+        "args": ["-y", "--package=task-master-ai", "task-master-ai"],
+        "env": {
+          "ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_API_KEY_HERE",
+          "PERPLEXITY_API_KEY": "YOUR_PERPLEXITY_API_KEY_HERE",
+          "OPENAI_API_KEY": "YOUR_OPENAI_KEY_HERE",
+          "GOOGLE_API_KEY": "YOUR_GOOGLE_KEY_HERE",
+          "MISTRAL_API_KEY": "YOUR_MISTRAL_KEY_HERE",
+          "OPENROUTER_API_KEY": "YOUR_OPENROUTER_KEY_HERE",
+          "XAI_API_KEY": "YOUR_XAI_KEY_HERE",
+          "AZURE_OPENAI_API_KEY": "YOUR_AZURE_KEY_HERE"
+        },
+        "type": "stdio"
       }
     }
   }

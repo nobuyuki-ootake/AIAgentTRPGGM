@@ -17,7 +17,6 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
-  Divider,
   Paper
 } from '@mui/material';
 import {
@@ -25,10 +24,7 @@ import {
   Accessibility as AccessibilityIcon,
   Keyboard as KeyboardIcon,
   Visibility as VisibilityIcon,
-  VolumeUp as VolumeUpIcon,
-  Check as CheckIcon,
-  Error as ErrorIcon,
-  Warning as WarningIcon
+  VolumeUp as VolumeUpIcon
 } from '@mui/icons-material';
 import { useAccessibility, useKeyboardNavigation, useScreenReader } from '../../hooks/useAccessibility';
 import { generateAccessibilityReport } from '../../utils/accessibilityUtils';
@@ -78,7 +74,6 @@ const AccessibilityTestPanel: React.FC<AccessibilityTestPanelProps> = ({
   const {
     violations,
     isChecking,
-    hasViolations,
     violationCount,
     checkAccessibility
   } = useAccessibility({
@@ -106,7 +101,7 @@ const AccessibilityTestPanel: React.FC<AccessibilityTestPanelProps> = ({
     announceToScreenReader(`Accessibility report generated. Found ${fullReport.overall.passedChecks} passed checks out of ${fullReport.overall.totalChecks} total checks.`);
   }, [targetElement, announceToScreenReader]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 

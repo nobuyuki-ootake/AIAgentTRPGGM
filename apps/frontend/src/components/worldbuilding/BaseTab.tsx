@@ -63,6 +63,18 @@ const BaseTab: React.FC = () => {
   const [editingBase, setEditingBase] = useState<BaseLocation | null>(null);
   const [formData, setFormData] = useState<Omit<BaseLocation, "id" | "created_at" | "updated_at">>(createBaseTemplate("村"));
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  
+  // 行動選択肢編集用の状態
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [editingActionIndex, setEditingActionIndex] = useState<number | null>(null);
+  const [actionFormData, setActionFormData] = useState({
+    id: "",
+    name: "",
+    description: "",
+    category: "custom" as const,
+    requirements: [] as string[],
+    effects: [] as string[]
+  });
 
   // ダイアログを開く
   const handleOpenDialog = (base?: BaseLocation) => {
@@ -124,6 +136,57 @@ const BaseTab: React.FC = () => {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
+  };
+
+  // 行動選択肢編集ダイアログを開く
+  const handleOpenActionDialog = (actionIndex?: number) => {
+    if (actionIndex !== undefined && formData.availableActions) {
+      const action = formData.availableActions[actionIndex];
+      setEditingActionIndex(actionIndex);
+      setActionFormData({
+        id: action.id,
+        name: action.name,
+        description: action.description,
+        category: action.category,
+        requirements: action.requirements || [],
+        effects: action.effects || []
+      });
+    } else {
+      setEditingActionIndex(null);
+      setActionFormData({
+        id: `action-${Date.now()}`,
+        name: "",
+        description: "",
+        category: "custom",
+        requirements: [],
+        effects: []
+      });
+    }
+    setActionDialogOpen(true);
+  };
+
+  // 行動選択肢編集ダイアログを閉じる
+  const handleCloseActionDialog = () => {
+    setActionDialogOpen(false);
+    setEditingActionIndex(null);
+  };
+
+  // 行動選択肢を保存
+  const handleSaveAction = () => {
+    if (!actionFormData.name.trim()) return;
+
+    const newActions = [...(formData.availableActions || [])];
+    
+    if (editingActionIndex !== null) {
+      // 既存の行動を更新
+      newActions[editingActionIndex] = actionFormData;
+    } else {
+      // 新しい行動を追加
+      newActions.push(actionFormData);
+    }
+    
+    handleFormChange("availableActions", newActions);
+    handleCloseActionDialog();
   };
 
   // AI画像生成
@@ -383,6 +446,33 @@ const BaseTab: React.FC = () => {
                           )}
                         </Stack>
                       </Box>
+
+                      {/* 行動選択肢情報 */}
+                      {base.availableActions && base.availableActions.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            行動選択肢 ({base.availableActions.length}件):
+                          </Typography>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
+                            {base.availableActions.slice(0, 3).map((action, i) => (
+                              <Chip 
+                                key={`action-${i}`} 
+                                label={action.name} 
+                                size="small" 
+                                color="secondary" 
+                                variant="outlined" 
+                              />
+                            ))}
+                            {base.availableActions.length > 3 && (
+                              <Chip 
+                                label={`他${base.availableActions.length - 3}件`} 
+                                size="small" 
+                                variant="outlined" 
+                              />
+                            )}
+                          </Stack>
+                        </Box>
+                      )}
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>
                       <IconButton
@@ -618,6 +708,74 @@ const BaseTab: React.FC = () => {
               </AccordionDetails>
             </Accordion>
 
+            {/* 行動選択肢 */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">行動選択肢</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={2}>
+                  <Typography variant="body2" color="text.secondary">
+                    この拠点でプレイヤーが実行可能な行動を設定します。TRPGセッション時にこれらの行動が選択肢として表示されます。
+                  </Typography>
+                  
+                  {/* 行動リスト */}
+                  {formData.availableActions && formData.availableActions.length > 0 ? (
+                    <List>
+                      {formData.availableActions.map((action, index) => (
+                        <ListItem key={index} divider={index < formData.availableActions!.length - 1}>
+                          <ListItemText
+                            primary={action.name}
+                            secondary={
+                              <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                  {action.description}
+                                </Typography>
+                                <Chip label={action.category} size="small" sx={{ mt: 0.5 }} />
+                              </Box>
+                            }
+                          />
+                          <ListItemSecondaryAction>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenActionDialog(index)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  const newActions = [...(formData.availableActions || [])];
+                                  newActions.splice(index, 1);
+                                  handleFormChange("availableActions", newActions);
+                                }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                      まだ行動選択肢が設定されていません
+                    </Typography>
+                  )}
+                  
+                  {/* 新しい行動を追加するボタン */}
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={() => handleOpenActionDialog()}
+                  >
+                    行動選択肢を追加
+                  </Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+
             {/* メタ情報 */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -718,6 +876,87 @@ const BaseTab: React.FC = () => {
             disabled={!formData.name.trim() || isLoading}
           >
             {isLoading ? "保存中..." : "保存"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 行動選択肢編集ダイアログ */}
+      <Dialog open={actionDialogOpen} onClose={handleCloseActionDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {editingActionIndex !== null ? "行動選択肢を編集" : "新しい行動選択肢を追加"}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={3}>
+            <TextField
+              label="行動名"
+              value={actionFormData.name}
+              onChange={(e) => setActionFormData(prev => ({ ...prev, name: e.target.value }))}
+              fullWidth
+              required
+              placeholder="例: 装備品を購入する"
+            />
+            
+            <TextField
+              label="説明"
+              value={actionFormData.description}
+              onChange={(e) => setActionFormData(prev => ({ ...prev, description: e.target.value }))}
+              multiline
+              rows={3}
+              fullWidth
+              required
+              placeholder="例: 街の商店で武器、防具、アイテムを購入できます"
+            />
+            
+            <FormControl fullWidth>
+              <InputLabel>カテゴリ</InputLabel>
+              <Select
+                value={actionFormData.category}
+                onChange={(e) => setActionFormData(prev => ({ ...prev, category: e.target.value as any }))}
+                label="カテゴリ"
+              >
+                <MenuItem value="exploration">探索</MenuItem>
+                <MenuItem value="social">社交</MenuItem>
+                <MenuItem value="shopping">買い物</MenuItem>
+                <MenuItem value="training">訓練</MenuItem>
+                <MenuItem value="rest">休憩</MenuItem>
+                <MenuItem value="quest">クエスト</MenuItem>
+                <MenuItem value="custom">カスタム</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <TextField
+              label="前提条件（任意）"
+              value={actionFormData.requirements?.join(', ') || ''}
+              onChange={(e) => setActionFormData(prev => ({ 
+                ...prev, 
+                requirements: e.target.value ? e.target.value.split(',').map(s => s.trim()) : [] 
+              }))}
+              fullWidth
+              placeholder="例: レベル5以上, 特定のアイテム所持"
+              helperText="カンマ区切りで複数の条件を入力できます"
+            />
+            
+            <TextField
+              label="効果・結果（任意）"
+              value={actionFormData.effects?.join(', ') || ''}
+              onChange={(e) => setActionFormData(prev => ({ 
+                ...prev, 
+                effects: e.target.value ? e.target.value.split(',').map(s => s.trim()) : [] 
+              }))}
+              fullWidth
+              placeholder="例: アイテム獲得, 経験値+100"
+              helperText="カンマ区切りで複数の効果を入力できます"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseActionDialog}>キャンセル</Button>
+          <Button 
+            onClick={handleSaveAction} 
+            variant="contained" 
+            disabled={!actionFormData.name.trim()}
+          >
+            保存
           </Button>
         </DialogActions>
       </Dialog>

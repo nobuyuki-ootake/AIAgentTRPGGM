@@ -4,7 +4,6 @@ import AppLayout from "./components/layout/AppLayout";
 import SynopsisPage from "./pages/SynopsisPage";
 import WritingPage from "./pages/WritingPage";
 import HomePage from "./pages/HomePage";
-import PlotPage from "./pages/PlotPage";
 import QuestPage from "./pages/QuestPage";
 import CharactersPage from "./pages/CharactersPage";
 import WorldBuildingPage from "./pages/WorldBuildingPage";

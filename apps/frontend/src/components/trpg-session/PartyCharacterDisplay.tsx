@@ -166,6 +166,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
           borderColor: status.status === 'critical' || status.status === 'dead' ? 'error.main' : 'divider',
         }}
         onClick={() => onCharacterSelect && onCharacterSelect(character)}
+        data-testid={`character-card-${character.name.replace(/\s+/g, '-').toLowerCase()}`}
       >
       <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>

@@ -2,14 +2,13 @@ import axios, { AxiosError } from "axios";
 import { WorldBuildingApiResponse } from "../types/apiResponse";
 import {
   WorldBuildingElementType,
-  PlotElement,
-  Character,
+  QuestElement,
+  TRPGCharacter,
   WorldBuildingElement,
-  TimelineEvent,
+  SessionEvent,
   StandardAIResponse,
   BaseLocation,
   TRPGCampaign,
-  TRPGCharacter,
 } from "@trpg-ai-gm/types";
 
 // APIのベースURL
@@ -107,7 +106,7 @@ export const aiAgentApi = {
   chat: async (
     message: string,
     selectedElements: Array<
-      PlotElement | Character | WorldBuildingElement
+      QuestElement | TRPGCharacter | WorldBuildingElement
     > = [],
     networkType:
       | "trpg-session"
@@ -134,7 +133,7 @@ export const aiAgentApi = {
    * @param message ユーザーのメッセージ
    * @param plotElements プロット要素
    */
-  getPlotAdvice: async (message: string, plotElements: PlotElement[] = []) => {
+  getPlotAdvice: async (message: string, plotElements: QuestElement[] = []) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/plot-advice`, {
         message,
@@ -206,9 +205,9 @@ export const aiAgentApi = {
    * @param message ユーザーのメッセージ
    * @param characterElements キャラクター要素
    */
-  getCharacterAdvice: async (
+  getTRPGCharacterAdvice: async (
     message: string,
-    characterElements: Character[] = []
+    characterElements: TRPGCharacter[] = []
   ) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/character-advice`, {
@@ -228,12 +227,12 @@ export const aiAgentApi = {
    * キャラクター生成を行う
    * @param message ユーザーのメッセージ
    * @param plotElements プロット要素
-   * @param existingCharacters 既存のキャラクター
+   * @param existingTRPGCharacters 既存のキャラクター
    */
-  generateCharacter: async (
+  generateTRPGCharacter: async (
     message: string,
-    plotElements: PlotElement[] = [],
-    existingCharacters: Character[] = []
+    plotElements: QuestElement[] = [],
+    existingTRPGCharacters: TRPGCharacter[] = []
   ) => {
     try {
       const response = await axios.post(
@@ -241,7 +240,7 @@ export const aiAgentApi = {
         {
           message,
           plotElements,
-          existingCharacters,
+          existingTRPGCharacters,
         }
       );
       return response.data;
@@ -257,13 +256,13 @@ export const aiAgentApi = {
    * キャラクターの概要リストを生成する（分割リクエスト第1段階）
    * @param message ユーザーのメッセージ
    * @param plotElements プロット要素
-   * @param existingCharacters 既存のキャラクター
+   * @param existingTRPGCharacters 既存のキャラクター
    * @returns キャラクター名と役割のリスト
    */
-  generateCharacterList: async (
+  generateTRPGCharacterList: async (
     message: string,
-    plotElements: PlotElement[] = [],
-    existingCharacters: Character[] = []
+    plotElements: QuestElement[] = [],
+    existingTRPGCharacters: TRPGCharacter[] = []
   ) => {
     try {
       const response = await axios.post(
@@ -271,7 +270,7 @@ export const aiAgentApi = {
         {
           message,
           plotElements,
-          existingCharacters,
+          existingTRPGCharacters,
         }
       );
       return response.data;
@@ -289,15 +288,15 @@ export const aiAgentApi = {
    * @param characterRole キャラクターの役割
    * @param message 追加の指示
    * @param plotElements プロット要素
-   * @param existingCharacters 既存のキャラクター
+   * @param existingTRPGCharacters 既存のキャラクター
    * @returns キャラクターの詳細情報
    */
-  generateCharacterDetail: async (
+  generateTRPGCharacterDetail: async (
     characterName: string,
     characterRole: string,
     message: string = "",
-    plotElements: PlotElement[] = [],
-    existingCharacters: Character[] = []
+    plotElements: QuestElement[] = [],
+    existingTRPGCharacters: TRPGCharacter[] = []
   ) => {
     try {
       const response = await axios.post(
@@ -307,7 +306,7 @@ export const aiAgentApi = {
           characterRole,
           message,
           plotElements,
-          existingCharacters,
+          existingTRPGCharacters,
         }
       );
       return response.data;
@@ -377,8 +376,8 @@ export const aiAgentApi = {
    */
   generateWorldBuildingList: async (
     message: string,
-    plotElements: PlotElement[] = [],
-    charactersElements: Character[] = [],
+    plotElements: QuestElement[] = [],
+    charactersElements: TRPGCharacter[] = [],
     model: string = "gemini-1.5-pro",
     format: string = "json",
     elementType: string = "places"
@@ -418,8 +417,8 @@ export const aiAgentApi = {
     elementName: string,
     elementType: string,
     message: string = "",
-    plotElements: PlotElement[] = [],
-    charactersElements: Character[] = [],
+    plotElements: QuestElement[] = [],
+    charactersElements: TRPGCharacter[] = [],
     format: string = "json"
   ): Promise<WorldBuildingApiResponse> => {
     try {
@@ -561,10 +560,10 @@ export const aiAgentApi = {
    */
   generateChapterContent: async (
     chapterTitle: string,
-    relatedEvents: Pick<TimelineEvent, "id" | "title" | "description">[],
+    relatedEvents: Pick<SessionEvent, "id" | "title" | "description">[],
     charactersInChapter: Pick<
-      Character,
-      "id" | "name" | "description" | "role"
+      TRPGCharacter,
+      "id" | "name" | "description" | "profession"
     >[],
     selectedLocations: Pick<
       WorldBuildingElement,
@@ -684,7 +683,7 @@ export const aiAgentApi = {
     
     // 🌍 WorldContextBuilder用の詳細コンテキスト
     currentLocation?: BaseLocation;      // 現在地情報
-    activeCharacters?: TRPGCharacter[];  // アクティブなキャラクター
+    activeTRPGCharacters?: TRPGCharacter[];  // アクティブなキャラクター
     timeOfDay?: string;                  // 時間帯
     sessionDay?: number;                 // セッション日数
     situation?: 'encounter' | 'conversation' | 'exploration' | 'general';
@@ -715,7 +714,7 @@ export const aiAgentApi = {
         elementType: params.elementType,
         situation: params.situation,
         hasLocation: !!params.currentLocation,
-        hasCharacters: !!params.activeCharacters,
+        hasTRPGCharacters: !!params.activeTRPGCharacters,
       });
 
       const response = await axios.post(

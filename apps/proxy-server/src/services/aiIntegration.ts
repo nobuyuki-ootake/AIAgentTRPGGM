@@ -44,8 +44,8 @@ const MODEL_CONFIG = {
     ],
   },
   gemini: {
-    default: 'gemini-pro-1.5',
-    models: ['gemini-pro', 'gemini-pro-1.5'],
+    default: 'gemini-1.5-pro',
+    models: ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'],
   },
   mistral: {
     default: 'mistral-large-latest',
@@ -363,6 +363,24 @@ async function callAnthropic(
 }
 
 /**
+ * Geminiモデル名を正規化する関数
+ * @param model 入力されたモデル名
+ * @returns 正規化されたモデル名
+ */
+function normalizeGeminiModelName(model: string): string {
+  const modelMap: Record<string, string> = {
+    'gemini-pro-1.5': 'gemini-1.5-pro',
+    'gemini-pro': 'gemini-1.0-pro',
+    'gemini-flash': 'gemini-1.5-flash',
+    'gemini-1.5-flash': 'gemini-1.5-flash',
+    'gemini-1.5-pro': 'gemini-1.5-pro',
+    'gemini-1.0-pro': 'gemini-1.0-pro'
+  };
+
+  return modelMap[model] || 'gemini-1.5-pro';
+}
+
+/**
  * Gemini APIを呼び出す関数
  * @param request AIリクエスト
  * @param model 使用するモデル
@@ -398,9 +416,8 @@ async function callGemini(
     // Geminiクライアントの初期化
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // モデル名を修正（gemini-pro-1.5 → gemini-1.5-pro）
-    const modelName =
-      model === 'gemini-pro-1.5' ? 'gemini-1.5-pro' : model || 'gemini-1.5-pro';
+    // モデル名の正規化（古い名前から新しい名前への変換）
+    const modelName = normalizeGeminiModelName(model || 'gemini-1.5-pro');
 
     // 生成設定
     const generationConfig = {
@@ -467,18 +484,32 @@ ${request.userPrompt}`;
     );
 
     // Gemini APIを呼び出す
+    console.log(`[AI] Gemini API呼び出し開始: プロンプト長=${combinedPrompt.length}文字`);
     const result = await geminiModel.generateContent([
       { text: combinedPrompt },
     ]);
 
-    // 結果がないとエラー
-    if (!result || !result.response) {
-      throw new Error('Gemini APIからの応答が空です');
+    // 結果とレスポンスの詳細チェック
+    if (!result) {
+      throw new Error('Gemini APIからのresultが空です');
     }
 
-    const responseText = result.response.text() || '';
+    if (!result.response) {
+      console.error('[AI] Gemini API結果:', JSON.stringify(result, null, 2));
+      throw new Error('Gemini APIからのresponseが空です');
+    }
+
+    // レスポンステキストの取得（エラーハンドリング付き）
+    let responseText: string;
+    try {
+      responseText = result.response.text() || '';
+    } catch (textError) {
+      console.error('[AI] Gemini APIレスポンステキスト取得エラー:', textError);
+      throw new Error(`Gemini APIレスポンステキスト取得に失敗: ${textError instanceof Error ? textError.message : '不明なエラー'}`);
+    }
+
     console.log(
-      `[AI] Gemini APIからの生のレスポンス取得: ${responseText.length}バイト`,
+      `[AI] Gemini APIからの生のレスポンス取得成功: ${responseText.length}バイト`,
     );
 
     // レスポンスの処理（フォーマットに合わせてパース）
@@ -529,18 +560,44 @@ ${request.userPrompt}`;
     // 詳細なエラー情報を出力（デバッグ用）
     console.error(`[AI] Gemini APIエラー:`, error);
 
+    // エラーのタイプ分析
+    let errorType = 'GEMINI_API_ERROR';
+    let userMessage = 'Gemini APIでのリクエスト処理中にエラーが発生しました';
+
+    if (error instanceof Error) {
+      // Google AI APIの特定エラーをチェック
+      if (error.message.includes('API_KEY_INVALID')) {
+        errorType = 'INVALID_API_KEY';
+        userMessage = 'Gemini APIキーが無効です。有効なAPIキーを設定してください。';
+      } else if (error.message.includes('QUOTA_EXCEEDED')) {
+        errorType = 'QUOTA_EXCEEDED';
+        userMessage = 'Gemini APIの使用量制限に達しました。しばらく待ってから再試行してください。';
+      } else if (error.message.includes('MODEL_NOT_FOUND')) {
+        errorType = 'MODEL_NOT_FOUND';
+        userMessage = `指定されたモデル（${model}）が見つかりません。利用可能なモデルを確認してください。`;
+      } else if (error.message.includes('RESOURCE_EXHAUSTED')) {
+        errorType = 'RESOURCE_EXHAUSTED';
+        userMessage = 'Gemini APIのリソースが不足しています。しばらく待ってから再試行してください。';
+      } else if (error.message.includes('PERMISSION_DENIED')) {
+        errorType = 'PERMISSION_DENIED';
+        userMessage = 'Gemini APIへのアクセスが拒否されました。APIキーの権限を確認してください。';
+      }
+    }
+
     // エラー情報を構造化
     const errorDetail = {
       message: error instanceof Error ? error.message : '不明なエラー',
       name: error instanceof Error ? error.name : 'Unknown',
       stack: error instanceof Error ? error.stack : undefined,
       requestType: request.requestType,
+      model: model,
+      apiKey: process.env.GEMINI_API_KEY ? '設定済み' : '未設定',
     };
 
     // エラーを再スロー（追加情報付き）
     throw {
-      type: 'GEMINI_API_ERROR',
-      message: 'Gemini APIでのリクエスト処理中にエラーが発生しました',
+      type: errorType,
+      message: userMessage,
       details: errorDetail,
       originalError: error,
     };

@@ -209,6 +209,7 @@ export const useBases = () => {
         unlocked: true,
         lastUpdated: new Date().toISOString(),
       },
+      availableActions: [],
     };
 
     // タイプに応じた調整
@@ -241,6 +242,26 @@ export const useBases = () => {
             dangerLevel: "低",
             monsterAttackRate: 10,
           },
+          availableActions: [
+            {
+              id: "village-rest",
+              name: "宿屋で休憩する",
+              description: "村の宿屋で体力を回復し、地元の情報を収集できます",
+              category: "rest",
+            },
+            {
+              id: "village-shop",
+              name: "雑貨店で買い物をする",
+              description: "基本的な生活用品や食料を購入できます",
+              category: "shopping",
+            },
+            {
+              id: "village-talk",
+              name: "村人と話す",
+              description: "村長や住民から地域の情報を聞くことができます",
+              category: "social",
+            },
+          ],
         };
 
       case "町":
@@ -284,6 +305,38 @@ export const useBases = () => {
             dangerLevel: "中",
             monsterAttackRate: 5,
           },
+          availableActions: [
+            {
+              id: "town-inn",
+              name: "旅人の宿で休憩する",
+              description: "より良い設備で休息し、旅人から有用な情報を得られます",
+              category: "rest",
+            },
+            {
+              id: "town-weapons",
+              name: "武具店で装備を購入する",
+              description: "基本的な武器や防具を購入して装備を強化できます",
+              category: "shopping",
+            },
+            {
+              id: "town-tools",
+              name: "道具屋で冒険用品を購入する",
+              description: "冒険に必要な道具や消耗品を補充できます",
+              category: "shopping",
+            },
+            {
+              id: "town-temple",
+              name: "聖堂で祈りを捧げる",
+              description: "回復や状態異常の治療、祝福を受けることができます",
+              category: "rest",
+            },
+            {
+              id: "town-info",
+              name: "街で情報収集をする",
+              description: "商人や冒険者から周辺地域の情報を収集できます",
+              category: "social",
+            },
+          ],
         };
 
       case "都市":
@@ -343,6 +396,50 @@ export const useBases = () => {
             localGoods: ["高級品", "芸術品"],
             tradeGoods: ["香辛料", "宝石", "魔法素材"],
           },
+          availableActions: [
+            {
+              id: "city-luxury-inn",
+              name: "高級宿で休憩する",
+              description: "最高級の設備で休息し、貴族や商人から重要な情報を得られます",
+              category: "rest",
+            },
+            {
+              id: "city-weapon-shop",
+              name: "武器商会で高級装備を購入する",
+              description: "高品質で魔法武器を含む強力な装備を購入できます",
+              category: "shopping",
+            },
+            {
+              id: "city-magic-shop",
+              name: "魔法用品店で魔法アイテムを購入する",
+              description: "魔法薬、巻物、魔法の杖など特殊なアイテムを購入できます",
+              category: "shopping",
+            },
+            {
+              id: "city-guild",
+              name: "冒険者ギルドでクエストを受ける",
+              description: "高難易度のクエストを受注し、仲間を募集できます",
+              category: "quest",
+            },
+            {
+              id: "city-cathedral",
+              name: "大聖堂で高位の祈りを捧げる",
+              description: "高位回復、蘇生、呪い解除などの強力な神聖魔法を受けられます",
+              category: "rest",
+            },
+            {
+              id: "city-blacksmith",
+              name: "名工の鍛冶場で装備を強化する",
+              description: "武器強化や特注製作、魔法付与を依頼できます",
+              category: "custom",
+            },
+            {
+              id: "city-training",
+              name: "都市で特殊訓練を受ける",
+              description: "高級な訓練施設でスキルアップや新技能の習得ができます",
+              category: "training",
+            },
+          ],
         };
 
       case "城":
@@ -373,6 +470,38 @@ export const useBases = () => {
             monsterAttackRate: 0,
             controllingFaction: "王国",
           },
+          availableActions: [
+            {
+              id: "castle-audience",
+              name: "領主に謁見する",
+              description: "城主や貴族に会い、重要な任務や情報を得ることができます",
+              category: "social",
+            },
+            {
+              id: "castle-armory",
+              name: "城の武器庫を利用する",
+              description: "王家の紋章入り装備など、特別な武器や防具を入手できます",
+              category: "shopping",
+            },
+            {
+              id: "castle-chapel",
+              name: "城内礼拝堂で祈りを捧げる",
+              description: "王家の守護神に祈り、特別な祝福や誓約を受けることができます",
+              category: "rest",
+            },
+            {
+              id: "castle-training",
+              name: "騎士団と訓練をする",
+              description: "熟練の騎士から戦闘技術を学び、武術を向上させることができます",
+              category: "training",
+            },
+            {
+              id: "castle-library",
+              name: "城の図書館で調査する",
+              description: "古文書や歴史書から貴重な知識や情報を得ることができます",
+              category: "social",
+            },
+          ],
         };
 
       default:

@@ -1365,6 +1365,16 @@ export interface BaseLocation {
     tradeGoods: string[];    // 交易品
   };
   
+  // TRPGセッション用: 行動可能リスト
+  availableActions?: {
+    id: string;
+    name: string;
+    description: string;
+    category: "exploration" | "social" | "shopping" | "training" | "rest" | "quest" | "custom";
+    requirements?: string[]; // 前提条件
+    effects?: string[]; // 効果・結果
+  }[];
+  
   // 🌍 世界観構築統合: 遭遇ルール
   encounterRules?: {
     timeOfDay: Record<TimeOfDay, EncounterChance>;

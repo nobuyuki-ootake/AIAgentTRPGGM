@@ -88,14 +88,14 @@ const ResponsiveDrawer: React.FC<ResponsiveDrawerProps> = ({
         <Box sx={{ display: "flex", gap: 0.5 }}>
           {collapsible && !isMobile && (
             <Tooltip title={collapsed ? "展開" : "折りたたみ"}>
-              <IconButton onClick={handleCollapse} size="small">
+              <IconButton onClick={handleCollapse} size="small" data-testid="drawer-collapse-button">
                 {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
               </IconButton>
             </Tooltip>
           )}
 
           {isMobile && (
-            <IconButton onClick={handleToggle} size="small">
+            <IconButton onClick={handleToggle} size="small" data-testid="drawer-close-button">
               <CloseIcon />
             </IconButton>
           )}
@@ -122,6 +122,7 @@ const ResponsiveDrawer: React.FC<ResponsiveDrawerProps> = ({
         anchor={anchor}
         open={isOpen}
         onClose={handleToggle}
+        data-testid="responsive-drawer"
         sx={{
           width: isOpen ? actualWidth : 0,
           flexShrink: 0,

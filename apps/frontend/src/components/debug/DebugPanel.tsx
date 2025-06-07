@@ -19,7 +19,10 @@ import {
   Print,
   PlayArrow,
   Warning,
+  CheckCircle,
+  Bolt,
 } from '@mui/icons-material';
+import { DiceD20Icon } from '../icons/TRPGIcons';
 import { TRPGCharacter, TRPGCampaign, TRPGNPC, TRPGEnemy } from '@trpg-ai-gm/types';
 
 interface DebugPanelProps {
@@ -42,6 +45,16 @@ interface DebugPanelProps {
   onLoadEmptyCampaign: () => void;
   onExportDebugLog: () => void;
   onClose: () => void;
+  
+  // ダイス関連
+  onOpenDiceDialog?: () => void;
+  onOpenSkillCheckDialog?: () => void;
+  onOpenPowerCheckDialog?: () => void;
+  lastDiceResult?: {
+    result: number;
+    notation: string;
+    details: string;
+  } | null;
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
@@ -61,9 +74,14 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   onLoadEmptyCampaign,
   onExportDebugLog,
   onClose,
+  onOpenDiceDialog,
+  onOpenSkillCheckDialog,
+  onOpenPowerCheckDialog,
+  lastDiceResult,
 }) => {
   return (
     <Paper
+      data-testid="debug-panel"
       sx={{
         position: 'fixed',
         top: 10,
@@ -331,9 +349,70 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
               }
             }}
             fullWidth
+            data-testid="reload-test-data-button"
           >
             🔄 JSONから再ロード
           </Button>
+        </Stack>
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      {/* 6. ダイス機能 */}
+      <Box>
+        <Typography variant="subtitle2" color="primary" gutterBottom>
+          🎲 ダイス機能
+        </Typography>
+        <Stack spacing={1}>
+          {onOpenDiceDialog && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<DiceD20Icon />}
+              onClick={onOpenDiceDialog}
+              fullWidth
+            >
+              基本ダイス
+            </Button>
+          )}
+          
+          {onOpenSkillCheckDialog && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<CheckCircle />}
+              onClick={onOpenSkillCheckDialog}
+              fullWidth
+            >
+              技能判定
+            </Button>
+          )}
+          
+          {onOpenPowerCheckDialog && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<Bolt />}
+              onClick={onOpenPowerCheckDialog}
+              fullWidth
+            >
+              能力判定
+            </Button>
+          )}
+          
+          {lastDiceResult && (
+            <Paper sx={{ p: 1, mt: 1, bgcolor: 'grey.100' }}>
+              <Typography variant="caption" color="text.secondary">
+                最後のロール:
+              </Typography>
+              <Typography variant="body2" fontWeight="bold">
+                {lastDiceResult.notation} = {lastDiceResult.result}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {lastDiceResult.details}
+              </Typography>
+            </Paper>
+          )}
         </Stack>
       </Box>
     </Paper>

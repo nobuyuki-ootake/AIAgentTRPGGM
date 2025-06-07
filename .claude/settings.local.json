@@ -71,7 +71,13 @@
       "Bash(VITE_HOST=0.0.0.0 pnpm run dev --force)",
       "Bash(cat:*)",
       "Bash(pgrep:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(vite:*)",
+      "Bash(claude mcp)",
+      "Bash(claude mcp:*)",
+      "mcp__browsermcp__browser_navigate",
+      "mcp__browsermcp__browser_screenshot",
+      "mcp__browsermcp__browser_click"
     ],
     "deny": []
   }

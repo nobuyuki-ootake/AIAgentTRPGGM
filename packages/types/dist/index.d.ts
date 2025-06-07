@@ -980,6 +980,14 @@ export interface BaseLocation {
         localGoods: string[];
         tradeGoods: string[];
     };
+    availableActions?: {
+        id: string;
+        name: string;
+        description: string;
+        category: "exploration" | "social" | "shopping" | "training" | "rest" | "quest" | "custom";
+        requirements?: string[];
+        effects?: string[];
+    }[];
     encounterRules?: {
         timeOfDay: Record<TimeOfDay, EncounterChance>;
         weatherEffects?: WeatherModifier[];

@@ -148,7 +148,7 @@ export class TRPGLocalStorageManager {
         id: campaign.id,
         title: campaign.title,
         updatedAt: campaign.updatedAt instanceof Date ? campaign.updatedAt.toISOString() : new Date().toISOString(),
-        summary: campaign.summary,
+        summary: campaign.synopsis,
       };
     } else {
       // 新規キャンペーンの場合は追加
@@ -156,7 +156,7 @@ export class TRPGLocalStorageManager {
         id: campaign.id,
         title: campaign.title,
         updatedAt: campaign.updatedAt instanceof Date ? campaign.updatedAt.toISOString() : new Date().toISOString(),
-        summary: campaign.summary,
+        summary: campaign.synopsis,
       });
     }
 
@@ -320,23 +320,8 @@ export class TRPGLocalStorageManager {
           behaviorPattern: "集団で行動し、強い敵からは逃げる",
         }
       ],
+      bases: [],
       worldBuilding: {
-        bases: [
-          {
-            id: "base-001",
-            name: "ハーフリング村",
-            type: "village",
-            description: "緑豊かな丘陵地帯にある平和な村",
-            location: "王国の南東部",
-            population: 300,
-            defenseLevel: 2,
-            facilities: ["宿屋", "鍛冶屋", "雑貨屋", "寺院"],
-            services: ["宿泊", "食事", "装備修理", "情報収集"],
-            npcs: ["npc-001"],
-            questHooks: ["村の井戸が枯れた謎", "行方不明になった村人の捜索"],
-            notes: "冒険の拠点となる村"
-          }
-        ],
         setting: [],
         rules: [],
         places: [],

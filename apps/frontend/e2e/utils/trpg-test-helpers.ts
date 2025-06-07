@@ -1,91 +1,25 @@
 import { Page, expect, Locator } from "@playwright/test";
+import type { 
+  TRPGCampaign, 
+  TRPGCharacter, 
+  BaseLocation, 
+  SessionEvent, 
+  GameSession,
+  NPCCharacter,
+  EnemyCharacter 
+} from '@trpg-ai-gm/types';
 
 /**
  * TRPG-specific test helper functions
  * Provides utilities for campaign management, character creation, session handling, etc.
+ * 
+ * Note: All types are now imported from the shared @trpg-ai-gm/types package
+ * to maintain consistency across frontend and backend.
  */
-
-export interface TRPGCampaign {
-  id: string;
-  title: string;
-  description: string;
-  gameSystem: string;
-  createdAt: string;
-  updatedAt: string;
-  playerCharacters: TRPGCharacter[];
-  npcs: TRPGCharacter[];
-  enemies: TRPGCharacter[];
-  locations: TRPGLocation[];
-  timeline: TRPGTimelineEvent[];
-  sessions: TRPGSession[];
-}
-
-export interface TRPGCharacter {
-  id: string;
-  name: string;
-  type: 'PC' | 'NPC' | 'Enemy';
-  level: number;
-  race: string;
-  class: string;
-  attributes: {
-    strength: number;
-    dexterity: number;
-    constitution: number;
-    intelligence: number;
-    wisdom: number;
-    charisma: number;
-  };
-  hitPoints: {
-    current: number;
-    maximum: number;
-  };
-  armorClass: number;
-  background: string;
-  personality: string;
-  appearance: string;
-  backstory: string;
-  equipment: string[];
-  spells?: string[];
-  notes: string;
-  imageUrl?: string;
-}
-
-export interface TRPGLocation {
-  id: string;
-  name: string;
-  type: string;
-  description: string;
-  inhabitants: string[];
-  features: string[];
-  connections: string[];
-}
-
-export interface TRPGTimelineEvent {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  location?: string;
-  participants: string[];
-  type: 'story' | 'battle' | 'social' | 'exploration';
-  consequences: string[];
-}
-
-export interface TRPGSession {
-  id: string;
-  campaignId: string;
-  sessionNumber: number;
-  title: string;
-  date: string;
-  duration: number;
-  participants: string[];
-  summary: string;
-  events: TRPGTimelineEvent[];
-  notes: string;
-}
 
 /**
  * Create a test TRPG campaign with comprehensive data
+ * Uses shared TRPGCampaign type from @trpg-ai-gm/types
  */
 export const createTestTRPGCampaign = (): TRPGCampaign => {
   const campaignId = `test-campaign-${Date.now()}`;
@@ -93,60 +27,147 @@ export const createTestTRPGCampaign = (): TRPGCampaign => {
   return {
     id: campaignId,
     title: "テストTRPGキャンペーン：失われた王国の謎",
-    description: "古代の王国が消失した謎を解き明かす冒険キャンペーン。プレイヤーたちは考古学者として遺跡を調査し、古代の魔法と政治的陰謀に巻き込まれていく。",
     gameSystem: "D&D 5e",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    playerCharacters: [
+    gamemaster: "AI GM",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    players: [{
+      id: "player-1",
+      name: "テストプレイヤー",
+      characterIds: ["pc-1", "pc-2"],
+      isOnline: true
+    }],
+    synopsis: "古代の王国が消失した謎を解き明かす冒険キャンペーン。プレイヤーたちは考古学者として遺跡を調査し、古代の魔法と政治的陰謀に巻き込まれていく。",
+    plot: [], // QuestElement[]として後で追加
+    worldBuilding: {
+      id: "world-test",
+      setting: [],
+      worldmaps: [],
+      rules: [],
+      places: [],
+      cultures: [],
+      geographyEnvironment: [],
+      historyLegend: [],
+      magicTechnology: [],
+      stateDefinition: [],
+      freeFields: []
+    },
+    timeline: [], // SessionEvent[]
+    sessions: [], // GameSession[]
+    rules: [],
+    handouts: [],
+    feedback: [],
+    bases: [], // BaseLocation[]
+    characters: [
       {
         id: "pc-1",
         name: "エリアス・ストーンハート",
-        type: "PC",
-        level: 3,
-        race: "ヒューマン",
-        class: "ファイター",
+        characterType: "PC",
+        profession: "戦士",
+        gender: "男性",
+        age: 28,
+        nation: "失われた王国",
+        religion: "正義の神",
+        player: "テストプレイヤー",
+        description: "元王国騎士団の一員。王国滅亡の真相を探るため冒険者となった。",
         attributes: {
-          strength: 16,
-          dexterity: 14,
-          constitution: 15,
-          intelligence: 12,
-          wisdom: 13,
-          charisma: 10
+          STR: 16,
+          CON: 15,
+          SIZ: 14,
+          INT: 12,
+          POW: 13,
+          DEX: 14,
+          CHA: 10
         },
-        hitPoints: { current: 28, maximum: 28 },
-        armorClass: 18,
-        background: "兵士",
-        personality: "勇敢で正義感が強い。仲間を守ることを最優先に考える。",
-        appearance: "身長180cm、筋肉質な体格。短い黒髪と青い瞳。",
-        backstory: "元王国騎士団の一員。王国滅亡の真相を探るため冒険者となった。",
-        equipment: ["ロングソード", "チェインメイル", "シールド", "ロングボウ"],
-        notes: "パーティのタンク役。防御を重視した戦闘スタイル。",
+        derived: {
+          HP: 28,
+          MP: 13,
+          SW: 14,
+          RES: 13
+        },
+        weapons: [{
+          name: "ロングソード",
+          attack: 75,
+          damage: "1d8+1d4",
+          hit: 80,
+          parry: 75,
+          range: "接触"
+        }],
+        armor: {
+          head: 4,
+          body: 6,
+          leftArm: 5,
+          rightArm: 5,
+          leftLeg: 4,
+          rightLeg: 4
+        },
+        skills: {
+          AgilitySkills: [],
+          CommunicationSkills: [],
+          KnowledgeSkills: [],
+          ManipulationSkills: [],
+          PerceptionSkills: [],
+          StealthSkills: [],
+          MagicSkills: [],
+          WeaponSkills: [{ name: "剣", value: 80 }]
+        },
         imageUrl: "/test-assets/elias.jpg"
       },
       {
         id: "pc-2", 
         name: "ルナ・シルバーリーフ",
-        type: "PC",
-        level: 3,
-        race: "エルフ",
-        class: "ウィザード",
+        characterType: "PC",
+        profession: "魔法使い",
+        gender: "女性",
+        age: 120,
+        nation: "エルフの森",
+        religion: "自然信仰",
+        player: "テストプレイヤー",
+        description: "魔法学院の卒業生。失われた古代魔法の研究のため冒険に参加。",
         attributes: {
-          strength: 8,
-          dexterity: 14,
-          constitution: 12,
-          intelligence: 17,
-          wisdom: 15,
-          charisma: 11
+          STR: 8,
+          CON: 12,
+          SIZ: 10,
+          INT: 17,
+          POW: 15,
+          DEX: 14,
+          CHA: 11
         },
-        hitPoints: { current: 18, maximum: 18 },
-        armorClass: 12,
-        background: "学者",
-        personality: "知識欲旺盛で論理的思考を好む。古代の謎解きに情熱を注ぐ。",
-        appearance: "身長165cm、細身。長い銀髪と緑の瞳。",
-        backstory: "魔法学院の卒業生。失われた古代魔法の研究のため冒険に参加。",
-        equipment: ["魔法の杖", "スペルブック", "ローブ", "コンポーネントポーチ"],
-        spells: ["マジックミサイル", "シールド", "ディテクトマジック", "ファイアーボール"],
-        notes: "パーティの魔法使い。謎解きと魔法攻撃が得意。",
+        derived: {
+          HP: 18,
+          MP: 30,
+          SW: 15,
+          RES: 15
+        },
+        weapons: [{
+          name: "魔法の杖",
+          attack: 45,
+          damage: "1d6",
+          hit: 60,
+          parry: 40,
+          range: "接触"
+        }],
+        armor: {
+          head: 0,
+          body: 2,
+          leftArm: 1,
+          rightArm: 1,
+          leftLeg: 1,
+          rightLeg: 1
+        },
+        skills: {
+          AgilitySkills: [],
+          CommunicationSkills: [],
+          KnowledgeSkills: [{ name: "魔法学", value: 85 }],
+          ManipulationSkills: [],
+          PerceptionSkills: [],
+          StealthSkills: [],
+          MagicSkills: [
+            { name: "火球術", value: 75 },
+            { name: "魔法感知", value: 80 }
+          ],
+          WeaponSkills: [{ name: "杖", value: 60 }]
+        },
         imageUrl: "/test-assets/luna.jpg"
       }
     ],
@@ -154,26 +175,68 @@ export const createTestTRPGCampaign = (): TRPGCampaign => {
       {
         id: "npc-1",
         name: "マスター・セオバルド",
-        type: "NPC",
-        level: 8,
-        race: "ヒューマン",
-        class: "クレリック",
+        characterType: "NPC",
+        profession: "聖職者",
+        gender: "男性",
+        age: 65,
+        nation: "神聖王国",
+        religion: "光の神",
+        player: "GM",
+        description: "古代王国の歴史を研究する神殿の大司祭。パーティの協力者。",
         attributes: {
-          strength: 12,
-          dexterity: 10,
-          constitution: 14,
-          intelligence: 16,
-          wisdom: 18,
-          charisma: 15
+          STR: 12,
+          CON: 14,
+          SIZ: 13,
+          INT: 16,
+          POW: 18,
+          DEX: 10,
+          CHA: 15
         },
-        hitPoints: { current: 52, maximum: 52 },
-        armorClass: 15,
-        background: "聖職者",
-        personality: "慈悲深く知識豊富。古代の歴史に詳しい。",
-        appearance: "身長170cm、白髪と白ひげの老人。温和な表情。",
-        backstory: "古代王国の歴史を研究する神殿の大司祭。パーティの協力者。",
-        equipment: ["聖印", "プレートアーマー", "メイス"],
-        notes: "情報提供者。回復魔法でサポート。",
+        derived: {
+          HP: 52,
+          MP: 35,
+          SW: 14,
+          RES: 16
+        },
+        weapons: [{
+          name: "メイス",
+          attack: 65,
+          damage: "1d8+1",
+          hit: 70,
+          parry: 60,
+          range: "接触"
+        }],
+        armor: {
+          head: 3,
+          body: 8,
+          leftArm: 6,
+          rightArm: 6,
+          leftLeg: 5,
+          rightLeg: 5
+        },
+        skills: {
+          AgilitySkills: [],
+          CommunicationSkills: [{ name: "説得", value: 80 }],
+          KnowledgeSkills: [
+            { name: "古代史", value: 90 },
+            { name: "宗教学", value: 85 }
+          ],
+          ManipulationSkills: [],
+          PerceptionSkills: [],
+          StealthSkills: [],
+          MagicSkills: [
+            { name: "治癒術", value: 85 },
+            { name: "聖なる光", value: 75 }
+          ],
+          WeaponSkills: [{ name: "メイス", value: 70 }]
+        },
+        location: "賢者の塔",
+        occupation: "大司祭",
+        attitude: "friendly",
+        knowledge: ["古代王国の歴史", "古代魔法", "遺跡の情報"],
+        services: ["情報提供", "回復魔法", "聖なる祝福"],
+        questIds: [],
+        dialoguePatterns: ["古代の知識に興味があるのかね？", "神のご加護がありますように。"],
         imageUrl: "/test-assets/theobald.jpg"
       }
     ],
@@ -181,26 +244,55 @@ export const createTestTRPGCampaign = (): TRPGCampaign => {
       {
         id: "enemy-1",
         name: "シャドウナイト",
-        type: "Enemy",
+        rank: "中ボス",
+        type: "アンデッド",
+        description: "古代王国の騎士が呪いによってアンデッドと化した存在。",
         level: 5,
-        race: "アンデッド",
-        class: "戦士",
         attributes: {
           strength: 18,
           dexterity: 12,
           constitution: 16,
           intelligence: 10,
-          wisdom: 11,
-          charisma: 8
+          wisdom: 11
         },
-        hitPoints: { current: 45, maximum: 45 },
-        armorClass: 17,
-        background: "堕落した騎士",
-        personality: "冷酷で容赦がない。古代の呪いに縛られている。",
-        appearance: "黒い鎧をまとった骸骨騎士。赤く光る眼窩。",
-        backstory: "古代王国の騎士が呪いによってアンデッドと化した存在。",
-        equipment: ["呪われたロングソード", "ダークプレート", "呪いのシールド"],
-        notes: "中ボス級の敵。恐怖効果と暗闇攻撃を使用。",
+        derivedStats: {
+          hp: 45,
+          mp: 10,
+          attack: 15,
+          defense: 17,
+          magicAttack: 8,
+          magicDefense: 12,
+          accuracy: 75,
+          evasion: 40,
+          criticalRate: 8,
+          initiative: 12
+        },
+        skills: {
+          basicAttack: "呪われた剣による斬撃",
+          specialSkills: [{
+            name: "恐怖の咆哮",
+            effect: "敵全体に恐怖状態を付与",
+            cost: "5MP",
+            cooldown: 3
+          }],
+          passives: ["アンデッド耐性", "恐怖オーラ"]
+        },
+        behavior: {
+          aiPattern: "HP30%以下で恐怖の咆哮を使用",
+          targeting: "最も攻撃力の高い敵を優先"
+        },
+        drops: {
+          exp: 75,
+          gold: 50,
+          items: ["呪われた剣の欠片", "暗黒の鎧片"],
+          rareDrops: ["シャドウナイトの紋章"]
+        },
+        status: {
+          currentHp: 45,
+          currentMp: 10,
+          statusEffects: [],
+          location: "失われた王都の遺跡"
+        },
         imageUrl: "/test-assets/shadow-knight.jpg"
       }
     ],
@@ -300,12 +392,12 @@ export const setupTRPGTestData = async (page: Page, campaign?: TRPGCampaign) => 
       localStorage.setItem('current-campaign', JSON.stringify(campaignData));
       
       // Set up characters separately for easier access
-      localStorage.setItem('trpg-player-characters', JSON.stringify(campaignData.playerCharacters));
+      localStorage.setItem('trpg-player-characters', JSON.stringify(campaignData.characters));
       localStorage.setItem('trpg-npcs', JSON.stringify(campaignData.npcs));
       localStorage.setItem('trpg-enemies', JSON.stringify(campaignData.enemies));
       
       // Set up world building data
-      localStorage.setItem('trpg-locations', JSON.stringify(campaignData.locations));
+      localStorage.setItem('trpg-locations', JSON.stringify(campaignData.bases));
       localStorage.setItem('trpg-timeline', JSON.stringify(campaignData.timeline));
       
       // Set up session data
@@ -381,16 +473,12 @@ export const createTRPGCharacter = async (page: Page, character: Partial<TRPGCha
       await page.fill('input[name="name"], input[placeholder*="名前"]', character.name);
     }
     
-    if (character.race) {
-      await page.fill('input[name="race"], input[placeholder*="種族"]', character.race);
+    if (character.profession) {
+      await page.fill('input[name="profession"], input[placeholder*="職業"]', character.profession);
     }
     
-    if (character.class) {
-      await page.fill('input[name="class"], input[placeholder*="クラス"]', character.class);
-    }
-    
-    if (character.level) {
-      await page.fill('input[name="level"], input[placeholder*="レベル"]', character.level.toString());
+    if (character.age) {
+      await page.fill('input[name="age"], input[placeholder*="年齢"]', character.age.toString());
     }
     
     // Fill attributes if provided
@@ -405,16 +493,8 @@ export const createTRPGCharacter = async (page: Page, character: Partial<TRPGCha
     }
     
     // Fill other fields
-    if (character.background) {
-      await page.fill('input[name="background"], textarea[name="background"]', character.background);
-    }
-    
-    if (character.personality) {
-      await page.fill('textarea[name="personality"], textarea[placeholder*="性格"]', character.personality);
-    }
-    
-    if (character.backstory) {
-      await page.fill('textarea[name="backstory"], textarea[placeholder*="背景"]', character.backstory);
+    if (character.description) {
+      await page.fill('textarea[name="description"], textarea[placeholder*="説明"]', character.description);
     }
     
     // Save character
@@ -533,7 +613,7 @@ export const rollDice = async (page: Page, diceNotation: string = "1d20") => {
 /**
  * Add timeline event during session
  */
-export const addTimelineEvent = async (page: Page, event: Partial<TRPGTimelineEvent>) => {
+export const addTimelineEvent = async (page: Page, event: Partial<SessionEvent>) => {
   try {
     console.log(`📅 Adding timeline event: ${event.title}`);
     

@@ -25,9 +25,6 @@ export function useTRPGHome() {
     const initializeData = async () => {
       setIsLoading(true);
       
-      // 旧い小説データをクリア
-      TRPGLocalStorageManager.clearOldNovelData();
-      
       // 初期データのセットアップ
       TRPGLocalStorageManager.setupInitialData();
       

@@ -3192,4 +3192,66 @@ ${availableResources?.map((resource: string, index: number) => `- ${resource}`).
   }
 });
 
+/**
+ * TRPG AIチャットエンドポイント
+ * TRPGセッション中のAIゲームマスターとのチャット機能
+ */
+router.post('/chat', async (req, res) => {
+  try {
+    const { prompt, message, context, provider } = req.body;
+    
+    // promptまたはmessageのどちらかを使用
+    const userMessage = prompt || message;
+    
+    console.log(`[API] TRPG AIチャットリクエスト - プロバイダー: ${provider}`);
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'trpg-chat',
+      model: provider === 'gemini' ? 'gemini-1.5-pro' : 'gpt-4',
+      systemPrompt: TRPG_GM_ASSISTANT,
+      userPrompt: userMessage,
+      context: context,
+      options: {
+        temperature: 0.8,
+        maxTokens: 500,
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    console.log('[API] aiResponse:', JSON.stringify(aiResponse, null, 2));
+    console.log('[API] aiResponse.success:', aiResponse.success);
+    console.log('[API] aiResponse.content:', aiResponse.content);
+
+    if (aiResponse.status !== 'success') {
+      console.error('[API] AI処理失敗:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    console.log('[API] レスポンス送信成功');
+    res.json({
+      response: aiResponse.content,
+      metadata: {
+        provider,
+        model: aiRequest.model,
+        processingTime: aiResponse.debug?.processingTime,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] TRPG AIチャットエラー:', error);
+    console.error('[API] エラースタック:', error.stack);
+    console.error('[API] エラー詳細:', JSON.stringify(error, null, 2));
+    res.status(500).json({
+      status: 'error',
+      error: error.message || 'TRPGチャット処理中にエラーが発生しました',
+      details: error.stack,
+    });
+  }
+});
+
 export default router;

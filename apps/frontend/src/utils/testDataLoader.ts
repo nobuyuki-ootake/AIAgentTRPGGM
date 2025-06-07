@@ -1,4 +1,4 @@
-import testCampaignData from '../data/testCampaignData.json';
+import { testCampaignData } from '../data/testCampaignData';
 import { TRPGCampaign } from '@trpg-ai-gm/types';
 import { TRPGLocalStorageManager } from './trpgLocalStorage';
 
@@ -6,7 +6,7 @@ import { TRPGLocalStorageManager } from './trpgLocalStorage';
  * テストキャンペーンデータをロード
  */
 export const loadTestCampaignData = (): TRPGCampaign => {
-  return testCampaignData as TRPGCampaign;
+  return testCampaignData;
 };
 
 /**
@@ -15,15 +15,8 @@ export const loadTestCampaignData = (): TRPGCampaign => {
 export const applyTestDataToLocalStorage = (): void => {
   const testData = loadTestCampaignData();
   
-  // basesデータを正しく変換
-  const processedTestData = {
-    ...testData,
-    bases: testData.worldBuilding?.bases || [],
-    worldBuilding: {
-      ...testData.worldBuilding,
-      bases: testData.worldBuilding?.bases || []
-    }
-  };
+  // basesデータはそのまま使用（TypeScript版では既に正しい構造）
+  const processedTestData = testData;
   
   // TRPGLocalStorageManagerを使って正しく保存
   TRPGLocalStorageManager.saveCampaign(processedTestData);
@@ -36,9 +29,9 @@ export const applyTestDataToLocalStorage = (): void => {
     characters: processedTestData.characters?.length,
     npcs: processedTestData.npcs?.length,
     enemies: processedTestData.enemies?.length,
-    quests: processedTestData.quests?.length,
+    plot: processedTestData.plot?.length,
     bases: processedTestData.bases?.length,
-    worldBuildingBases: processedTestData.worldBuilding?.bases?.length
+    worldBuilding: processedTestData.worldBuilding ? 'present' : 'missing'
   });
   
   // 詳細ログを出力してデータ内容を確認
@@ -104,13 +97,13 @@ export const getTestDataSummary = () => {
   const testData = loadTestCampaignData();
   return {
     title: testData.title,
-    description: testData.description,
+    description: testData.synopsis,
     gameSystem: testData.gameSystem,
-    characters: testData.characters?.map(c => ({ id: c.id, name: c.name, class: c.class })),
-    npcs: testData.npcs?.map(n => ({ id: n.id, name: n.name, type: n.npcType })),
-    enemies: testData.enemies?.map(e => ({ id: e.id, name: e.name, dangerLevel: e.dangerLevel })),
-    quests: testData.quests?.map(q => ({ id: q.id, title: q.title, day: q.scheduledDay })),
-    locations: testData.worldBuilding?.bases?.map(b => ({ id: b.id, name: b.name }))
+    characters: testData.characters?.map(c => ({ id: c.id, name: c.name, profession: c.profession })),
+    npcs: testData.npcs?.map(n => ({ id: n.id, name: n.name, occupation: n.occupation })),
+    enemies: testData.enemies?.map(e => ({ id: e.id, name: e.name, rank: e.rank })),
+    plot: testData.plot?.map(q => ({ id: q.id, title: q.title, order: q.order })),
+    locations: testData.bases?.map(b => ({ id: b.id, name: b.name }))
   };
 };
 
@@ -119,7 +112,7 @@ export const getTestDataSummary = () => {
  */
 export const getTestLocationOptions = () => {
   const testData = loadTestCampaignData();
-  const bases = testData.worldBuilding?.bases || [];
+  const bases = testData.bases || [];
   
   return bases.map(base => ({
     id: base.id,
@@ -134,5 +127,5 @@ export const getTestLocationOptions = () => {
  */
 export const getTestBases = () => {
   const testData = loadTestCampaignData();
-  return testData.worldBuilding?.bases || [];
+  return testData.bases || [];
 };

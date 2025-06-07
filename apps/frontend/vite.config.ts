@@ -10,6 +10,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    strictPort: true, // ポートが使用中の場合は別ポートを使わずエラーにする
     host: '0.0.0.0', // WSL環境対応
     open: false,
     hmr: {

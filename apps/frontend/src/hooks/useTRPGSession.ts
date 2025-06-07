@@ -67,6 +67,15 @@ export const useTRPGSession = () => {
   const enemies = currentCampaign?.enemies || [];
   const bases = currentCampaign?.bases || [];
 
+  // 現在地の初期化（基地データが読み込まれた時）
+  useEffect(() => {
+    if (bases.length > 0 && !currentLocation) {
+      const firstBase = bases[0];
+      setCurrentLocation(firstBase.name);
+      console.log('[TRPGSession] 現在地を初期化しました:', firstBase.name);
+    }
+  }, [bases, currentLocation]);
+
   // 現在の拠点を取得
   const getCurrentBase = useCallback((): BaseLocation | undefined => {
     return bases.find(base => base.name === currentLocation);

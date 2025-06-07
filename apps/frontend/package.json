@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "bash -c 'PID=$(lsof -ti:5173); [ -n \"$PID\" ] && echo \"⚠️ 5173ポート使用中 (PID: $PID) - 停止中...\" && kill -9 $PID && sleep 1; echo \"🚀 開発サーバーを5173ポートで起動中...\"; vite'",
     "build": "tsc -b && vite build",
     "build:docker": "vite build",
     "build:vercel": "pnpm run build",

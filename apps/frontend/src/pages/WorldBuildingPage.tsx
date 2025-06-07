@@ -15,18 +15,9 @@ import {
   Save as SaveIcon,
 } from "@mui/icons-material";
 import WorldMapTab from "../components/worldbuilding/WorldMapTab";
-import SettingTab from "../components/worldbuilding/SettingTab";
 import TabPanel from "../components/worldbuilding/TabPanel";
-import SocietyCultureTab from "../components/worldbuilding/SocietyCultureTab";
-import GeographyEnvironmentTab from "../components/worldbuilding/GeographyEnvironmentTab";
-import HistoryLegendTab from "../components/worldbuilding/HistoryLegendTab";
-import MagicTechnologyTab from "../components/worldbuilding/MagicTechnologyTab";
-import RulesTab from "../components/worldbuilding/RulesTab";
-import PlacesTab from "../components/worldbuilding/PlacesTab";
-import FreeFieldsTab from "../components/worldbuilding/FreeFieldsTab";
-import CharacterStatusList from "../components/characters/CharacterStatusList";
+import LocationTab from "../components/worldbuilding/LocationTab";
 import BaseTab from "../components/worldbuilding/BaseTab";
-import InteractiveMapTab from "../components/worldbuilding/InteractiveMapTab";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import { useRecoilValue } from "recoil";
 import { currentCampaignState } from "../store/atoms";
@@ -151,27 +142,29 @@ const WorldBuildingPage: React.FC = () => {
       synopsis.includes("魔王");
 
     // キャンペーンの文脈に合ったデフォルトメッセージを構築
-    let contextualMessage = `「${currentCampaign.title}」の世界観について、以下の要素を考えてください。
+    let contextualMessage = `「${currentCampaign.title}」の場所情報について、以下の要素を考えてください。
 
 **必須要件:**
-- 物語の舞台となる主要な場所を最低3つ生成してください
+- 拠点（NPC、アイテム取引がある場所）を2-3箇所生成してください
+- 探索地域（冒険、モンスター遭遇がある場所）を2-3箇所生成してください
+- 各場所に適した行動選択肢を含めてください
 - プロットやキャラクターとの整合性を保ってください`;
 
     if (isModernOrFuture) {
       contextualMessage += `
-- 現代・近未来設定に適した技術やシステム
-- 社会制度や組織の構造
-- 地理的な環境や都市の特徴`;
+- 現代・近未来設定に適した施設や場所
+- 都市エリアと科学技術関連の場所
+- 交通機関や通信設備を考慮した配置`;
     } else if (isFantasy) {
       contextualMessage += `
-- ファンタジー世界に適した魔法システムや伝説
-- 特徴的な文化や風習
-- 地理的環境や自然の特徴`;
+- ファンタジー世界に適した魔法関連施設
+- 自然環境や神秘的な場所
+- 冒険者が活動しやすい拠点と探索地域`;
     } else {
       contextualMessage += `
-- この世界のルールや制約
-- 特徴的な文化や風習
-- 地理的環境や社会制度`;
+- この世界観に適した特色のある場所
+- 各場所の独自性と役割分担
+- キャラクターが活動しやすい環境設計`;
     }
 
     contextualMessage += `
@@ -196,9 +189,9 @@ ${
     openAIAssist(
       "worldbuilding",
       {
-        title: "AIに世界観を考えてもらう",
+        title: "AIに場所を生成してもらう",
         description:
-          "どのような世界観にしたいか、指示を入力してください。物語の雰囲気や時代背景、主要な場所などを具体的に伝えるとよいでしょう。",
+          "どのような場所を作りたいか、指示を入力してください。拠点や探索地域の特徴、用途、雰囲気などを具体的に伝えるとよいでしょう。",
         defaultMessage: contextualMessage,
         supportsBatchGeneration: true,
         onComplete: async (result) => {
@@ -282,7 +275,7 @@ ${
               {currentCampaign.title}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
-              世界観構築
+              場所情報設定
             </Typography>
           </Box>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -293,7 +286,7 @@ ${
               onClick={handleResetWorldBuilding}
               disabled={isAIProcessing}
             >
-              世界観をリセット
+              場所情報をリセット
             </Button>
             <Button
               variant="contained"
@@ -302,7 +295,7 @@ ${
               onClick={handleOpenAIAssist}
               disabled={isAIProcessing}
             >
-              AIに世界観を考えてもらう
+              AIに場所を生成してもらう
             </Button>
             <Button
               variant="contained"
@@ -354,10 +347,10 @@ ${
             label={
               updatedTabs[0] ? (
                 <Badge color="secondary" variant="dot">
-                  ワールドマップ
+                  拠点
                 </Badge>
               ) : (
-                "ワールドマップ"
+                "拠点"
               )
             }
             sx={{ fontWeight: tabValue === 0 ? "bold" : "normal" }}
@@ -366,10 +359,10 @@ ${
             label={
               updatedTabs[1] ? (
                 <Badge color="secondary" variant="dot">
-                  世界観設定
+                  場所
                 </Badge>
               ) : (
-                "世界観設定"
+                "場所"
               )
             }
             sx={{ fontWeight: tabValue === 1 ? "bold" : "normal" }}
@@ -378,210 +371,32 @@ ${
             label={
               updatedTabs[2] ? (
                 <Badge color="secondary" variant="dot">
-                  ルール
+                  ワールドマップ
                 </Badge>
               ) : (
-                "ルール"
+                "ワールドマップ"
               )
             }
             sx={{ fontWeight: tabValue === 2 ? "bold" : "normal" }}
           />
-          <Tab
-            label={
-              updatedTabs[3] ? (
-                <Badge color="secondary" variant="dot">
-                  地名
-                </Badge>
-              ) : (
-                "地名"
-              )
-            }
-            sx={{ fontWeight: tabValue === 3 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[4] ? (
-                <Badge color="secondary" variant="dot">
-                  社会と文化
-                </Badge>
-              ) : (
-                "社会と文化"
-              )
-            }
-            sx={{ fontWeight: tabValue === 4 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[5] ? (
-                <Badge color="secondary" variant="dot">
-                  地理と環境
-                </Badge>
-              ) : (
-                "地理と環境"
-              )
-            }
-            sx={{ fontWeight: tabValue === 5 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[6] ? (
-                <Badge color="secondary" variant="dot">
-                  歴史と伝説
-                </Badge>
-              ) : (
-                "歴史と伝説"
-              )
-            }
-            sx={{ fontWeight: tabValue === 6 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[7] ? (
-                <Badge color="secondary" variant="dot">
-                  魔法と技術
-                </Badge>
-              ) : (
-                "魔法と技術"
-              )
-            }
-            sx={{ fontWeight: tabValue === 7 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[8] ? (
-                <Badge color="secondary" variant="dot">
-                  自由記述欄
-                </Badge>
-              ) : (
-                "自由記述欄"
-              )
-            }
-            sx={{ fontWeight: tabValue === 8 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[9] ? (
-                <Badge color="secondary" variant="dot">
-                  状態定義
-                </Badge>
-              ) : (
-                "状態定義"
-              )
-            }
-            sx={{ fontWeight: tabValue === 9 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[10] ? (
-                <Badge color="secondary" variant="dot">
-                  拠点
-                </Badge>
-              ) : (
-                "拠点"
-              )
-            }
-            sx={{ fontWeight: tabValue === 10 ? "bold" : "normal" }}
-          />
-          <Tab
-            label={
-              updatedTabs[11] ? (
-                <Badge color="secondary" variant="dot">
-                  🗺️ インタラクティブマップ
-                </Badge>
-              ) : (
-                "🗺️ インタラクティブマップ"
-              )
-            }
-            sx={{ fontWeight: tabValue === 11 ? "bold" : "normal" }}
-          />
         </Tabs>
 
-        {/* ワールドマップタブ */}
+        {/* 拠点タブ */}
         <TabPanel value={tabValue} index={0}>
+          <BaseTab />
+        </TabPanel>
+
+        {/* 場所タブ */}
+        <TabPanel value={tabValue} index={1}>
+          <LocationTab />
+        </TabPanel>
+
+        {/* ワールドマップタブ */}
+        <TabPanel value={tabValue} index={2}>
           <WorldMapTab
             mapImageUrl={currentCampaign.worldBuilding?.worldMapImageUrl || ""}
             onMapImageUpload={handleMapImageUpload || (() => {})}
           />
-        </TabPanel>
-
-        {/* 世界観設定タブ */}
-        <TabPanel value={tabValue} index={1}>
-          <SettingTab settings={currentCampaign.worldBuilding?.setting || []} />
-        </TabPanel>
-
-        {/* ルールタブ */}
-        <TabPanel value={tabValue} index={2}>
-          <RulesTab />
-        </TabPanel>
-
-        {/* 地名タブ */}
-        <TabPanel value={tabValue} index={3}>
-          <PlacesTab />
-        </TabPanel>
-
-        {/* 社会と文化タブ */}
-        <TabPanel value={tabValue} index={4}>
-          <SocietyCultureTab />
-        </TabPanel>
-
-        {/* 地理と環境タブ */}
-        <TabPanel value={tabValue} index={5}>
-          <GeographyEnvironmentTab />
-        </TabPanel>
-
-        {/* 歴史と伝説タブ */}
-        <TabPanel value={tabValue} index={6}>
-          <HistoryLegendTab />
-        </TabPanel>
-
-        {/* 魔法と技術タブ */}
-        <TabPanel value={tabValue} index={7}>
-          <MagicTechnologyTab />
-        </TabPanel>
-
-        {/* 自由記述欄タブ */}
-        <TabPanel value={tabValue} index={8}>
-          <FreeFieldsTab />
-        </TabPanel>
-
-        {/* 状態定義タブ */}
-        <TabPanel value={tabValue} index={9}>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              定義済みキャラクターステータス
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => {
-                // コンテキストから必要な関数がないので実装しない
-                console.log("キャラクターステータス追加機能は未実装です");
-              }}
-              sx={{ mb: 2 }}
-            >
-              新しい状態を追加
-            </Button>
-            <CharacterStatusList
-              statuses={[]}
-              onEdit={() => {
-                // コンテキストから必要な関数がないので実装しない
-                console.log("キャラクターステータス編集機能は未実装です");
-              }}
-              onDelete={() => {
-                // コンテキストから必要な関数がないので実装しない
-                console.log("キャラクターステータス削除機能は未実装です");
-              }}
-            />
-          </Box>
-        </TabPanel>
-
-        {/* 拠点タブ */}
-        <TabPanel value={tabValue} index={10}>
-          <BaseTab />
-        </TabPanel>
-
-        {/* インタラクティブマップタブ */}
-        <TabPanel value={tabValue} index={11}>
-          <InteractiveMapTab />
         </TabPanel>
       </Paper>
 

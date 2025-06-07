@@ -1,4 +1,4 @@
-import { TRPGCampaign, GameSession } from "@trpg-ai-gm/types";
+import { TRPGCampaign, GameSession, PlaceElement } from "@trpg-ai-gm/types";
 import {
   atom,
   // RecoilEnv, // 未使用のためコメントアウト (または削除)
@@ -16,6 +16,9 @@ export const currentCampaignState = atom<TRPGCampaign | null>({
   key: "currentCampaign",
   default: null,
 });
+
+// 現在のプロジェクト（後方互換性のためのエイリアス）
+export const currentProjectState = currentCampaignState;
 
 
 // アプリの現在のモード（プロット、キャラクター、セッションなど）
@@ -199,7 +202,14 @@ export const pendingPlacesState = atom<PlaceElement[]>({
 // 開発者モードの状態管理
 export const developerModeState = atom<boolean>({
   key: "developerMode",
-  default: false, // 無限ループ防止のため一旦falseに戻す
+  default: (() => {
+    try {
+      const stored = localStorage.getItem('developerMode');
+      return stored === 'true';
+    } catch {
+      return false;
+    }
+  })(),
 });
 
 // TRPGセッションの状態管理
@@ -218,4 +228,10 @@ export const enemiesStateAtom = atom<any[]>({
 export const npcsStateAtom = atom<any[]>({
   key: "npcsState",
   default: [],
+});
+
+// 現在選択されているチャプターのID（執筆画面用）
+export const currentChapterIdState = atom<string | null>({
+  key: "currentChapterId",
+  default: null,
 });

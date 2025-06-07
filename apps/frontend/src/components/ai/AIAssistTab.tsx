@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { aiChatContextState, currentCampaignState } from "../../store/atoms";
-import { PlotElement } from "@trpg-ai-gm/types";
+import { QuestElement } from "@trpg-ai-gm/types";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import {
   generateSynopsisContent,
@@ -396,7 +396,7 @@ export const AIAssistTab: React.FC = () => {
                   <MenuItem value="">
                     <em>指定なし</em>
                   </MenuItem>
-                  {currentCampaign.plot.map((plot: PlotElement) => (
+                  {currentCampaign.plot.map((plot: QuestElement) => (
                     <MenuItem key={plot.id} value={plot.id}>
                       {plot.title}
                     </MenuItem>
