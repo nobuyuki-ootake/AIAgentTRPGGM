@@ -37,7 +37,8 @@ interface TimelineEventCardProps {
   onDelete?: (id: string) => void;
   onEventResultClick?: (event: TimelineEvent) => void;
   getCharacterNameById?: (id: string) => string;
-  dndContextType: "list" | "chart" | "overlay";
+  dndContextType: "list" | "chart" | "overlay" | "day-list";
+  compact?: boolean;
 }
 
 const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
@@ -49,6 +50,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
   onEventResultClick,
   getCharacterNameById,
   dndContextType,
+  compact = false,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const EventTypeIcon = getEventTypeIconComponent(event.eventType);
@@ -104,8 +106,18 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
         }}
       >
         <Accordion
-          sx={{ "&.MuiAccordion-root:before": { display: "none" } }}
-          defaultExpanded={false}
+          sx={{ 
+            "&.MuiAccordion-root:before": { display: "none" },
+            ...(compact && {
+              "& .MuiAccordionSummary-root": {
+                minHeight: 48,
+                "& .MuiAccordionSummary-content": {
+                  margin: "8px 0",
+                },
+              },
+            }),
+          }}
+          defaultExpanded={!compact}
         >
           <AccordionSummary
             {...attributes}

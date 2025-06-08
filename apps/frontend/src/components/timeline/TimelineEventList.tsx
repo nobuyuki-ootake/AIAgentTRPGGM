@@ -70,46 +70,60 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
           mb: 2,
         }}
       >
-        <Typography variant="h6">タイムラインイベント一覧</Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={onAddEvent}
-            size="medium"
-          >
-            イベント追加
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<SmartToyIcon />}
-            onClick={onAIAssist}
-            size="medium"
-          >
-            AIでイベント生成
-          </Button>
-          <Button
-            variant="outlined"
-            color="warning"
-            startIcon={<RestartAltIcon />}
-            onClick={handleResetClick}
-            size="medium"
-            disabled={timelineItems.length === 0}
-          >
-            タイムラインリセット
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<SaveIcon />}
-            onClick={onSave}
-            disabled={!hasUnsavedChanges}
-            size="medium"
-          >
-            保存
-          </Button>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            alignItems: "flex-end",
+          }}
+        >
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={onAddEvent}
+              size="small"
+              sx={{ minWidth: 140 }}
+            >
+              イベント追加
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<SmartToyIcon />}
+              onClick={onAIAssist}
+              size="small"
+              sx={{ minWidth: 160 }}
+            >
+              AIでイベント生成
+            </Button>
+          </Box>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<RestartAltIcon />}
+              onClick={handleResetClick}
+              size="small"
+              disabled={timelineItems.length === 0}
+              sx={{ minWidth: 160 }}
+            >
+              タイムラインリセット
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<SaveIcon />}
+              onClick={onSave}
+              disabled={!hasUnsavedChanges}
+              size="small"
+              sx={{ minWidth: 80 }}
+            >
+              保存
+            </Button>
+          </Box>
         </Box>
       </Box>
 

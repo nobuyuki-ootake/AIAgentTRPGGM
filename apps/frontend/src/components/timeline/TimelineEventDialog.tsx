@@ -20,11 +20,16 @@ import {
   Autocomplete,
   Paper,
 } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import {
   TRPGCharacter,
   TimelineEvent,
   CharacterStatus,
   PlotElement,
+  PlaceElement,
+  BaseLocation,
+  EventResult,
+  Item,
 } from "@trpg-ai-gm/types";
 import { getCharacterIcon, eventTypes } from "./TimelineUtils";
 import moment from "moment";
@@ -57,6 +62,8 @@ interface TimelineEventDialogProps {
   isEditing: boolean;
   newEvent: TimelineEvent;
   characters: TRPGCharacter[];
+  places: (PlaceElement | BaseLocation)[];
+  items: Item[];
   onClose: () => void;
   onSave: () => void;
   onEventChange: (
@@ -66,6 +73,7 @@ interface TimelineEventDialogProps {
     field?: string
   ) => void;
   onCharactersChange: (event: SelectChangeEvent<string[]>) => void;
+  onEventResultsChange: (results: EventResult[]) => void;
   getCharacterName: (id: string) => string;
   getPlaceName: (id: string) => string;
   onPostEventStatusChange: (
@@ -82,10 +90,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
   isEditing,
   newEvent,
   characters,
+  places,
+  items,
   onClose,
   onSave,
   onEventChange,
   onCharactersChange,
+  onEventResultsChange,
   getCharacterName,
   getPlaceName,
   onPostEventStatusChange,
@@ -304,36 +315,47 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
             </Select>
           </FormControl>
 
-          {/* 関連場所（表示のみ） */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom sx={{ mb: 1 }}>
-              関連場所
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                p: 1.5,
-                border: 1,
-                borderColor: "divider",
-                borderRadius: 1,
-                backgroundColor: "grey.50",
-                minHeight: "40px",
-                display: "flex",
-                alignItems: "center",
-              }}
+          {/* 関連場所（ドロップダウン選択） */}
+          <FormControl fullWidth>
+            <InputLabel id="place-select-label">関連場所</InputLabel>
+            <Select
+              labelId="place-select-label"
+              name="placeId"
+              value={newEvent.placeId || ""}
+              onChange={(e) =>
+                onEventChange(e as SelectChangeEvent<string>, "placeId")
+              }
+              label="関連場所"
             >
-              {newEvent.placeId
-                ? getPlaceName(newEvent.placeId)
-                : "タイムラインチャートで場所を設定してください"}
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 0.5, display: "block" }}
-            >
-              場所はタイムラインチャート上でイベントをドラッグ&ドロップして設定できます
-            </Typography>
-          </Box>
+              <MenuItem value="">
+                <em>場所を選択してください</em>
+              </MenuItem>
+              {places.map((place) => (
+                <MenuItem key={place.id} value={place.id}>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box
+                      sx={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        backgroundColor: 'type' in place ? "primary.main" : "secondary.main",
+                        mr: 1,
+                        flexShrink: 0,
+                      }}
+                    />
+                    {place.name}
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ ml: 1 }}
+                    >
+                      {'type' in place ? '(場所)' : '(拠点)'}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           {/* 関連プロット選択 */}
           <FormControl fullWidth>
@@ -374,6 +396,184 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               disabled={allPlots.length === 0}
             />
           </FormControl>
+
+          {/* イベント結果セクション */}
+          <Box component={Paper} variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
+              イベント結果
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              このイベントで得られるアイテムや設定されるフラグを管理します
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            
+            <Stack spacing={2}>
+              {newEvent.results && newEvent.results.length > 0 ? (
+                newEvent.results.map((result, index) => (
+                  <Box
+                    key={result.id}
+                    sx={{
+                      p: 2,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      bgcolor: "grey.50",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                      <Typography variant="subtitle2" fontWeight="medium">
+                        結果 #{index + 1}
+                      </Typography>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          const newResults = newEvent.results?.filter((_, i) => i !== index) || [];
+                          onEventResultsChange(newResults);
+                        }}
+                      >
+                        削除
+                      </Button>
+                    </Box>
+                    
+                    <Stack spacing={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>結果タイプ</InputLabel>
+                        <Select
+                          value={result.type}
+                          onChange={(e) => {
+                            const newResults = [...(newEvent.results || [])];
+                            newResults[index] = { ...result, type: e.target.value as EventResult['type'] };
+                            onEventResultsChange(newResults);
+                          }}
+                          label="結果タイプ"
+                        >
+                          <MenuItem value="item_gained">アイテム取得</MenuItem>
+                          <MenuItem value="item_lost">アイテム失失</MenuItem>
+                          <MenuItem value="flag_set">フラグ設定</MenuItem>
+                          <MenuItem value="flag_unset">フラグ解除</MenuItem>
+                          <MenuItem value="condition_met">条件達成</MenuItem>
+                          <MenuItem value="story_progress">ストーリー進行</MenuItem>
+                          <MenuItem value="character_change">キャラクター変化</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <TextField
+                        label="説明"
+                        fullWidth
+                        value={result.description}
+                        onChange={(e) => {
+                          const newResults = [...(newEvent.results || [])];
+                          newResults[index] = { ...result, description: e.target.value };
+                          onEventResultsChange(newResults);
+                        }}
+                        placeholder="例：「魔法の剣を取得」「村の救済フラグを設定」"
+                      />
+
+                      {(result.type === "item_gained" || result.type === "item_lost") && (
+                        <>
+                          <FormControl fullWidth>
+                            <InputLabel>アイテム</InputLabel>
+                            <Select
+                              value={result.itemId || ""}
+                              onChange={(e) => {
+                                const newResults = [...(newEvent.results || [])];
+                                newResults[index] = { ...result, itemId: e.target.value };
+                                onEventResultsChange(newResults);
+                              }}
+                              label="アイテム"
+                            >
+                              <MenuItem value="">
+                                <em>アイテムを選択</em>
+                              </MenuItem>
+                              {items.map((item) => (
+                                <MenuItem key={item.id} value={item.id}>
+                                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <Chip
+                                      label={item.type}
+                                      size="small"
+                                      color={
+                                        item.type === "key_item" ? "primary" :
+                                        item.type === "equipment" ? "secondary" : "default"
+                                      }
+                                      sx={{ mr: 1, minWidth: 80 }}
+                                    />
+                                    {item.name}
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          
+                          <TextField
+                            label="数量"
+                            type="number"
+                            fullWidth
+                            value={result.itemQuantity || 1}
+                            onChange={(e) => {
+                              const newResults = [...(newEvent.results || [])];
+                              newResults[index] = { ...result, itemQuantity: parseInt(e.target.value) || 1 };
+                              onEventResultsChange(newResults);
+                            }}
+                            inputProps={{ min: 1 }}
+                          />
+                        </>
+                      )}
+
+                      {(result.type === "flag_set" || result.type === "flag_unset") && (
+                        <>
+                          <TextField
+                            label="フラグキー"
+                            fullWidth
+                            value={result.flagKey || ""}
+                            onChange={(e) => {
+                              const newResults = [...(newEvent.results || [])];
+                              newResults[index] = { ...result, flagKey: e.target.value };
+                              onEventResultsChange(newResults);
+                            }}
+                            placeholder="例：village_saved, boss_defeated"
+                          />
+                          
+                          <TextField
+                            label="フラグ値"
+                            fullWidth
+                            value={result.flagValue || ""}
+                            onChange={(e) => {
+                              const newResults = [...(newEvent.results || [])];
+                              newResults[index] = { ...result, flagValue: e.target.value };
+                              onEventResultsChange(newResults);
+                            }}
+                            placeholder="例：true, completed, 3"
+                          />
+                        </>
+                      )}
+                    </Stack>
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                  イベント結果が設定されていません
+                </Typography>
+              )}
+              
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  const newResult: EventResult = {
+                    id: crypto.randomUUID(),
+                    type: "item_gained",
+                    description: "",
+                  };
+                  const newResults = [...(newEvent.results || []), newResult];
+                  onEventResultsChange(newResults);
+                }}
+                sx={{ alignSelf: "flex-start" }}
+              >
+                結果を追加
+              </Button>
+            </Stack>
+          </Box>
 
           {newEvent.relatedCharacters &&
             newEvent.relatedCharacters.length > 0 && (

@@ -13,11 +13,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   NavigateNext,
   CheckCircle,
   Place,
+  LocationOn,
 } from '@mui/icons-material';
 import {
   DungeonIcon,
@@ -37,15 +40,35 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
+  
+  // hidden属性をstyle.displayで明示的に制御
+  const isVisible = value === index;
+  
   return (
     <div
       role="tabpanel"
-      hidden={value !== index}
       id={`main-content-tabpanel-${index}`}
-      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      style={{ 
+        height: '100%', 
+        display: isVisible ? 'flex' : 'none',  // hidden属性の代わりにdisplayで制御
+        flexDirection: 'column',
+        width: '100%',
+        overflow: 'auto'
+      }}
       {...other}
     >
-      {value === index && <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</Box>}
+      {isVisible && (
+        <Box sx={{ 
+          p: 2, 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          width: '100%',
+          minHeight: 0
+        }}>
+          {children}
+        </Box>
+      )}
     </div>
   );
 }
@@ -97,6 +120,8 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
   const [tabValue, setTabValue] = useState(0);
   const [showEnemySelection, setShowEnemySelection] = useState(false);
   const [selectedEnemies, setSelectedEnemies] = useState<string[]>([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   // 行動選択の処理
   const handleActionClick = (action: ActionChoice) => {
@@ -142,6 +167,37 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
     }
   };
 
+  // 現在地が拠点か場所かを判定する関数
+  const getCurrentLocationType = () => {
+    if (!currentLocation) return null;
+    
+    // 拠点リストから検索
+    const base = bases.find(base => base.name === currentLocation);
+    if (base) {
+      return { type: 'base', data: base };
+    }
+    
+    // TODO: 場所リストからも検索する（将来的にlocationsフィールドが追加される場合）
+    // const location = locations?.find(loc => loc.name === currentLocation);
+    // if (location) {
+    //   return { type: 'location', data: location };
+    // }
+    
+    return null;
+  };
+
+  const currentLocationInfo = getCurrentLocationType();
+
+  // デバッグ用ログ
+  console.log('[MainContentPanel] Debug Info:', {
+    currentLocation,
+    currentBase,
+    bases,
+    currentLocationInfo,
+    hasAvailableActions: currentLocationInfo?.data?.availableActions?.length,
+    tabValue: tabValue
+  });
+
   return (
     <Paper elevation={2} sx={{ 
       height: '100%',
@@ -155,7 +211,10 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
           <Tab label="探索" icon={<DungeonIcon />} />
-          <Tab label="拠点" icon={<BaseIcon />} />
+          <Tab 
+            label={currentLocationInfo?.type === 'base' ? '拠点' : '場所'} 
+            icon={currentLocationInfo?.type === 'base' ? <BaseIcon /> : <LocationOn />} 
+          />
           <Tab label="ステータス" icon={<CheckCircle />} />
           <Tab label="クエスト" icon={<QuestScrollIcon />} />
         </Tabs>
@@ -207,8 +266,8 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  // TODO: 世界観構築画面への遷移または場所登録ダイアログの表示
-                  alert('世界観構築画面で場所を登録してください');
+                  setNotificationMessage('世界観構築画面で場所を登録してください');
+                  setShowNotification(true);
                 }}
                 sx={{ mb: 2 }}
               >
@@ -299,7 +358,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
       </TabPanel>
       
       <TabPanel value={tabValue} index={1}>
-        {/* 拠点タブ */}
+        {/* 拠点/場所タブ */}
         <Box sx={{ 
           height: '100%',
           overflow: 'auto',
@@ -319,10 +378,77 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
             },
           },
         }}>
-          <FacilityInteractionPanel
-            base={currentBase}
-            onInteract={onFacilityInteract}
-          />
+          {!currentLocation ? (
+            /* 現在地データ読み込み中 */
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary">
+                📍 場所データを読み込み中...
+              </Typography>
+            </Box>
+          ) : currentLocationInfo?.type === 'base' ? (
+            <>
+              {/* 拠点の場合: 施設情報 + 行動選択肢 */}
+              <FacilityInteractionPanel
+                base={currentBase}
+                onInteract={onFacilityInteract}
+              />
+              
+              {/* 拠点固有の行動選択肢 */}
+              {currentLocationInfo.data.availableActions && currentLocationInfo.data.availableActions.length > 0 && (
+                <Box sx={{ mt: 2, p: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    🎯 拠点での行動選択肢
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {currentLocationInfo.data.availableActions.map((action) => (
+                      <Grid item xs={12} key={action.id}>
+                        <Tooltip title={action.description} placement="right">
+                          <Button
+                            variant="outlined"
+                            fullWidth
+                            onClick={() => onExecuteAction({
+                              id: action.id,
+                              type: 'custom',
+                              label: action.name,
+                              description: action.description,
+                              icon: <CheckCircle />,
+                              requiresTarget: false,
+                            })}
+                            disabled={actionCount >= maxActionsPerDay}
+                            sx={{ 
+                              p: 1, 
+                              textAlign: 'left',
+                              justifyContent: 'flex-start',
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="body2" fontWeight="bold">
+                                {action.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {action.category}
+                              </Typography>
+                            </Box>
+                          </Button>
+                        </Tooltip>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+            </>
+          ) : (
+            /* 場所の場合: 場所固有の情報と行動選択肢 */
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                📍 {currentLocation || '場所情報'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                探索地点の詳細情報と行動選択肢がここに表示されます。
+              </Typography>
+              {/* TODO: 場所固有の行動選択肢を実装 */}
+            </Box>
+          )}
         </Box>
       </TabPanel>
 
@@ -480,6 +606,22 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
           </Box>
         </TabPanel>
       </Box>
+
+      {/* 通知用Snackbar */}
+      <Snackbar
+        open={showNotification}
+        autoHideDuration={6000}
+        onClose={() => setShowNotification(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setShowNotification(false)} 
+          severity="info" 
+          variant="filled"
+        >
+          {notificationMessage}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 };

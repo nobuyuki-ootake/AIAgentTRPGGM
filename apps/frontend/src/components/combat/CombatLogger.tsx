@@ -132,7 +132,7 @@ const CombatLogger: React.FC<CombatLoggerProps> = ({
   // 新規戦闘セッション作成
   const handleNewSession = () => {
     if (!characters.length) {
-      alert("参加キャラクターが必要です");
+      console.error("参加キャラクターが必要です");
       return;
     }
 

@@ -1742,3 +1742,416 @@ if (
 - **レスポンシブ対応**: 全画面サイズでの最適化された表示
 - **確実なスクロール**: 過去メッセージへの安定したアクセス
 - **高さ統一**: 美しく整った統一感のある UI
+
+## 2025-01-08: アイテム管理システムの完全実装
+
+### 要求内容
+
+タイムライン画面のイベントに結果項目の追加、およびアイテム管理機能の実装。アイテムの取得、キーアイテムのフラグ管理、拠点でのアイテム販売場所管理など、本格的なTRPGアイテムシステムの構築。
+
+### プロンプトの目的
+
+1. **アイテムシステム統合**: タイムラインイベントとアイテム管理の連携
+2. **開発者モード機能**: アイテム管理画面の開発者向け機能追加
+3. **データ型統一**: プロジェクト全体での型定義の統一と一貫性確保
+4. **ゲーム要素強化**: キーアイテム、拠点連携による本格的なTRPG体験
+
+### 実装済み作業
+
+#### 1. 包括的なアイテム型定義の追加
+
+**packages/types/index.ts**: アイテムシステムの完全な型定義を追加
+
+```typescript
+// アイテム関連の型定義
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+  type: ItemType;
+  category: ItemCategory;
+  rarity: ItemRarity;
+  value?: number;
+  weight?: number;
+  imageUrl?: string;
+  isStackable: boolean;
+  maxStack?: number;
+  tags?: string[];
+  gameSystemId?: string;
+  customProperties?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ItemLocation {
+  id: string;
+  itemId: string;
+  locationType: "shop" | "event" | "loot" | "craft" | "reward";
+  locationId: string;
+  locationName: string;
+  availability: ItemAvailability;
+  price?: number;
+  currency?: string;
+  requirements?: ItemRequirement[];
+  notes?: string;
+}
+
+export interface EventResult {
+  id: string;
+  type: "item_gained" | "item_lost" | "flag_set" | "flag_unset" | "condition_met" | "story_progress" | "character_change";
+  description: string;
+  itemId?: string;
+  itemQuantity?: number;
+  flagKey?: string;
+  flagValue?: string | number | boolean;
+  metadata?: Record<string, any>;
+}
+```
+
+#### 2. TimelineEventDialogの大幅機能拡張
+
+**src/components/timeline/TimelineEventDialog.tsx**: イベント結果機能の追加
+
+```typescript
+// イベント結果セクションの実装
+<Box component={Paper} variant="outlined" sx={{ p: 2 }}>
+  <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
+    イベント結果
+  </Typography>
+  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+    このイベントで得られるアイテムや設定されるフラグを管理します
+  </Typography>
+  
+  {/* アイテム取得・フラグ設定のUI */}
+  <FormControl fullWidth>
+    <InputLabel>結果タイプ</InputLabel>
+    <Select value={result.type}>
+      <MenuItem value="item_gained">アイテム取得</MenuItem>
+      <MenuItem value="item_lost">アイテム失失</MenuItem>
+      <MenuItem value="flag_set">フラグ設定</MenuItem>
+      <MenuItem value="flag_unset">フラグ解除</MenuItem>
+      <MenuItem value="condition_met">条件達成</MenuItem>
+      <MenuItem value="story_progress">ストーリー進行</MenuItem>
+      <MenuItem value="character_change">キャラクター変化</MenuItem>
+    </Select>
+  </FormControl>
+
+  {/* アイテム選択・数量設定 */}
+  {(result.type === "item_gained" || result.type === "item_lost") && (
+    <FormControl fullWidth>
+      <InputLabel>アイテム</InputLabel>
+      <Select value={result.itemId || ""}>
+        {items.map((item) => (
+          <MenuItem key={item.id} value={item.id}>
+            <Chip label={item.type} size="small" color={getItemTypeColor(item.type)} />
+            {item.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  )}
+</Box>
+```
+
+#### 3. アイテム管理画面の実装
+
+**src/pages/ItemManagementPage.tsx**: 完全なアイテム管理UI
+
+```typescript
+const ItemManagementPage: React.FC = () => {
+  const currentCampaign = useRecoilValue(currentCampaignState);
+  const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
+  
+  // アイテムとアイテム場所の取得
+  const items = currentCampaign?.items || [];
+  const itemLocations = currentCampaign?.itemLocations || [];
+  const bases = currentCampaign?.bases || [];
+
+  // フィルタリング機能
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === "all" || item.type === filterType;
+      const matchesRarity = filterRarity === "all" || item.rarity === filterRarity;
+      return matchesSearch && matchesType && matchesRarity;
+    });
+  }, [items, searchTerm, filterType, filterRarity]);
+
+  // レアリティ色の動的取得
+  const getRarityColor = (rarity: ItemRarity): string => {
+    switch (rarity) {
+      case "common": return "#9e9e9e";
+      case "uncommon": return "#4caf50";
+      case "rare": return "#2196f3";
+      case "epic": return "#9c27b0";
+      case "legendary": return "#ff9800";
+      case "artifact": return "#f44336";
+      default: return "#9e9e9e";
+    }
+  };
+
+  // アイテムカード表示
+  const ItemCard: React.FC<{ item: Item }> = ({ item }) => {
+    const locations = getItemLocations(item.id);
+    
+    return (
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <CardContent sx={{ flex: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+            <Typography variant="h6">{item.name}</Typography>
+            <Chip
+              label={item.rarity}
+              size="small"
+              sx={{
+                backgroundColor: getRarityColor(item.rarity),
+                color: "white",
+                fontWeight: "bold",
+              }}
+            />
+          </Box>
+          
+          <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+            <Chip label={item.type} variant="outlined" size="small" />
+            <Chip label={item.category} variant="outlined" size="small" />
+          </Box>
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {item.description}
+          </Typography>
+          
+          {/* 入手場所表示 */}
+          {locations.length > 0 && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>入手場所:</Typography>
+              {locations.map((location) => (
+                <Box key={location.id} sx={{ mb: 1 }}>
+                  <Typography variant="body2">
+                    <strong>{getBaseName(location.locationId)}</strong> ({location.locationType})
+                  </Typography>
+                  {location.price && (
+                    <Typography variant="caption" color="text.secondary">
+                      価格: {location.price} {location.currency || "G"}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+```
+
+#### 4. ナビゲーション統合
+
+**src/App.tsx**: ルーティング追加
+
+```typescript
+case "items":
+  return <ItemManagementPage />;
+```
+
+**src/components/layout/Sidebar.tsx**: サイドバーメニュー追加
+
+```typescript
+{
+  mode: "items" as AppMode,
+  text: "アイテム管理",
+  icon: <ItemsIcon />,
+  developerOnly: true,
+},
+```
+
+**src/store/atoms.ts**: AppMode型拡張
+
+```typescript
+export type AppMode =
+  | "synopsis"
+  | "plot"
+  | "characters"
+  | "worldbuilding"
+  | "items"
+  | "timeline"
+  | "writing"
+  // ...
+```
+
+#### 5. 豊富なテストデータの作成
+
+**src/data/testCampaignData.ts**: 10種類のアイテムと入手場所
+
+```typescript
+// 様々なレアリティのアイテム
+items: [
+  {
+    id: "item-healing-potion",
+    name: "治癒のポーション",
+    type: "consumable",
+    category: "potion",
+    rarity: "common",
+    value: 50,
+    isStackable: true,
+    maxStack: 10,
+  },
+  {
+    id: "item-mythril-sword", 
+    name: "ミスリルの剣",
+    type: "equipment",
+    category: "weapon", 
+    rarity: "epic",
+    value: 2500,
+    isStackable: false,
+  },
+  {
+    id: "item-ancient-key",
+    name: "古代の鍵", 
+    type: "key_item",
+    category: "dungeon_key",
+    rarity: "rare",
+    isStackable: false,
+  },
+  // ... 7種類の追加アイテム
+],
+
+// アイテム入手場所の詳細設定
+itemLocations: [
+  {
+    id: "location-healing-potion-shop",
+    itemId: "item-healing-potion",
+    locationType: "shop",
+    locationId: "town-center",
+    locationName: "エルフの万屋",
+    availability: "always",
+    price: 50,
+    currency: "金貨",
+  },
+  {
+    id: "location-ancient-key-event",
+    itemId: "item-ancient-key", 
+    locationType: "event",
+    locationId: "forest-path",
+    availability: "quest_locked",
+    requirements: [
+      {
+        type: "quest_complete",
+        value: "quest-forest-bandits",
+        description: "盗賊団を倒す必要あり"
+      }
+    ],
+  },
+  // ... 8箇所の入手場所
+]
+```
+
+### 技術的成果
+
+#### ✅ 型安全性の確保
+
+- プロジェクト全体で統一されたItem、ItemLocation、EventResult型
+- TypeScript型チェックによる実行時エラーの予防
+- テストデータと本番データの型一致
+
+#### ✅ ユーザビリティの向上
+
+- 開発者モード/プレイモードの切り替え
+- 検索・フィルター機能による大量アイテムの管理
+- レアリティ色分けによる視覚的分類
+- 統計情報による概要把握
+
+#### ✅ ゲーム要素の統合
+
+- タイムラインイベントとアイテムシステムの連携
+- 拠点での販売アイテム管理
+- クエスト条件によるアイテム入手制限
+- キーアイテムによるストーリー進行管理
+
+#### ✅ 拡張性の確保
+
+- 新しいアイテムタイプの追加が容易
+- カスタムプロパティによる柔軟な拡張
+- ゲームシステム固有のアイテム管理
+- 将来的なクラフトシステム対応
+
+### UI/UX の成果
+
+#### 📊 統計表示機能
+
+- タイプ別・レアリティ別のアイテム数集計
+- 視覚的なChipコンポーネントによる分類
+- フィルタリング結果のリアルタイム反映
+
+#### 🔍 検索・フィルター機能
+
+- アイテム名・説明文での全文検索
+- タイプ・レアリティでの絞り込み
+- 複数条件の組み合わせフィルター
+
+#### 🎨 視覚的表現
+
+- レアリティ別の色分け（コモン→グレー、レジェンダリー→オレンジ、アーティファクト→赤）
+- Material-UIによる統一感のあるデザイン
+- レスポンシブ対応のグリッドレイアウト
+
+#### 📍 拠点連携機能
+
+- アイテムごとの入手可能場所表示
+- 価格・通貨情報の詳細表示
+- 入手条件（クエスト完了、レベル制限等）の管理
+
+### 成果と意義
+
+#### 1. 本格的なTRPGアイテムシステムの実現
+
+従来の単純なアイテムリストから、レアリティ、拠点連携、イベント結果を含む包括的なアイテム管理システムに進化。プレイヤーは実際のTRPGと同様のアイテム収集・管理体験を享受できる。
+
+#### 2. イベント駆動のゲーム進行
+
+タイムラインイベントの結果としてアイテム取得やフラグ設定が可能になり、ストーリー進行とアイテムシステムが有機的に連携。キーアイテムによる条件分岐や、イベント報酬システムの実現。
+
+#### 3. データ駆動の柔軟性
+
+型安全性を保ちながらアイテムデータの追加・編集が容易。ゲームマスターが独自のアイテムやレアリティを設定でき、カスタマイズ性の高いTRPG体験を提供。
+
+#### 4. 開発者向けツールの充実
+
+開発者モードでのアイテム管理機能により、キャンペーン設計時の効率が大幅向上。統計情報やフィルター機能により、大規模なアイテムデータベースの管理も容易。
+
+### 今後の発展可能性
+
+#### 1. クラフトシステム
+
+- 素材アイテムを組み合わせた装備作成
+- レシピ管理とクラフト条件
+- 失敗確率とランダム性
+
+#### 2. インベントリ管理
+
+- キャラクター別のアイテム所持
+- 重量制限と容量管理
+- アイテム交換とパーティ共有
+
+#### 3. エンチャントシステム
+
+- 装備品の強化機能
+- 魔法効果の付与
+- 耐久度システム
+
+#### 4. 経済システム
+
+- 拠点間の価格差
+- 供給・需要による動的価格
+- 商人NPCとの交渉
+
+### まとめ
+
+アイテム管理システムの完全実装により、AIエージェントTRPG GMプロジェクトは従来のチャットベースの対話から、本格的なTRPGゲームシステムへと大きく進化しました。アイテム収集、拠点での買い物、イベント報酬、キーアイテムによるストーリー分岐など、実際のテーブルトップTRPGで重要な要素が完全に実装され、プレイヤーに真の「デジタルTRPG体験」を提供できるようになりました。
+
+**主要成果**:
+
+- **包括的アイテムシステム**: 10種類のアイテムタイプと入手場所管理
+- **イベント連携**: タイムラインイベント結果でのアイテム取得・フラグ管理  
+- **拠点統合**: 店舗でのアイテム販売と価格管理
+- **開発者ツール**: アイテム管理画面での効率的なキャンペーン設計
+- **型安全性**: プロジェクト全体での一貫した型定義

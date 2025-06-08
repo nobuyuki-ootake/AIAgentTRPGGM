@@ -18,6 +18,8 @@ export interface TRPGCampaign {
   enemies: EnemyCharacter[];
   npcs: NPCCharacter[];
   bases: BaseLocation[]; // 拠点システム追加
+  items: Item[]; // アイテム管理システム
+  itemLocations: ItemLocation[]; // アイテム入手場所
   rules: CampaignRule[];
   handouts: Handout[];
   feedback: Feedback[];
@@ -32,6 +34,7 @@ export interface TRPGCampaign {
     tags?: string[];
   }[];
   imageUrl?: string; // キャンペーン画像
+  startingLocation?: StartingLocationInfo; // ゲーム開始時の場所設定
 }
 
 
@@ -642,6 +645,172 @@ export interface SessionEvent {
   placeId?: string; // 主要な場所ID
   experienceAwarded?: number;
   lootGained?: Equipment[];
+}
+
+// タイムラインイベント（SessionEventをベースに拡張）
+export interface TimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  date: string; // ISO date string
+  dayNumber?: number; // 1日目、2日目など
+  relatedCharacters: string[];
+  relatedPlaces: string[];
+  order: number;
+  eventType?: "battle" | "rest" | "dialogue" | "journey" | "discovery" | "turning_point" | "info" | "mystery" | "setup" | "celebration" | "other";
+  outcome?: "success" | "failure" | "partial" | "ongoing";
+  postEventCharacterStatuses?: {
+    [characterId: string]: CharacterStatus[];
+  };
+  relatedPlotIds?: string[]; // 関連するプロット/クエストのID配列
+  placeId?: string; // 主要な場所ID
+  experienceAwarded?: number;
+  results?: EventResult[]; // イベントの結果（アイテム取得、フラグ設定など）
+}
+
+// イベント結果の型定義
+export interface EventResult {
+  id: string;
+  type: "item_gained" | "item_lost" | "flag_set" | "flag_unset" | "condition_met" | "story_progress" | "character_change";
+  description: string;
+  itemId?: string; // type が "item_gained" または "item_lost" の場合
+  itemQuantity?: number; // アイテムの数量
+  flagKey?: string; // type が "flag_set" または "flag_unset" の場合
+  flagValue?: string | number | boolean; // フラグの値
+  metadata?: Record<string, any>; // その他の情報
+}
+
+// アイテムの型定義
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+  type: ItemType;
+  category: ItemCategory;
+  rarity: ItemRarity;
+  value?: number; // 価値（ゴールドなど）
+  weight?: number; // 重量
+  imageUrl?: string;
+  isStackable: boolean; // スタック可能か
+  maxStack?: number; // 最大スタック数
+  tags?: string[]; // 検索・フィルター用タグ
+  gameSystemId?: string; // ゲームシステム固有のID
+  customProperties?: Record<string, any>; // カスタムプロパティ
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// アイテムタイプ
+export type ItemType = "consumable" | "equipment" | "key_item" | "material" | "quest_item" | "currency" | "other";
+
+// アイテムカテゴリ
+export type ItemCategory = 
+  // 消耗品
+  | "potion" | "food" | "scroll" | "ammunition"
+  // 装備
+  | "weapon" | "armor" | "accessory" | "shield"
+  // キーアイテム
+  | "story_key" | "dungeon_key" | "quest_objective" | "tool"
+  // その他
+  | "material" | "gem" | "currency" | "misc";
+
+// アイテムのレアリティ
+export type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "artifact";
+
+// アイテムの入手場所
+export interface ItemLocation {
+  id: string;
+  itemId: string;
+  locationType: "shop" | "event" | "loot" | "craft" | "reward";
+  locationId: string; // 拠点ID、イベントID、クエストIDなど
+  locationName: string; // 表示用の場所名
+  availability: ItemAvailability;
+  price?: number; // ショップでの価格
+  currency?: string; // 通貨の種類
+  requirements?: ItemRequirement[]; // 入手条件
+  notes?: string; // 補足情報
+}
+
+// アイテムの入手可能性
+export type ItemAvailability = "always" | "limited" | "seasonal" | "quest_locked" | "level_locked" | "story_locked";
+
+// アイテム入手条件
+export interface ItemRequirement {
+  type: "level" | "quest_complete" | "item_owned" | "flag_set" | "location_discovered";
+  value: string | number;
+  description: string;
+}
+
+// 装備アイテム専用の拡張
+export interface Equipment extends Item {
+  type: "equipment";
+  equipmentType: EquipmentType;
+  stats?: EquipmentStats;
+  enchantments?: Enchantment[];
+  durability?: {
+    current: number;
+    max: number;
+  };
+  requirements?: {
+    level?: number;
+    strength?: number;
+    dexterity?: number;
+    intelligence?: number;
+    class?: string[];
+  };
+}
+
+// 装備タイプ
+export type EquipmentType = 
+  | "main_weapon" | "off_weapon" | "two_handed_weapon" | "ranged_weapon"
+  | "helmet" | "chest_armor" | "leg_armor" | "boots" | "gloves"
+  | "ring" | "necklace" | "earring" | "bracelet" | "cloak";
+
+// 装備ステータス
+export interface EquipmentStats {
+  attack?: number;
+  defense?: number;
+  magicAttack?: number;
+  magicDefense?: number;
+  speed?: number;
+  accuracy?: number;
+  evasion?: number;
+  criticalRate?: number;
+  hp?: number;
+  mp?: number;
+  [stat: string]: number | undefined; // その他のカスタムステータス
+}
+
+// エンチャント
+export interface Enchantment {
+  id: string;
+  name: string;
+  description: string;
+  effect: string;
+  magnitude: number;
+  type: "buff" | "debuff" | "special";
+}
+
+// アイテムインベントリ
+export interface ItemInventory {
+  id: string;
+  ownerId: string; // キャラクターIDまたは拠点ID
+  ownerType: "character" | "base" | "party";
+  items: InventoryItem[];
+  capacity?: number; // 容量制限
+  weightLimit?: number; // 重量制限
+  updatedAt: Date;
+}
+
+// インベントリ内のアイテム
+export interface InventoryItem {
+  itemId: string;
+  quantity: number;
+  condition?: number; // 耐久度など（0-100）
+  enchantments?: string[]; // エンチャントID配列
+  notes?: string;
+  acquiredAt: Date;
+  acquiredFrom?: string; // どこで取得したか
 }
 
 // 戦闘エンカウンター
@@ -1508,4 +1677,15 @@ export interface CharacterInteraction {
   description: string;
   timestamp: Date;
   sessionId?: string;
+}
+
+// ゲーム開始場所の情報
+export interface StartingLocationInfo {
+  id: string; // 場所のID
+  name: string; // 場所の名前
+  type: "base" | "location"; // 拠点かフィールドかを区別
+  description?: string; // 場所の説明（表示用）
+  imageUrl?: string; // 場所の画像URL
+  setAt: Date; // 設定された日時
+  isActive: boolean; // 現在アクティブな開始場所か
 }

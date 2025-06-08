@@ -30,6 +30,7 @@ export interface TRPGCampaign {
         tags?: string[];
     }[];
     imageUrl?: string;
+    startingLocation?: StartingLocationInfo;
 }
 export interface Player {
     id: string;
@@ -1090,5 +1091,14 @@ export interface CharacterInteraction {
     description: string;
     timestamp: Date;
     sessionId?: string;
+}
+export interface StartingLocationInfo {
+    id: string;
+    name: string;
+    type: "base" | "location";
+    description?: string;
+    imageUrl?: string;
+    setAt: Date;
+    isActive: boolean;
 }
 //# sourceMappingURL=index.d.ts.map

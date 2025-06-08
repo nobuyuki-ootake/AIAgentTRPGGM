@@ -13,6 +13,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import EnemyPage from "./pages/EnemyPage";
 import NPCPage from "./pages/NPCPage";
 import TRPGSessionPage from "./pages/TRPGSessionPage";
+import ItemManagementPage from "./pages/ItemManagementPage";
 import MinimalTRPGSessionTest from "./pages/MinimalTRPGSessionTest";
 import { appModeState, currentCampaignState } from "./store/atoms";
 import { Toaster } from "sonner";
@@ -51,6 +52,8 @@ const MainContent = () => {
       return <EnemyPage />;
     case "npc":
       return <NPCPage />;
+    case "items":
+      return <ItemManagementPage />;
     case "session":
       return <TRPGSessionPage />;
     default:

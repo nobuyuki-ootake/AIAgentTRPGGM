@@ -107,7 +107,8 @@ export function useTRPGHome() {
       // 作成したキャンペーンを選択
       handleSelectCampaign(newCampaign.id);
     } else {
-      alert("キャンペーンの作成に失敗しました。");
+      console.error("キャンペーンの作成に失敗しました。");
+      // エラー状態をセットして、呼び出し元でハンドリングできるようにする
     }
   };
 
@@ -146,7 +147,8 @@ export function useTRPGHome() {
         setCurrentCampaign(null);
       }
     } else {
-      alert("キャンペーンの削除に失敗しました。");
+      console.error("キャンペーンの削除に失敗しました。");
+      // エラー状態をセットして、呼び出し元でハンドリングできるようにする
     }
     
     handleCloseDeleteDialog();

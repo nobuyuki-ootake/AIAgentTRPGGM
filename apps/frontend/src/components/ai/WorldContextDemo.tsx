@@ -102,7 +102,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
   // 🎮 AI対話を開始
   const handleStartAI = () => {
     if (!currentLocation) {
-      alert('拠点を選択してください');
+      console.error('拠点を選択してください');
       return;
     }
 
@@ -119,7 +119,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
         break;
       case 'conversation':
         if (!selectedNPC) {
-          alert('NPCを選択してください');
+          console.error('NPCを選択してください');
           return;
         }
         startConversationAI(currentLocation, selectedNPC, activeCharacters, customInstruction);
@@ -136,7 +136,7 @@ export const WorldContextDemo: React.FC<WorldContextDemoProps> = ({
   // 📋 コンテキストをプレビュー
   const handlePreviewContext = () => {
     if (!currentLocation) {
-      alert('拠点を選択してください');
+      console.error('拠点を選択してください');
       return;
     }
 

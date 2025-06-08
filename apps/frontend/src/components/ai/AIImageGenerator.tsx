@@ -47,7 +47,7 @@ import AIImageGenerationService, {
   ImageGenerationRequest,
   GeneratedImage,
   IMAGE_GENERATION_PRESETS,
-  GENERATION_SETTINGS,
+  // GENERATION_SETTINGS, // Unused
 } from '../../services/AIImageGenerationService';
 
 interface AIImageGeneratorProps {
@@ -174,20 +174,20 @@ export const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
     }
   }, [prompt, negativePrompt, imageType, style, aspectRatio, quality, guidanceScale, steps, seed, useRandomSeed, service]);
 
-  const handleImageTypeChange = (newType: ImageGenerationRequest['imageType']) => {
-    setImageType(newType);
-    const preset = IMAGE_GENERATION_PRESETS[newType];
-    if (preset) {
-      setStyle(preset.style);
-      setAspectRatio(preset.aspectRatio);
-      setNegativePrompt(preset.prompts.negativePrompt);
-    }
-  };
+  // const handleImageTypeChange = (newType: ImageGenerationRequest['imageType']) => {
+  //   setImageType(newType);
+  //   const preset = IMAGE_GENERATION_PRESETS[newType];
+  //   if (preset) {
+  //     setStyle(preset.style);
+  //     setAspectRatio(preset.aspectRatio);
+  //     setNegativePrompt(preset.prompts.negativePrompt);
+  //   }
+  // };
 
   const handleUsePreset = (presetType: keyof typeof IMAGE_GENERATION_PRESETS) => {
     const preset = IMAGE_GENERATION_PRESETS[presetType];
     setImageType(presetType);
-    setStyle(preset.style);
+    setStyle(preset.style as typeof style);
     setAspectRatio(preset.aspectRatio);
     setNegativePrompt(preset.prompts.negativePrompt);
   };
@@ -257,7 +257,7 @@ export const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
                   画像タイプ
                 </Typography>
                 <Grid container spacing={2}>
-                  {Object.entries(IMAGE_GENERATION_PRESETS).map(([type, preset]) => (
+                  {Object.entries(IMAGE_GENERATION_PRESETS).map(([type, _preset]) => (
                     <Grid item xs={6} sm={4} md={2} key={type}>
                       <Card
                         sx={{
@@ -438,7 +438,7 @@ export const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
         <CustomTabPanel value={tabValue} index={1}>
           <Grid container spacing={2}>
             {generatedImages.map((image) => (
-              <Grid item xs={12} sm={6} md={4} key={image.id}>
+              <Grid xs={12} sm={6} md={4} key={image.id}>
                 <Card>
                   <CardMedia
                     component="img"
@@ -473,7 +473,7 @@ export const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
         <CustomTabPanel value={tabValue} index={2}>
           <Grid container spacing={2}>
             {generationHistory.slice(0, 20).map((image) => (
-              <Grid item xs={12} sm={6} md={4} key={image.id}>
+              <Grid xs={12} sm={6} md={4} key={image.id}>
                 <Card>
                   <CardMedia
                     component="img"

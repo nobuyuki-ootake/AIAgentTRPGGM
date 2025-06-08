@@ -3,11 +3,14 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState } from "../store/atoms";
 import { BaseLocation, Inn, Shop, Armory, Temple, Guild, Blacksmith, LocationNPC } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
+import { useWorldBuildingContext } from "../contexts/WorldBuildingContext";
+import { TRPGLocalStorageManager } from "../utils/trpgLocalStorage";
 
 export const useBases = () => {
   const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { setHasUnsavedChanges } = useWorldBuildingContext();
 
   // 拠点一覧を取得
   const bases = currentCampaign?.bases || [];
@@ -37,6 +40,11 @@ export const useBases = () => {
       };
 
       setCurrentCampaign(updatedCampaign);
+      
+      // localStorageに保存
+      TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+      
+      setHasUnsavedChanges?.(true);
       return newBase;
     } catch (err) {
       setError(err instanceof Error ? err.message : "拠点の作成に失敗しました");
@@ -69,6 +77,11 @@ export const useBases = () => {
       };
 
       setCurrentCampaign(updatedCampaign);
+      
+      // localStorageに保存
+      TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+      
+      setHasUnsavedChanges?.(true);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "拠点の更新に失敗しました");
@@ -97,6 +110,11 @@ export const useBases = () => {
       };
 
       setCurrentCampaign(updatedCampaign);
+      
+      // localStorageに保存
+      TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+      
+      setHasUnsavedChanges?.(true);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "拠点の削除に失敗しました");

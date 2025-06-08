@@ -123,7 +123,7 @@ export const WorldBuildingProvider: React.FC<{ children: ReactNode }> = ({
   const elementAccumulator = useElementAccumulator();
   const worldBuildingAI = useWorldBuildingAI();
   const worldBuildingHook = useWorldBuilding();
-  const { currentProject: projectForSaving, updateAndSaveCurrentProject } =
+  const { currentCampaign: projectForSaving, updateAndSaveCurrentCampaign } =
     useHome();
 
   // 通知関連の状態
@@ -173,7 +173,7 @@ export const WorldBuildingProvider: React.FC<{ children: ReactNode }> = ({
     isGenerating: false, // ダミー実装
     handleSaveWorldBuilding: () => {
       const projectToSave = restOfElementAccumulator.getCurrentProjectState();
-      updateAndSaveCurrentProject(projectToSave);
+      updateAndSaveCurrentCampaign(projectToSave);
       showNotification("キャンペーンが保存されました。");
       setHasUnsavedChanges(false);
     },
@@ -185,7 +185,7 @@ export const WorldBuildingProvider: React.FC<{ children: ReactNode }> = ({
     hasUnsavedChanges,
     setHasUnsavedChanges,
     projectForSaving,
-    updateAndSaveCurrentProject,
+    updateAndSaveCurrentProject: updateAndSaveCurrentCampaign,
     notificationOpen,
     notificationMessage,
     showNotification,

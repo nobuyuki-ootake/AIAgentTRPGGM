@@ -28,6 +28,8 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -45,8 +47,13 @@ import {
   Image as ImageIcon,
 } from "@mui/icons-material";
 import { useBases } from "../../hooks/useBases";
-import { BaseLocation } from "@trpg-ai-gm/types";
+import { BaseLocation, StartingLocationInfo } from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../../api/aiAgent";
+import { TRPGLocalStorageManager } from "../../utils/trpgLocalStorage";
+import { StartingLocationSelect, CurrentStartingLocationDisplay } from "./StartingLocationSelect";
+import { useWorldBuildingContext } from "../../contexts/WorldBuildingContext";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { currentCampaignState } from "../../store/atoms";
 
 const BaseTab: React.FC = () => {
   const {
@@ -58,10 +65,17 @@ const BaseTab: React.FC = () => {
     deleteBase,
     createBaseTemplate,
   } = useBases();
+
+  // 開始場所管理のための状態とコンテキスト
+  const { setHasUnsavedChanges } = useWorldBuildingContext();
+  const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBase, setEditingBase] = useState<BaseLocation | null>(null);
   const [formData, setFormData] = useState<Omit<BaseLocation, "id" | "created_at" | "updated_at">>(createBaseTemplate("村"));
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationSeverity, setNotificationSeverity] = useState<'error' | 'warning' | 'info' | 'success'>('info');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   
   // 行動選択肢編集用の状態
@@ -138,6 +152,54 @@ const BaseTab: React.FC = () => {
     }
   };
 
+  // 開始場所として設定
+  const handleSetAsStartingLocation = (locationId: string, locationName: string, locationType: "base" | "location") => {
+    if (!currentCampaign) return;
+    
+    const startingLocation: StartingLocationInfo = {
+      id: locationId,
+      name: locationName,
+      type: locationType,
+      description: bases.find(b => b.id === locationId)?.description,
+      imageUrl: bases.find(b => b.id === locationId)?.imageUrl,
+      setAt: new Date(),
+      isActive: true,
+    };
+
+    const updatedCampaign = currentCampaign ? {
+      ...currentCampaign,
+      startingLocation
+    } : null;
+    
+    setCurrentCampaign(updatedCampaign);
+    
+    // localStorageに保存
+    if (updatedCampaign) {
+      TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+    }
+    
+    setHasUnsavedChanges?.(true);
+  };
+
+  // 開始場所設定を解除
+  const handleRemoveStartingLocation = () => {
+    if (!currentCampaign) return;
+    
+    const updatedCampaign = currentCampaign ? {
+      ...currentCampaign,
+      startingLocation: undefined
+    } : null;
+    
+    setCurrentCampaign(updatedCampaign);
+    
+    // localStorageに保存
+    if (updatedCampaign) {
+      TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+    }
+    
+    setHasUnsavedChanges?.(true);
+  };
+
   // 行動選択肢編集ダイアログを開く
   const handleOpenActionDialog = (actionIndex?: number) => {
     if (actionIndex !== undefined && formData.availableActions) {
@@ -192,7 +254,9 @@ const BaseTab: React.FC = () => {
   // AI画像生成
   const handleGenerateAIImage = async () => {
     if (!formData.name.trim()) {
-      alert("拠点名を入力してから画像を生成してください。");
+      setNotificationMessage("拠点名を入力してから画像を生成してください。");
+      setNotificationSeverity('warning');
+      setShowNotification(true);
       return;
     }
 
@@ -220,7 +284,9 @@ const BaseTab: React.FC = () => {
       }
     } catch (error) {
       console.error('AI画像生成エラー:', error);
-      alert(`画像生成に失敗しました: ${error.message || 'Unknown error'}`);
+      setNotificationMessage(`画像生成に失敗しました: ${error.message || 'Unknown error'}`);
+      setNotificationSeverity('error');
+      setShowNotification(true);
     } finally {
       setIsGeneratingImage(false);
     }
@@ -292,6 +358,13 @@ const BaseTab: React.FC = () => {
           <Typography color="error.main">{error}</Typography>
         </Box>
       )}
+
+      {/* 現在の開始場所表示 */}
+      <CurrentStartingLocationDisplay
+        currentStartingLocation={currentCampaign?.startingLocation}
+        onClearStartingLocation={handleRemoveStartingLocation}
+        compact={false}
+      />
 
       {/* 拠点リスト */}
       <List>
@@ -473,6 +546,19 @@ const BaseTab: React.FC = () => {
                           </Stack>
                         </Box>
                       )}
+
+                      {/* 開始場所選択UI */}
+                      <StartingLocationSelect
+                        currentStartingLocation={currentCampaign?.startingLocation}
+                        locationId={base.id}
+                        locationName={base.name}
+                        locationType="base"
+                        locationDescription={base.description}
+                        locationImageUrl={base.imageUrl}
+                        onSetAsStartingLocation={handleSetAsStartingLocation}
+                        onRemoveStartingLocation={handleRemoveStartingLocation}
+                        disabled={isLoading}
+                      />
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>
                       <IconButton
@@ -960,6 +1046,22 @@ const BaseTab: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 通知用Snackbar */}
+      <Snackbar
+        open={showNotification}
+        autoHideDuration={6000}
+        onClose={() => setShowNotification(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setShowNotification(false)} 
+          severity={notificationSeverity} 
+          variant="filled"
+        >
+          {notificationMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

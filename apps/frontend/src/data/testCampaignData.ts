@@ -822,6 +822,288 @@ export const testCampaignData: TRPGCampaign = {
     }
   ],
 
+  // Item[] 形式
+  items: [
+    {
+      id: "item-healing-potion",
+      name: "治癒のポーション",
+      description: "飲むとHPを50回復する赤い液体の薬。冒険者の必需品。",
+      type: "consumable",
+      category: "potion",
+      rarity: "common",
+      value: 50,
+      weight: 0.5,
+      isStackable: true,
+      maxStack: 10,
+      tags: ["回復", "HP", "緊急時"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-mana-potion",
+      name: "魔力のポーション",
+      description: "飲むとMPを30回復する青い液体の薬。魔法使いの必需品。",
+      type: "consumable",
+      category: "potion",
+      rarity: "common",
+      value: 40,
+      weight: 0.5,
+      isStackable: true,
+      maxStack: 10,
+      tags: ["回復", "MP", "魔法"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-iron-sword",
+      name: "鉄の剣",
+      description: "よく鍛えられた鉄製の剣。バランスが良く扱いやすい。",
+      type: "equipment",
+      category: "weapon",
+      rarity: "common",
+      value: 150,
+      weight: 3.0,
+      isStackable: false,
+      tags: ["武器", "近接", "剣"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-leather-armor",
+      name: "革の鎧",
+      description: "柔らかい革で作られた軽装鎧。動きやすさと防御力のバランスが良い。",
+      type: "equipment",
+      category: "armor",
+      rarity: "common",
+      value: 100,
+      weight: 5.0,
+      isStackable: false,
+      tags: ["防具", "軽装", "革"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-ancient-key",
+      name: "古代の鍵",
+      description: "忘却の遺跡の扉を開くために必要な古代の鍵。神秘的なオーラを放っている。",
+      type: "key_item",
+      category: "dungeon_key",
+      rarity: "rare",
+      value: 0,
+      weight: 0.1,
+      isStackable: false,
+      tags: ["鍵", "古代", "遺跡", "重要"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-dragon-scale",
+      name: "竜の鱗",
+      description: "古代竜の鱗。非常に硬く、魔法的な力を秘めている。高値で取引される。",
+      type: "material",
+      category: "material",
+      rarity: "legendary",
+      value: 1000,
+      weight: 0.3,
+      isStackable: true,
+      maxStack: 5,
+      tags: ["竜", "貴重", "素材", "魔法"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-silver-ring",
+      name: "銀の指輪",
+      description: "美しく彫刻された銀の指輪。魔法的な保護効果がある。",
+      type: "equipment",
+      category: "accessory",
+      rarity: "uncommon",
+      value: 300,
+      weight: 0.1,
+      isStackable: false,
+      tags: ["アクセサリー", "銀", "魔法防御"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-magic-scroll",
+      name: "火球の巻物",
+      description: "火球の呪文が記された巻物。使用すると強力な火球を放つことができる。",
+      type: "consumable",
+      category: "scroll",
+      rarity: "uncommon",
+      value: 120,
+      weight: 0.1,
+      isStackable: true,
+      maxStack: 5,
+      tags: ["魔法", "攻撃", "火属性", "使い捨て"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-mythril-sword",
+      name: "ミスリルの剣",
+      description: "伝説の金属ミスリルで作られた剣。軽量でありながら非常に硬く、魔法をよく通す。",
+      type: "equipment",
+      category: "weapon",
+      rarity: "epic",
+      value: 2500,
+      weight: 1.5,
+      isStackable: false,
+      tags: ["武器", "ミスリル", "伝説", "魔法"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "item-village-pass",
+      name: "村の通行証",
+      description: "ハーベスト村への通行を許可する証明書。村長の直筆サイン入り。",
+      type: "quest_item",
+      category: "quest_objective",
+      rarity: "common",
+      value: 0,
+      weight: 0.0,
+      isStackable: false,
+      tags: ["クエスト", "通行証", "村"],
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    }
+  ],
+
+  // ItemLocation[] 形式
+  itemLocations: [
+    {
+      id: "location-healing-potion-shop",
+      itemId: "item-healing-potion",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "エルフの万屋",
+      availability: "always",
+      price: 50,
+      currency: "金貨",
+      notes: "常時在庫あり。まとめ買い割引あり。"
+    },
+    {
+      id: "location-mana-potion-shop",
+      itemId: "item-mana-potion",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "エルフの万屋",
+      availability: "always",
+      price: 40,
+      currency: "金貨",
+      notes: "常時在庫あり。魔法使いに人気。"
+    },
+    {
+      id: "location-iron-sword-shop",
+      itemId: "item-iron-sword",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "武器屋『剣と盾』",
+      availability: "always",
+      price: 150,
+      currency: "金貨",
+      notes: "標準的な武器。初心者にオススメ。"
+    },
+    {
+      id: "location-leather-armor-shop",
+      itemId: "item-leather-armor",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "防具屋『鉄壁』",
+      availability: "always",
+      price: 100,
+      currency: "金貨",
+      notes: "軽装備好みの冒険者に人気。"
+    },
+    {
+      id: "location-ancient-key-event",
+      itemId: "item-ancient-key",
+      locationType: "event",
+      locationId: "forest-path",
+      locationName: "翠の森道",
+      availability: "quest_locked",
+      requirements: [
+        {
+          type: "quest_complete",
+          value: "quest-forest-bandits",
+          description: "盗賊団を倒す必要あり"
+        }
+      ],
+      notes: "盗賊団の頭領が隠し持っている。"
+    },
+    {
+      id: "location-dragon-scale-loot",
+      itemId: "item-dragon-scale",
+      locationType: "loot",
+      locationId: "dragon-valley",
+      locationName: "竜の谷",
+      availability: "quest_locked",
+      requirements: [
+        {
+          type: "quest_complete",
+          value: "quest-final-dragon",
+          description: "竜を倒す必要あり"
+        }
+      ],
+      notes: "竜を倒した際のドロップアイテム。"
+    },
+    {
+      id: "location-silver-ring-shop",
+      itemId: "item-silver-ring",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "宝石店『ダイヤモンドの輝き』",
+      availability: "limited",
+      price: 300,
+      currency: "金貨",
+      notes: "在庫限定。売り切れることあり。"
+    },
+    {
+      id: "location-magic-scroll-shop",
+      itemId: "item-magic-scroll",
+      locationType: "shop",
+      locationId: "town-center",
+      locationName: "魔法店『賢者の書斎』",
+      availability: "always",
+      price: 120,
+      currency: "金貨",
+      notes: "魔法使いの必需品。他の属性もあり。"
+    },
+    {
+      id: "location-mythril-sword-reward",
+      itemId: "item-mythril-sword",
+      locationType: "reward",
+      locationId: "ancient-ruins",
+      locationName: "忘却の遺跡",
+      availability: "quest_locked",
+      requirements: [
+        {
+          type: "quest_complete",
+          value: "quest-ancient-ruins",
+          description: "遺跡の謎を解く必要あり"
+        }
+      ],
+      notes: "古代の宝物庫に眠る伝説の武器。"
+    },
+    {
+      id: "location-village-pass-quest",
+      itemId: "item-village-pass",
+      locationType: "reward",
+      locationId: "town-center",
+      locationName: "リバーベント街",
+      availability: "quest_locked",
+      requirements: [
+        {
+          type: "quest_complete",
+          value: "quest-village-request",
+          description: "村長の依頼を受ける必要あり"
+        }
+      ],
+      notes: "村長から直接受け取る。"
+    }
+  ],
+
   rules: [],
   handouts: [],
   feedback: []

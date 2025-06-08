@@ -36,22 +36,25 @@ import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
 import TimelineSettingsDialog from "../components/timeline/TimelineSettingsDialog";
 import TimelineEventList from "../components/timeline/TimelineEventList";
 import TimelineChart from "../components/timeline/TimelineChart";
+import TimelineDayList from "../components/timeline/TimelineDayList";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import EventSeedReviewDialog from "../components/timeline/EventSeedReviewDialog";
 import {
   TimelineEventSeed,
   TimelineEvent,
+  PlaceElement,
+  BaseLocation,
   // TRPGCampaign, // Unused
   // PlotElement, // Unused
   // Character, // Unused
   // CharacterStatus, // Unused
-  // PlaceElement, // Unused
 } from "@trpg-ai-gm/types";
 import moment from "moment";
 import TimelineEventCard from "../components/timeline/TimelineEventCard";
 import TimelineEventResultHandler, { EventResult } from "../components/timeline/TimelineEventResultHandler";
 import WorldStateManager from "../components/world/WorldStateManager";
 // import { TimelineProvider } from "../contexts/TimelineContext"; // Unused and path error
+
 
 const convertSeedToTimelineEvent = (
   seed: TimelineEventSeed,
@@ -91,6 +94,7 @@ const TimelinePage: React.FC = () => {
     timelineEvents, // ★追加: useTimeline から TimelineEvent[] を取得 (状態そのもの)
     characters,
     places, // ★ useTimeline から places (PlaceElement[]) を再度取得
+    bases, // ★ useTimeline から bases (BaseLocation[]) を追加
     hasUnsavedChanges,
     dialogOpen,
     isEditing,
@@ -252,7 +256,7 @@ const TimelinePage: React.FC = () => {
 
     const droppedOnItemType = over.data.current?.type as string;
     const dropTargetData = over.data.current as
-      | { placeId: string; placeTitle?: string; type?: string } // placeTitleとtypeはオプショナルかもしれない
+      | { placeId?: string; placeTitle?: string; type?: string; date?: string; dayKey?: string } // 日付ドロップ用のプロパティを追加
       | undefined;
 
     if (!dropTargetData || !activatorEvent) {
@@ -263,7 +267,7 @@ const TimelinePage: React.FC = () => {
       return;
     }
 
-    const { placeId: targetPlaceId } = dropTargetData;
+    const { placeId: targetPlaceId, date: targetDate } = dropTargetData;
 
     // 日付計算ロジック (共通化)
     let estimatedDateString: string | undefined = undefined;
@@ -385,11 +389,42 @@ const TimelinePage: React.FC = () => {
         console.error(
           "[TimelinePage] handleUpdateEventLocationAndDate is not available from useTimeline."
         );
-        alert("エラー: イベント移動処理の関数が見つかりません。");
+        console.error("エラー: イベント移動処理の関数が見つかりません。");
+      }
+    } else if (
+      (draggedItemType === "list-timeline-event" || 
+       draggedItemType === "chart-timeline-event" ||
+       draggedItemType === "day-list-timeline-event") &&
+      droppedOnItemType === "timeline-day"
+    ) {
+      // 日付への直接ドロップ処理
+      if (!originalEventId || !draggedEventData) {
+        console.error(
+          "[TimelinePage] Original event ID or event data is missing from dragged item."
+        );
+        return;
+      }
+
+      const finalDate = targetDate || draggedEventData.date || new Date().toISOString();
+      
+      if (handleUpdateEventLocationAndDate) {
+        // 場所IDは既存のものを保持し、日付のみ更新
+        handleUpdateEventLocationAndDate(
+          originalEventId,
+          draggedEventData.placeId, // 既存の場所IDを保持
+          finalDate
+        );
+        console.log(
+          `[TimelinePage] Updating event ${originalEventId} to date ${finalDate}`
+        );
+      } else {
+        console.error(
+          "[TimelinePage] handleUpdateEventLocationAndDate is not available."
+        );
       }
     } else if (
       draggedItemType === "event-seed" &&
-      droppedOnItemType === "timeline-place-column"
+      (droppedOnItemType === "timeline-place-column" || droppedOnItemType === "timeline-day")
     ) {
       const seed = active.data.current?.seed as TimelineEventSeed | undefined;
       if (!seed) {
@@ -399,19 +434,26 @@ const TimelinePage: React.FC = () => {
         return;
       }
       const finalDateForSeed =
-        estimatedDateString || seed.estimatedTime || new Date().toISOString();
+        targetDate || estimatedDateString || seed.estimatedTime || new Date().toISOString();
       const targetRelatedPlotIds =
         seed.relatedPlotIds && seed.relatedPlotIds.length > 0
           ? seed.relatedPlotIds
           : allPlots && allPlots.length > 0
           ? [allPlots[0].id]
           : [];
+      
+      // 日付ドロップの場合、場所IDをseedから取得するか、デフォルト場所を使用
+      const finalPlaceId = targetPlaceId || 
+        (seed.relatedPlaceIds && seed.relatedPlaceIds.length > 0 ? seed.relatedPlaceIds[0] : 
+         (places && places.length > 0 ? places[0].id : 
+          (bases && bases.length > 0 ? bases[0].id : undefined)));
+      
       const newTimelineEvent = convertSeedToTimelineEvent(
         seed,
         timelineEvents,
         0,
         finalDateForSeed,
-        targetPlaceId,
+        finalPlaceId,
         targetRelatedPlotIds
       );
       addTimelineEventsBatch([newTimelineEvent]);
@@ -509,6 +551,18 @@ const TimelinePage: React.FC = () => {
   const handleWorldStateSuggestion = (suggestion: string, priority: "low" | "medium" | "high") => {
     console.log(`World state suggestion (${priority}):`, suggestion);
     // Could show a snackbar or notification
+  };
+
+  // 日付指定でのイベント追加
+  const handleAddEventToDay = (date: string) => {
+    // 新しいイベント作成時の初期値として日付を設定
+    handleEventChange("date", date);
+    if (places && places.length > 0) {
+      handleEventChange("placeId", places[0].id);
+    } else if (bases && bases.length > 0) {
+      handleEventChange("placeId", bases[0].id);
+    }
+    handleOpenDialog();
   };
 
   console.log(
@@ -784,30 +838,74 @@ const TimelinePage: React.FC = () => {
           {/* 開発者モード: イベント管理・シナリオ設計 */}
           {developerMode ? (
             <>
-              {/* 🧪 クエスト・タイムラインイベント表示 */}
-              <Box sx={{ mb: 3 }}>
+              {/* 🧪 クエスト・タイムラインイベント表示 - ユーザー要望により非表示 */}
+              {/* <Box sx={{ mb: 3 }}>
                 <QuestTimelineView />
+              </Box> */}
+
+              {/* 横向き2パネルレイアウト */}
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 3, 
+                height: '70vh', 
+                minHeight: '500px' 
+              }}>
+                {/* 左パネル: イベントリスト */}
+                <Paper 
+                  elevation={1} 
+                  sx={{ 
+                    flex: '0 0 400px',
+                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <TimelineEventList
+                    timelineItems={timelineItems}
+                    onAddEvent={handleOpenDialog}
+                    onAIAssist={handleOpenAIAssistModal}
+                    onEditEvent={handleEventClick}
+                    hasUnsavedChanges={hasUnsavedChanges}
+                    onSave={handleSave}
+                    onDeleteEvent={handleDeleteEvent}
+                    onResetTimeline={handleResetTimeline}
+                    getCharacterNameById={getCharacterName}
+                    getPlaceNameById={getPlaceName}
+                  />
+                </Paper>
+
+                {/* 右パネル: 日付ベースのタイムライン */}
+                <Paper 
+                  elevation={1} 
+                  sx={{ 
+                    flex: 1,
+                    p: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {dateArray && dateArray.length > 0 && (
+                    <TimelineDayList
+                      timelineEvents={timelineEvents}
+                      places={[...(places || []), ...(bases || [])]} // placesとbasesを統合
+                      plots={allPlots}
+                      dateArray={dateArray}
+                      onEventClick={handleEventClick}
+                      onDeleteEvent={handleDeleteEvent}
+                      onEventResultClick={handleEventResultClick}
+                      onAddEventToDay={handleAddEventToDay}
+                    />
+                  )}
+                </Paper>
               </Box>
 
-              <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-                <TimelineEventList
-                  timelineItems={timelineItems}
-                  onAddEvent={handleOpenDialog}
-                  onAIAssist={handleOpenAIAssistModal}
-                  onEditEvent={handleEventClick}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  onSave={handleSave}
-                  onDeleteEvent={handleDeleteEvent}
-                  onResetTimeline={handleResetTimeline}
-                  getCharacterNameById={getCharacterName}
-                  getPlaceNameById={getPlaceName}
-                />
-              </Paper>
-
-              {places && places.length > 0 && dateArray && dateArray.length > 0 && (
+              {/* 従来のチャート表示（参考用・必要に応じて削除） */}
+              {/* {(places && places.length > 0 || bases && bases.length > 0) && dateArray && dateArray.length > 0 && (
                 <TimelineChart
                   timelineEvents={timelineEvents}
-                  places={places}
+                  places={[...(places || []), ...(bases || [])]} // placesとbasesを統合
                   plots={allPlots}
                   dateArray={dateArray}
                   safeMinY={safeMinY}
@@ -816,7 +914,7 @@ const TimelinePage: React.FC = () => {
                   onDeleteEvent={handleDeleteEvent}
                   onEventResultClick={handleEventResultClick}
                 />
-              )}
+              )} */}
             </>
           ) : (
             /* プレイモード: セッション履歴閲覧 */
@@ -841,10 +939,18 @@ const TimelinePage: React.FC = () => {
                   newEvent={newEvent}
                   isEditing={isEditing}
                   characters={characters}
+                  places={[...(places || []), ...(bases || [])]}
+                  items={currentCampaign?.items || []}
                   definedCharacterStatuses={definedCharacterStatuses}
                   onEventChange={handleEventChange}
                   onSave={handleSaveEvent}
                   onCharactersChange={handleCharactersChange}
+                  onEventResultsChange={(results) => {
+                    handleEventChange(
+                      { target: { value: results } } as any,
+                      "results"
+                    );
+                  }}
                   getCharacterName={getCharacterName}
                   getPlaceName={getPlaceName}
                   onPostEventStatusChange={handlePostEventStatusChange}
@@ -869,7 +975,7 @@ const TimelinePage: React.FC = () => {
             <Box sx={{ mt: 3 }}>
               <WorldStateManager
                 campaign={currentCampaign}
-                locations={places || []}
+                locations={[...(places || []), ...(bases || [])]} // placesとbasesを統合
                 onStateChange={handleWorldStateChange}
                 onSuggestion={handleWorldStateSuggestion}
               />
@@ -896,7 +1002,10 @@ const TimelinePage: React.FC = () => {
             event={selectedEventForResult}
             onClose={() => setEventResultDialogOpen(false)}
             onSubmit={handleEventResultSubmit}
-            availableLocations={places?.map(p => ({ id: p.id, name: p.name })) || []}
+            availableLocations={[
+              ...(places?.map(p => ({ id: p.id, name: p.name })) || []),
+              ...(bases?.map(b => ({ id: b.id, name: b.name })) || [])
+            ]}
             availableFactions={currentCampaign?.factions?.map(f => ({ id: f.id, name: f.name })) || []}
           />
         </Paper>

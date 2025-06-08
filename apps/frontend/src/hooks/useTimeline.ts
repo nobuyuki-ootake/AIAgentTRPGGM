@@ -8,6 +8,7 @@ import {
   SessionEvent,
   TRPGCharacter,
   PlaceElement,
+  BaseLocation,
   CharacterStatus,
   QuestElement,
 } from "@trpg-ai-gm/types";
@@ -45,6 +46,7 @@ export function useTimeline() {
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [characters, setCharacters] = useState<TRPGCharacter[]>([]);
   const [places, setPlaces] = useState<PlaceElement[]>([]);
+  const [bases, setBases] = useState<BaseLocation[]>([]);
   const [allPlots, setAllPlots] = useState<QuestElement[]>([]);
 
   // グラフ表示用のデータ
@@ -114,6 +116,8 @@ export function useTimeline() {
       setAllPlots(currentCampaign.plot || []);
       // 場所を読み込み
       setPlaces(currentCampaign.worldBuilding?.places || []);
+      // 拠点を読み込み
+      setBases(currentCampaign.bases || []);
       // キャラクターステータスを読み込み
       setDefinedCharacterStatusesForDialog([]);
     }
@@ -313,13 +317,20 @@ export function useTimeline() {
     [characters]
   );
 
-  // 地名取得関数
+  // 地名取得関数 - 場所と拠点の両方から検索
   const getPlaceName = useCallback(
     (id: string): string => {
+      // まず場所から検索
       const place = places.find((p) => p.id === id);
-      return place ? place.name : "不明な場所";
+      if (place) return place.name;
+      
+      // 次に拠点から検索
+      const base = bases.find((b) => b.id === id);
+      if (base) return base.name;
+      
+      return "不明な場所";
     },
-    [places]
+    [places, bases]
   );
 
   // その他の未実装関数（仮実装）
@@ -398,6 +409,7 @@ export function useTimeline() {
       setTimelineEvents(convertedEvents);
       setCharacters(campaignDataToUse.characters || []);
       setPlaces(campaignDataToUse.worldBuilding?.places || []);
+      setBases(campaignDataToUse.bases || []);
       setDefinedCharacterStatusesForDialog(
         campaignDataToUse.definedCharacterStatuses || []
       );
@@ -437,21 +449,28 @@ export function useTimeline() {
     });
   }, [timelineSettings.maxDays]);
 
-  // 地名（グループ）の更新
+  // 地名（グループ）の更新 - 場所と拠点の両方を含める
   useEffect(() => {
-    if (places.length > 0) {
-      const groups: TimelineGroup[] = [{ id: "unassigned", title: "未分類" }];
+    const groups: TimelineGroup[] = [{ id: "unassigned", title: "未分類" }];
 
-      places.forEach((place) => {
-        groups.push({
-          id: place.id,
-          title: place.name,
-        });
+    // 場所を追加
+    places.forEach((place) => {
+      groups.push({
+        id: place.id,
+        title: `📍 ${place.name}`,
       });
+    });
 
-      setTimelineGroups(groups);
-    }
-  }, [places]);
+    // 拠点を追加
+    bases.forEach((base) => {
+      groups.push({
+        id: base.id,
+        title: `🏛️ ${base.name}`,
+      });
+    });
+
+    setTimelineGroups(groups);
+  }, [places, bases]);
 
   // ソート済みタイムラインイベント
   const sortedTimelineEvents = useMemo(() => {
@@ -504,7 +523,7 @@ export function useTimeline() {
 
   // timelineItemsの生成
   useEffect(() => {
-    if (characters && places) {
+    if (characters && (places || bases)) {
       const items = sortedTimelineEvents.map((event) => {
         const relatedCharacterData = event.relatedCharacters
           .map((charId) => characters.find((c) => c.id === charId))
@@ -514,9 +533,20 @@ export function useTimeline() {
           .map((char) => char.name)
           .join(", ");
 
-        const placeName =
-          (event.placeId && places.find((p) => p.id === event.placeId)?.name) ||
-          "未分類";
+        let placeName = "未分類";
+        if (event.placeId) {
+          // 場所から検索
+          const place = places.find((p) => p.id === event.placeId);
+          if (place) {
+            placeName = place.name;
+          } else {
+            // 拠点から検索
+            const base = bases.find((b) => b.id === event.placeId);
+            if (base) {
+              placeName = base.name;
+            }
+          }
+        }
 
         return {
           id: event.id,
@@ -535,7 +565,7 @@ export function useTimeline() {
 
       setTimelineItems(items);
     }
-  }, [sortedTimelineEvents, characters, places]);
+  }, [sortedTimelineEvents, characters, places, bases]);
 
   // definedCharacterStatuses の計算
   const definedCharacterStatuses = useMemo(() => {
@@ -593,6 +623,7 @@ export function useTimeline() {
         },
         characters: characters,
         plot: allPlots,
+        bases: bases,
         definedCharacterStatuses: definedCharacterStatuses,
         updatedAt: new Date(),
       };
@@ -621,6 +652,7 @@ export function useTimeline() {
     timelineSettings,
     characters,
     places,
+    bases,
     allPlots,
     definedCharacterStatuses,
   ]);
@@ -681,6 +713,7 @@ export function useTimeline() {
     timelineEvents,
     characters,
     places,
+    bases,
     timelineItems,
     timelineGroups,
     timelineSettings,

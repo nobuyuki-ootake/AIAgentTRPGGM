@@ -14,6 +14,7 @@ import {
   TimelineEvent,
   PlaceElement,
   PlotElement,
+  BaseLocation,
 } from "@trpg-ai-gm/types"; // Plotの代わりにPlotElementを使用
 // import { getCharacterIcon } from "./TimelineUtils"; // EventCardやPlaceColumnへ
 import PlaceColumn from "./PlaceColumn"; // デフォルトインポートに変更
@@ -21,7 +22,7 @@ import moment from "moment"; // momentを追加
 
 interface TimelineChartProps {
   timelineEvents: TimelineEvent[];
-  places: PlaceElement[];
+  places: PlaceElement[] | BaseLocation[];
   plots: PlotElement[]; // Plot を PlotElement に変更
   dateArray: string[]; // Array<{ date: number; label: string }> から string[] に変更
   safeMinY: number; // 追加

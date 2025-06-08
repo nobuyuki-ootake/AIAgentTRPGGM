@@ -27,6 +27,7 @@ export type AppMode =
   | "plot"
   | "characters"
   | "worldbuilding"
+  | "items"
   | "timeline"
   | "writing"
   | "feedback"

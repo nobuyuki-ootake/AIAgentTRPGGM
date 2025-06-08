@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useWorldBuildingContext } from "../../contexts/WorldBuildingContext";
 import {
   Box,
   Typography,
@@ -44,6 +45,10 @@ import {
   ImageNotSupported,
   Image as ImageIcon,
 } from "@mui/icons-material";
+import { StartingLocationInfo } from "@trpg-ai-gm/types";
+import { StartingLocationSelect, CurrentStartingLocationDisplay } from "./StartingLocationSelect";
+import { useRecoilState } from "recoil";
+import { currentCampaignState } from "../../store/atoms";
 
 // 場所専用の簡略化された型定義
 interface ExplorationLocation {
@@ -92,7 +97,11 @@ interface ExplorationLocation {
 }
 
 const LocationTab: React.FC = () => {
+  const { setHasUnsavedChanges } = useWorldBuildingContext();
   const [locations, setLocations] = useState<ExplorationLocation[]>([]);
+  
+  // 開始場所管理のための状態
+  const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<ExplorationLocation | null>(null);
   const [formData, setFormData] = useState<Omit<ExplorationLocation, "id" | "created_at" | "updated_at">>({
@@ -194,6 +203,7 @@ const LocationTab: React.FC = () => {
         };
         setLocations(prev => [...prev, newLocation]);
       }
+      setHasUnsavedChanges?.(true);
       handleCloseDialog();
     } catch (error) {
       console.error("場所の保存に失敗しました:", error);
@@ -204,6 +214,7 @@ const LocationTab: React.FC = () => {
   const handleDeleteLocation = async (id: string) => {
     if (window.confirm("この場所を削除してもよろしいですか？")) {
       setLocations(prev => prev.filter(loc => loc.id !== id));
+      setHasUnsavedChanges?.(true);
     }
   };
 
@@ -221,6 +232,38 @@ const LocationTab: React.FC = () => {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
+  };
+
+  // 開始場所として設定
+  const handleSetAsStartingLocation = (locationId: string, locationName: string, locationType: "base" | "location") => {
+    if (!currentCampaign) return;
+    
+    const startingLocation: StartingLocationInfo = {
+      id: locationId,
+      name: locationName,
+      type: locationType,
+      description: locations.find(l => l.id === locationId)?.description,
+      imageUrl: locations.find(l => l.id === locationId)?.imageUrl,
+      setAt: new Date(),
+      isActive: true,
+    };
+
+    setCurrentCampaign(prev => prev ? {
+      ...prev,
+      startingLocation
+    } : null);
+    setHasUnsavedChanges?.(true);
+  };
+
+  // 開始場所設定を解除
+  const handleRemoveStartingLocation = () => {
+    if (!currentCampaign) return;
+    
+    setCurrentCampaign(prev => prev ? {
+      ...prev,
+      startingLocation: undefined
+    } : null);
+    setHasUnsavedChanges?.(true);
   };
 
   // 行動選択肢編集ダイアログを開く
@@ -318,6 +361,13 @@ const LocationTab: React.FC = () => {
           新規場所
         </Button>
       </Box>
+
+      {/* 現在の開始場所表示 */}
+      <CurrentStartingLocationDisplay
+        currentStartingLocation={currentCampaign?.startingLocation}
+        onClearStartingLocation={handleRemoveStartingLocation}
+        compact={true}
+      />
 
       {/* 場所リスト */}
       <List>
@@ -447,6 +497,18 @@ const LocationTab: React.FC = () => {
                           </Stack>
                         </Box>
                       )}
+
+                      {/* 開始場所選択UI */}
+                      <StartingLocationSelect
+                        currentStartingLocation={currentCampaign?.startingLocation}
+                        locationId={location.id}
+                        locationName={location.name}
+                        locationType="location"
+                        locationDescription={location.description}
+                        locationImageUrl={location.imageUrl}
+                        onSetAsStartingLocation={handleSetAsStartingLocation}
+                        onRemoveStartingLocation={handleRemoveStartingLocation}
+                      />
                     </Box>
                     <Box sx={{ display: "flex", gap: 1 }}>
                       <IconButton

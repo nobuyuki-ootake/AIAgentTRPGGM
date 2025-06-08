@@ -25,12 +25,22 @@ import { useWorldBuildingContext } from "../contexts/WorldBuildingContext";
 import { useWorldBuildingAI } from "../hooks/useWorldBuildingAI";
 import { useElementAccumulator } from "../hooks/useElementAccumulator";
 import { ProgressSnackbar } from "../components/ui/ProgressSnackbar";
+import { UnsavedChangesDialog } from "../components/common/UnsavedChangesDialog";
+import { useUnsavedChanges } from "../hooks/useUnsavedChanges";
 import { toast } from "sonner";
 
 const WorldBuildingPage: React.FC = () => {
   const currentCampaign = useRecoilValue(currentCampaignState);
   const { resetWorldBuildingElements } = useElementAccumulator();
   const { openAIAssist } = useAIChatIntegration();
+
+  // 未保存データ管理フック
+  const {
+    hasUnsavedChanges: unsavedChangesHook,
+    setUnsavedChanges,
+    markAsSaved,
+    checkBeforeLeave,
+  } = useUnsavedChanges();
 
   // コンテキストから状態とハンドラ関数を取得
   const {
@@ -45,9 +55,13 @@ const WorldBuildingPage: React.FC = () => {
     notificationOpen,
     notificationMessage,
     setNotificationOpen,
-    hasUnsavedChanges,
-    setHasUnsavedChanges,
+    hasUnsavedChanges: contextHasUnsavedChanges,
+    setHasUnsavedChanges: setContextHasUnsavedChanges,
   } = useWorldBuildingContext();
+
+  // 警告ダイアログの状態
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   const {
     generateWorldBuildingBatch,
@@ -62,6 +76,112 @@ const WorldBuildingPage: React.FC = () => {
   // AI処理の進行状況管理
   const [aiProgress, setAiProgress] = useState<number | undefined>(undefined);
   const [showProgressSnackbar, setShowProgressSnackbar] = useState(false);
+
+  // 未保存データの状態を同期
+  useEffect(() => {
+    setUnsavedChanges(contextHasUnsavedChanges || false);
+  }, [contextHasUnsavedChanges, setUnsavedChanges]);
+
+  // ナビゲーション試行時のイベントリスナー
+  useEffect(() => {
+    const handleModeChangeAttempt = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      
+      // 未保存データがある場合はナビゲーションを阻止
+      if (unsavedChangesHook || contextHasUnsavedChanges) {
+        event.preventDefault();
+        
+        // 移動先に応じたアクションを準備
+        const targetMode = customEvent.detail?.mode;
+        setPendingAction(() => () => {
+          // 強制的にナビゲーションを実行
+          if (targetMode === "home") {
+            // ホームに戻る処理
+            window.location.href = "/";
+          } else {
+            // 他のモードに変更する処理
+            const newEvent = new CustomEvent("forceMode Change", {
+              detail: { mode: targetMode }
+            });
+            document.dispatchEvent(newEvent);
+          }
+        });
+        setShowUnsavedDialog(true);
+        return false;
+      }
+      
+      return true;
+    };
+
+    document.addEventListener("modeChangeAttempt", handleModeChangeAttempt);
+    
+    return () => {
+      document.removeEventListener("modeChangeAttempt", handleModeChangeAttempt);
+    };
+  }, [unsavedChangesHook, contextHasUnsavedChanges]);
+
+  // 拡張された保存ハンドラー
+  const handleSaveWithConfirmation = async () => {
+    try {
+      await handleSaveWorldBuilding();
+      markAsSaved(); // 保存成功時に未保存状態をリセット
+      toast.success("データが正常に保存されました");
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("保存中にエラーが発生しました");
+    }
+  };
+
+  // 安全なナビゲーション関数
+  const handleSafeNavigation = (action: () => void) => {
+    const canLeave = checkBeforeLeave(action);
+    if (!canLeave) {
+      setPendingAction(() => action);
+      setShowUnsavedDialog(true);
+    }
+  };
+
+  // 未保存ダイアログのハンドラー
+  const handleSaveAndContinue = async () => {
+    try {
+      await handleSaveWithConfirmation();
+      setShowUnsavedDialog(false);
+      
+      // 未保存状態を明示的にリセット
+      markAsSaved();
+      setContextHasUnsavedChanges?.(false);
+      
+      // 少し遅延してからナビゲーションを実行（状態更新を確実にする）
+      setTimeout(() => {
+        if (pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Save and continue error:", error);
+    }
+  };
+
+  const handleContinueWithoutSaving = () => {
+    // 未保存状態を強制的にリセット
+    markAsSaved();
+    setContextHasUnsavedChanges?.(false);
+    setShowUnsavedDialog(false);
+    
+    // 少し遅延してからナビゲーションを実行（beforeunloadイベントを回避）
+    setTimeout(() => {
+      if (pendingAction) {
+        pendingAction();
+        setPendingAction(null);
+      }
+    }, 100);
+  };
+
+  const handleDialogClose = () => {
+    setShowUnsavedDialog(false);
+    setPendingAction(null);
+  };
 
   // useWorldBuildingAIの通知が表示された時にAI処理状態をリセット
   useEffect(() => {
@@ -100,7 +220,7 @@ const WorldBuildingPage: React.FC = () => {
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges || isAIProcessing) {
+      if (unsavedChangesHook || contextHasUnsavedChanges || isAIProcessing) {
         event.preventDefault();
         event.returnValue = ""; // For Chrome
         return ""; // For other browsers
@@ -112,7 +232,7 @@ const WorldBuildingPage: React.FC = () => {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasUnsavedChanges, isAIProcessing]);
+  }, [unsavedChangesHook, contextHasUnsavedChanges, isAIProcessing]);
 
   // AIアシスト機能の統合
   const handleOpenAIAssist = (): void => {
@@ -301,7 +421,7 @@ ${
               variant="contained"
               color="success"
               startIcon={<SaveIcon />}
-              onClick={handleSaveWorldBuilding}
+              onClick={handleSaveWithConfirmation}
               disabled={isAIProcessing}
             >
               保存
@@ -452,6 +572,16 @@ ${
         loading={isAIProcessing}
         onClose={handleCloseProgressSnackbar}
         position="top-center"
+      />
+
+      {/* 未保存データ警告ダイアログ */}
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onClose={handleDialogClose}
+        onSaveAndContinue={handleSaveAndContinue}
+        onContinueWithoutSaving={handleContinueWithoutSaving}
+        title="未保存の世界観データがあります"
+        message="拠点や場所の編集内容が保存されていません。続行する前に保存しますか？"
       />
     </Box>
   );

@@ -97,7 +97,7 @@ export const CharacterSheetExporterComponent: React.FC<CharacterSheetExporterPro
   // エクスポート実行
   const handleExport = async () => {
     if (!currentCampaign || targetCharacters.length === 0) {
-      alert('キャンペーンまたはキャラクターが選択されていません');
+      console.error('キャンペーンまたはキャラクターが選択されていません');
       return;
     }
 

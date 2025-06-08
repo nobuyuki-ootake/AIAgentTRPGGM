@@ -26,6 +26,7 @@ import {
   Groups as NPCIcon,
   PlayArrow as SessionIcon,
   DeveloperMode as DeveloperIcon,
+  Inventory as ItemsIcon,
 } from "@mui/icons-material";
 import {
   QuestScrollIcon,
@@ -153,6 +154,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       developerOnly: true,
     },
     {
+      mode: "items" as AppMode,
+      text: "アイテム管理",
+      icon: <ItemsIcon />,
+      developerOnly: true,
+    },
+    {
       mode: "timeline" as AppMode,
       text: developerMode ? "キャンペーンのイベント管理" : "セッション履歴",
       icon: <TimelineIcon />,
@@ -194,10 +201,10 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         },
       }}
       sx={{
-        width: 240,
+        width: 270,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: 240,
+          width: 270,
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -233,9 +240,29 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             <ListItemButton
               selected={appMode === item.mode}
               onClick={() => handleModeChange(item.mode)}
+              sx={{
+                px: 2,
+                py: 1,
+                minHeight: 48,
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText 
+                primary={item.text}
+                primaryTypographyProps={{
+                  fontSize: "0.875rem",
+                  fontWeight: appMode === item.mode ? 600 : 400,
+                  noWrap: false,
+                  sx: {
+                    wordBreak: "break-word",
+                    lineHeight: 1.2,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -259,10 +286,26 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           }
           label={
             <Box>
-              <Typography variant="body2" fontWeight="bold">
+              <Typography 
+                variant="body2" 
+                fontWeight="bold"
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: 1.2,
+                }}
+              >
                 開発者モード
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
+                sx={{
+                  fontSize: "0.75rem",
+                  lineHeight: 1.1,
+                  display: "block",
+                  wordBreak: "break-word",
+                }}
+              >
                 キャンペーン設計機能を有効化
               </Typography>
             </Box>
@@ -293,7 +336,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           variant="caption"
           color="text.secondary"
           align="center"
-          sx={{ display: "block" }}
+          sx={{ 
+            display: "block",
+            fontSize: "0.7rem",
+            lineHeight: 1.1,
+            wordBreak: "break-word",
+          }}
         >
           ※作業中のキャンペーンを閉じます
         </Typography>

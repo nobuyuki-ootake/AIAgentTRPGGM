@@ -4,6 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import {
   TimelineEvent,
   PlaceElement,
+  BaseLocation,
   PlotElement,
 } from "@trpg-ai-gm/types"; // PlotElement をインポート
 // import { getEventTypeIconComponent } from "./TimelineUtils"; // TimelineEventCard に移譲
@@ -12,7 +13,7 @@ import TimelineEventCard from "./TimelineEventCard"; // TimelineEventCard をイ
 import { SxProps, Theme } from "@mui/material/styles"; // SxProps をインポート
 
 interface PlaceColumnProps {
-  place: PlaceElement;
+  place: PlaceElement | BaseLocation;
   plots: PlotElement[]; // plots プロパティを追加
   events: TimelineEvent[];
   onEventClick: (id: string) => void;

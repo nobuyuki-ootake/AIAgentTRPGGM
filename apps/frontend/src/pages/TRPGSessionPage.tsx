@@ -11,6 +11,7 @@ import ChatPanel from "../components/trpg-session/ChatPanel";
 import SessionDialogManager from "../components/trpg-session/SessionDialogManager";
 import DebugPanel from "../components/debug/DebugPanel";
 import TRPGSessionErrorBoundary from "../components/error/TRPGErrorBoundary";
+import { CurrentStartingLocationDisplay } from "../components/worldbuilding/StartingLocationSelect";
 
 const TRPGSessionPageContent: React.FC = () => {
   // カスタムフックでビジネスロジックとUI状態を管理
@@ -91,6 +92,14 @@ const TRPGSessionPageContent: React.FC = () => {
         onStartAISession={openAIAssist}
         onToggleDebugPanel={toggleDebugPanel}
       />
+
+      {/* 開始場所表示 - セッション開始前または未設定時に表示 */}
+      {(!uiState.isSessionStarted || !currentCampaign?.startingLocation) && (
+        <CurrentStartingLocationDisplay
+          currentStartingLocation={currentCampaign?.startingLocation}
+          compact={true}
+        />
+      )}
 
       <Box sx={{ 
         flex: 1, 
