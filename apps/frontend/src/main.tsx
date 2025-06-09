@@ -142,12 +142,29 @@ const dummyProject: TRPGCampaign = {
   sessions: [
     {
       id: uuidv4(),
+      campaignId: uuidv4(),
+      sessionNumber: 1,
       title: "序章：能力の発見",
+      date: new Date(),
+      duration: 120,
       synopsis:
         "平凡な日常を送っていた主人公が、自分の思ったことが現実になる能力に気づく。",
       content: convertTextToSlateValue(
         "山田太郎は、いつもと変わらない月曜日の朝を迎えていた。満員電車に揺られながら、「今日は早く帰りたいな」と考えていた。\n\nそして不思議なことに、その日は予定されていた会議がすべてキャンセルとなり、上司から「今日は早く帰っていいよ」と言われた。偶然だと思った太郎だったが、次に「雨が降らないといいな」と思った瞬間、曇っていた空が晴れ渡った。"
       ),
+      status: "completed" as const,
+      currentState: {
+        currentDay: 1,
+        currentTime: 18,
+        timeOfDay: "evening" as const,
+        dayStatus: "active" as const
+      },
+      spatialTracking: {
+        trackedLocations: [],
+        movementHistory: [],
+        currentLocation: null
+      },
+      encounterHistory: []
     },
   ],
   feedback: [],

@@ -15,14 +15,17 @@ import {
   Delete as DeleteIcon,
   DragIndicator as DragIcon,
 } from "@mui/icons-material";
-import { PlotElement } from "@trpg-ai-gm/types";
+import { QuestElement } from "@trpg-ai-gm/types";
+
+// PlotElementとしてQuestElementを使用
+type PlotElement = QuestElement;
 import { CalendarMonth, EmojiEvents, CheckCircle } from "@mui/icons-material";
 
 interface PlotItemProps {
   item: PlotElement;
   onStatusChange: (
     id: string,
-    event: SelectChangeEvent<"決定" | "検討中">
+    event: SelectChangeEvent<"未開始" | "進行中" | "完了" | "失敗" | "保留">
   ) => void;
   onDelete: (id: string) => void;
   onEdit: (item: PlotElement) => void;
@@ -43,10 +46,10 @@ const PlotItem: React.FC<PlotItemProps> = ({
         display: "flex",
         alignItems: "flex-start",
         borderLeft: `6px solid ${
-          item.status === "決定" ? "success.main" : "warning.main"
+          item.status === "完了" ? "success.main" : "warning.main"
         }`,
-        backgroundColor: item.status === "決定" ? "success.light" : "transparent",
-        opacity: item.status === "決定" ? 0.9 : 1,
+        backgroundColor: item.status === "完了" ? "success.light" : "transparent",
+        opacity: item.status === "完了" ? 0.9 : 1,
       }}
     >
       <Box sx={{ mr: 1, color: "grey.500" }}>
@@ -61,7 +64,7 @@ const PlotItem: React.FC<PlotItemProps> = ({
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 1 }}>
-            {item.status === "決定" ? (
+            {item.status === "完了" ? (
               <CheckCircle color="success" fontSize="small" />
             ) : (
               <EmojiEvents color="warning" fontSize="small" />
@@ -79,12 +82,15 @@ const PlotItem: React.FC<PlotItemProps> = ({
               onChange={(e) =>
                 onStatusChange(
                   item.id,
-                  e as SelectChangeEvent<"決定" | "検討中">
+                  e as SelectChangeEvent<"未開始" | "進行中" | "完了" | "失敗" | "保留">
                 )
               }
             >
-              <MenuItem value="決定">完了</MenuItem>
-              <MenuItem value="検討中">未実施</MenuItem>
+              <MenuItem value="未開始">未開始</MenuItem>
+              <MenuItem value="進行中">進行中</MenuItem>
+              <MenuItem value="完了">完了</MenuItem>
+              <MenuItem value="失敗">失敗</MenuItem>
+              <MenuItem value="保留">保留</MenuItem>
             </Select>
           </FormControl>
           <IconButton onClick={() => onDelete(item.id)} color="error">

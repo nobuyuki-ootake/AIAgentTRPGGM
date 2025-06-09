@@ -1,12 +1,16 @@
 import { useState } from "react";
 import {
   TimelineEventSeed,
-  PlotElement,
+  QuestElement,
   StandardAIRequest,
   StandardAIResponse,
-  Character,
+  NPCCharacter,
   PlaceElement,
 } from "@trpg-ai-gm/types";
+
+// 型エイリアス
+type PlotElement = QuestElement;
+type Character = NPCCharacter;
 import axios from "axios";
 
 // タイムラインイベントの「種」をAIに生成させるためのAPIの想定レスポンス型

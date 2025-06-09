@@ -13,11 +13,15 @@ import {
   WorldBuildingElementType,
   WorldBuildingElement,
   FreeFieldElement,
-  PlotElement,
-  Character,
+  QuestElement,
+  NPCCharacter,
   BaseWorldBuildingElement,
 } from "@trpg-ai-gm/types";
 import { WorldBuildingApiResponse } from "../types/apiResponse";
+
+// 型エイリアス
+type PlotElement = QuestElement;
+type Character = NPCCharacter;
 
 /**
  * 世界観構築のAI支援機能を管理するカスタムフック
