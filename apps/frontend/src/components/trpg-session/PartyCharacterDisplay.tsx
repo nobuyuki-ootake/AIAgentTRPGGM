@@ -208,14 +208,14 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
             <Typography variant="subtitle2" noWrap>
               {character.name}
             </Typography>
-            {"class" in character && character.class && (
+            {"class" in character && (character as any).class && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {(character as any).race} {(character as any).class}
+                {"race" in character ? String((character as any).race || "") : ""} {String((character as any).class || "")}
               </Typography>
             )}
-            {"role" in character && character.role && (
+            {"role" in character && (character as any).role && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {(character as any).role}
+                {String((character as any).role)}
               </Typography>
             )}
           </Box>
@@ -419,14 +419,14 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
           <Typography variant="subtitle2" gutterBottom>
             選択中: {selectedCharacter.name}
           </Typography>
-          {selectedCharacter.personality && (
+          {"personality" in selectedCharacter && selectedCharacter.personality && (
             <Typography variant="body2" color="text.secondary">
-              {selectedCharacter.personality}
+              {String((selectedCharacter as any).personality)}
             </Typography>
           )}
-          {selectedCharacter.notes && (
+          {"notes" in selectedCharacter && selectedCharacter.notes && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              備考: {selectedCharacter.notes}
+              備考: {String((selectedCharacter as any).notes)}
             </Typography>
           )}
         </Box>

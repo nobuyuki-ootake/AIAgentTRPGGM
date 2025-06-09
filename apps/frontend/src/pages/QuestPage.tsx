@@ -39,7 +39,10 @@ import {
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { currentCampaignState } from "../store/atoms";
-import { TRPGCampaign, Quest, QuestStatus, NPCCharacter } from "@trpg-ai-gm/types";
+import { TRPGCampaign, QuestElement, NPCCharacter } from "@trpg-ai-gm/types";
+
+// QuestStatusの型定義（QuestElementのstatusと同等）
+type QuestStatus = "未開始" | "進行中" | "完了" | "失敗" | "保留";
 
 interface QuestObjective {
   id: string;
@@ -48,7 +51,7 @@ interface QuestObjective {
   hidden: boolean; // プレイヤーに見えるかどうか
 }
 
-interface EnhancedQuest extends Quest {
+interface EnhancedQuest extends QuestElement {
   prerequisites: string[]; // 前提クエスト
   rewards: {
     experience: number;
@@ -81,19 +84,21 @@ const QuestPage: React.FC = () => {
   const [formData, setFormData] = useState<Partial<EnhancedQuest>>({
     title: "",
     description: "",
-    status: "hidden",
+    status: "hidden" as QuestStatus,
     priority: "medium",
     giver: "",
+    notes: "",
     objectives: [],
     rewards: { experience: 0, items: [], gold: 0 },
     discoveryConditions: { questboardAvailable: false },
     difficulty: "medium",
+    prerequisites: [],
   });
 
   // クエストの読み込み
   useEffect(() => {
-    if (currentCampaign?.quests) {
-      const enhancedQuests: EnhancedQuest[] = currentCampaign.quests.map(quest => ({
+    if (currentCampaign?.plot) {
+      const enhancedQuests: EnhancedQuest[] = currentCampaign.plot.map((quest: any) => ({
         ...quest,
         prerequisites: [],
         rewards: { experience: 100, items: [], gold: 50 },
@@ -111,15 +116,13 @@ const QuestPage: React.FC = () => {
 
     const updatedCampaign: TRPGCampaign = {
       ...currentCampaign,
-      quests: updatedQuests.map(quest => ({
+      plot: updatedQuests.map(quest => ({
         id: quest.id,
         title: quest.title,
         description: quest.description,
         status: quest.status,
         priority: quest.priority,
         giver: quest.giver,
-        rewards: quest.rewards,
-        objectives: quest.objectives.map(obj => obj.description),
         notes: quest.notes || "",
       })),
       updatedAt: new Date(),
@@ -135,15 +138,15 @@ const QuestPage: React.FC = () => {
 
     const newQuest: EnhancedQuest = {
       id: `quest-${Date.now()}`,
-      title: formData.title,
-      description: formData.description,
+      title: formData.title || "",
+      description: formData.description || "",
       status: formData.status || "hidden",
       priority: formData.priority || "medium",
       giver: formData.giver || "",
       rewards: formData.rewards || { experience: 100, items: [], gold: 50 },
       objectives: formData.objectives || [],
-      notes: "",
-      prerequisites: [],
+      notes: formData.notes || "",
+      prerequisites: formData.prerequisites || [],
       discoveryConditions: formData.discoveryConditions || { questboardAvailable: true },
       difficulty: formData.difficulty || "medium",
     };
@@ -203,13 +206,15 @@ const QuestPage: React.FC = () => {
     setFormData({
       title: "",
       description: "",
-      status: "hidden",
+      status: "hidden" as QuestStatus,
       priority: "medium",
       giver: "",
+      notes: "",
       objectives: [],
       rewards: { experience: 100, items: [], gold: 50 },
       discoveryConditions: { questboardAvailable: false },
       difficulty: "medium",
+      prerequisites: [],
     });
   };
 

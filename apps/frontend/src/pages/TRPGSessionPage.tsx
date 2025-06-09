@@ -78,7 +78,7 @@ const TRPGSessionPageContent: React.FC = () => {
     }}>
       {/* ヘッダー部分 */}
       <SessionHeader
-        campaign={currentCampaign}
+        campaign={currentCampaign || undefined}
         currentLocation={currentLocation}
         currentDay={currentDay}
         actionCount={actionCount}
@@ -134,7 +134,7 @@ const TRPGSessionPageContent: React.FC = () => {
           <PartyPanel
             playerCharacters={playerCharacters}
             npcs={npcs}
-            selectedCharacter={selectedCharacter}
+            selectedCharacter={selectedCharacter || undefined}
             onSelectCharacter={setSelectedCharacter}
             currentLocation={currentLocation}
             currentLocationImage={currentBaseImage}
@@ -185,7 +185,7 @@ const TRPGSessionPageContent: React.FC = () => {
             maxActionsPerDay={maxActionsPerDay}
             currentBase={getCurrentBase()}
             enemies={enemies}
-            selectedCharacter={selectedCharacter}
+            selectedCharacter={selectedCharacter || undefined}
             bases={bases}
             onExecuteAction={executeAction}
             onAdvanceDay={advanceDay}
@@ -213,7 +213,7 @@ const TRPGSessionPageContent: React.FC = () => {
         onSkillCheckResult={handleSkillCheckResult}
         onPowerCheckResult={handlePowerCheckResult}
         onAIDiceRoll={handleAIDiceRoll}
-        selectedCharacter={selectedCharacter}
+        selectedCharacter={selectedCharacter || undefined}
         aiRequiredDice={uiState.aiRequiredDice}
         combatMode={combatMode}
         currentCombatSession={uiState.currentCombatSession}

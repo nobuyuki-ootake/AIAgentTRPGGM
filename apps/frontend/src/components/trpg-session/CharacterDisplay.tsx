@@ -222,12 +222,12 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
             <Typography variant="subtitle2" noWrap>
               {character.name}
             </Typography>
-            {"class" in character && character.class && (
+            {"class" in character && (character as any).class && (
               <Typography variant="caption" color="text.secondary" noWrap>
                 {"race" in character ? String((character as any).race || "") : ""} {String((character as any).class || "")}
               </Typography>
             )}
-            {"role" in character && character.role && (
+            {"role" in character && (character as any).role && (
               <Typography variant="caption" color="text.secondary" noWrap>
                 {String((character as any).role)}
               </Typography>
