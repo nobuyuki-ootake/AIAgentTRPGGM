@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Session Storage Manager for TRPG Application
  * Handles temporary data that should persist only during the browser session
@@ -387,7 +386,7 @@ class ScopedSessionStorage {
 
 // TRPG-specific session storage managers
 export class TRPGSessionStorageManager {
-  private manager: SessionStorageManager;
+  public readonly manager: SessionStorageManager;
   
   // Scoped managers for different data types
   public readonly formDrafts: ScopedSessionStorage;

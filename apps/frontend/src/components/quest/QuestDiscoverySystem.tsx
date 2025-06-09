@@ -22,8 +22,48 @@ import {
   LocationOn as LocationIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { EnhancedQuest } from "../../pages/QuestPage";
-import { NPCCharacter, BaseLocation } from "@trpg-ai-gm/types";
+import { QuestElement, NPCCharacter, BaseLocation } from "@trpg-ai-gm/types";
+
+// QuestPageから使用していたEnhancedQuestの代替型
+interface EnhancedQuest {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  status: "未開始" | "進行中" | "完了" | "失敗" | "保留" | "hidden";
+  questType: "メイン" | "サブ" | "個人" | "隠し";
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  prerequisites: string[];
+  rewards: {
+    experience: number;
+    items: string[];
+    gold: number;
+    reputation?: string;
+  };
+  objectives: QuestObjective[];
+  discoveryConditions: {
+    npcId?: string;
+    location?: string;
+    itemRequired?: string;
+    questboardAvailable: boolean;
+  };
+  timeLimit?: {
+    days: number;
+    consequences?: string;
+  };
+  sessionId?: string;
+  relatedCharacterIds?: string[];
+  relatedPlaceIds?: string[];
+  priority?: "low" | "medium" | "high";
+  giver?: string;
+}
+
+interface QuestObjective {
+  id: string;
+  description: string;
+  completed: boolean;
+  type: "kill" | "collect" | "talk" | "reach" | "deliver";
+}
 
 interface QuestDiscoveryCondition {
   questId: string;
@@ -88,9 +128,19 @@ const QuestDiscoverySystem: React.FC<QuestDiscoverySystemProps> = ({
       // 場所での発見（クエストボード等）
       if (conditions.questboardAvailable && currentLocation) {
         const location = locations.find(l => l.name === currentLocation);
-        if (location && location.facilities?.includes("クエストボード")) {
-          canDiscover = true;
-          discoveryReason = "クエストボード";
+        if (location && location.facilities) {
+          // ギルドがクエストボードを提供する場合
+          const hasGuildQuestBoard = location.facilities.guild?.services?.includes("quest_board");
+          
+          // その他施設でクエストボードがある場合
+          const hasOtherQuestBoard = location.facilities.otherFacilities?.some(
+            facility => facility.type === "クエストボード" || facility.name.includes("クエストボード")
+          );
+          
+          if (hasGuildQuestBoard || hasOtherQuestBoard) {
+            canDiscover = true;
+            discoveryReason = "クエストボード";
+          }
         }
       }
 
@@ -182,7 +232,7 @@ const QuestDiscoverySystem: React.FC<QuestDiscoverySystemProps> = ({
           {dialogType === "npc" && currentNPC && (
             <Alert severity="info" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                {currentNPC.name}: 「{currentNPC.personality || "助けが必要なのです..."}」
+                {currentNPC.name}: 「{currentNPC.description || "助けが必要なのです..."}」
               </Typography>
             </Alert>
           )}

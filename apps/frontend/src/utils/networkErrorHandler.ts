@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Network error handling and retry mechanisms for TRPG application
  */
@@ -129,9 +128,9 @@ export class NetworkErrorHandler {
       } catch (error) {
         if (error instanceof NetworkError) {
           lastError = error;
-        } else if (error instanceof TypeError || error.name === 'AbortError') {
+        } else if (error instanceof TypeError || (error as Error).name === 'AbortError') {
           lastError = new NetworkError(
-            error.name === 'AbortError' ? 'Request timeout' : 'Network connection failed',
+            (error as Error).name === 'AbortError' ? 'Request timeout' : 'Network connection failed',
             {
               url,
               method: options.method || 'GET',
@@ -140,7 +139,7 @@ export class NetworkErrorHandler {
           );
         } else {
           lastError = new NetworkError(
-            `Unexpected error: ${error.message}`,
+            `Unexpected error: ${(error as Error).message || 'Unknown error'}`,
             {
               url,
               method: options.method || 'GET',

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -394,7 +393,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
               </Typography>
               <Grid container spacing={2}>
                 {ALLOCATION_METHODS.map((method) => (
-                  <Grid item xs={12} md={6} key={method.id}>
+                  <Grid size={{ xs: 12, md: 6 }} key={method.id}>
                     <Card
                       sx={{
                         cursor: "pointer",
@@ -442,7 +441,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
               </Typography>
               <Grid container spacing={2}>
                 {CHARACTER_ROLES.map((role) => (
-                  <Grid item xs={12} md={6} key={role.id}>
+                  <Grid size={{ xs: 12, md: 6 }} key={role.id}>
                     <Card
                       sx={{
                         cursor: "pointer",
@@ -533,7 +532,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
                   const isImportant = selectedRole?.primaryAbilities.includes(abilityKey);
 
                   return (
-                    <Grid item xs={12} md={6} key={ability.name}>
+                    <Grid size={{ xs: 12, md: 6 }} key={ability.name}>
                       <Paper sx={{ p: 2, border: isImportant ? 2 : 1, borderColor: isImportant ? "primary.main" : "divider" }}>
                         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                           {ability.icon}
@@ -605,7 +604,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
               </Typography>
               
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 2 }}>
                       最終能力値
@@ -622,7 +621,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
                         const modifier = getAbilityModifier(value);
 
                         return (
-                          <Grid item xs={6} key={ability.name}>
+                          <Grid size={{ xs: 6 }} key={ability.name}>
                             <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                               <Typography variant="body2">
                                 {ability.name}:
@@ -638,7 +637,7 @@ const AbilityScoreAllocationGuide: React.FC<AbilityScoreAllocationGuideProps> = 
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 2 }}>
                       派生ステータス

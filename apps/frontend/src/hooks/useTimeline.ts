@@ -58,9 +58,25 @@ export function useTimeline() {
   const [safeMinY, setSafeMinY] = useState<number>(0);
   const [safeMaxY, setSafeMaxY] = useState<number>(0);
 
+  // SessionEventTypeをTimelineEventTypeに変換するヘルパー関数
+  const convertSessionEventType = (sessionEventType: any): TimelineEvent["eventType"] => {
+    const typeMap: Record<string, TimelineEvent["eventType"]> = {
+      "combat": "battle",
+      "roleplay": "dialogue", 
+      "exploration": "journey",
+      "rest": "rest",
+      "discovery": "discovery",
+      "puzzle": "mystery",
+      "social": "dialogue"
+    };
+    return typeMap[sessionEventType] || "other";
+  };
+
   // タイムライン設定
   const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>({
-    maxDays: 7,
+    startDate: new Date(),
+    endDate: new Date(),
+    zoomLevel: 1,
   });
 
   // 設定ダイアログの状態
@@ -76,7 +92,7 @@ export function useTimeline() {
     relatedCharacters: [],
     relatedPlaces: [],
     order: 0,
-    eventType: "",
+    eventType: "other" as const,
     postEventCharacterStatuses: {},
     relatedPlotIds: [],
   });
@@ -418,7 +434,9 @@ export function useTimeline() {
       // 設定を読み込み
       if (campaignDataToUse.worldBuilding?.timelineSettings?.startDate) {
         setTimelineSettings({
-          startDate: campaignDataToUse.worldBuilding.timelineSettings.startDate,
+          startDate: new Date(campaignDataToUse.worldBuilding.timelineSettings.startDate),
+          endDate: new Date(),
+          zoomLevel: 1,
         });
       }
     } else {
@@ -618,7 +636,9 @@ export function useTimeline() {
         timeline: sessionEvents,
         worldBuilding: {
           ...currentCampaign.worldBuilding,
-          timelineSettings: timelineSettings,
+          timelineSettings: {
+            startDate: timelineSettings.startDate.toISOString(),
+          },
           places: places,
         },
         characters: characters,
@@ -670,7 +690,7 @@ export function useTimeline() {
       relatedCharacters: [],
       relatedPlaces: [],
       order: timelineEvents.length,
-      eventType: "",
+      eventType: "other" as const,
       postEventCharacterStatuses: {},
       relatedPlotIds: [],
     });

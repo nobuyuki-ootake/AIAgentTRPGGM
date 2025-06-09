@@ -252,7 +252,7 @@ export const DataPersistenceProvider: React.FC<DataPersistenceProviderProps> = (
           ...syncConfig,
         },
         persistence,
-        sessionStorage,
+        sessionStorage.manager,
         indexedDB
       );
 

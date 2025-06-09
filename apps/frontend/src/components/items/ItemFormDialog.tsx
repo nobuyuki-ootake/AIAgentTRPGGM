@@ -14,7 +14,7 @@ import {
   Typography,
   FormHelperText,
 } from "@mui/material";
-import { Grid } from '@mui/material';
+import { Stack } from '@mui/material';
 import {
   Item,
   ItemType,
@@ -225,15 +225,15 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
-          <Grid container spacing={3}>
+          <Stack spacing={3}>
             {/* 基本情報 */}
-            <Grid size={{ xs: 12 }}>
+            <Box>
               <Typography variant="subtitle1" gutterBottom>
                 基本情報
               </Typography>
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="アイテム名"
@@ -244,9 +244,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 required
                 data-testid="item-name-input"
               />
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth required>
                 <InputLabel>タイプ</InputLabel>
                 <Select
@@ -264,9 +264,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                   <MenuItem value="other">その他</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12 }}>
+            <Box>
               <TextField
                 fullWidth
                 label="説明"
@@ -279,9 +279,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 rows={3}
                 data-testid="item-description-input"
               />
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>カテゴリ</InputLabel>
                 <Select
@@ -303,9 +303,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                   <MenuItem value="junk">ジャンク</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>レアリティ</InputLabel>
                 <Select
@@ -322,9 +322,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                   <MenuItem value="artifact">アーティファクト</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
                 label="価値 (G)"
@@ -335,16 +335,16 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 helperText={errors.value}
                 inputProps={{ min: 0 }}
               />
-            </Grid>
+            </Box>
 
             {/* 詳細情報 */}
-            <Grid size={{ xs: 12 }}>
+            <Box>
               <Typography variant="subtitle1" gutterBottom>
                 詳細情報
               </Typography>
-            </Grid>
+            </Box>
 
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
                 label="重量 (kg)"
@@ -355,11 +355,11 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 helperText={errors.weight}
                 inputProps={{ min: 0, step: 0.1 }}
               />
-            </Grid>
+            </Box>
 
             {formData.type === "equipment" && (
               <>
-                <Grid size={{ xs: 12, sm: 4 }}>
+                <Box sx={{ flex: 1 }}>
                   <FormControl fullWidth>
                     <InputLabel>装備スロット</InputLabel>
                     <Select
@@ -379,10 +379,10 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                       <MenuItem value="necklace">首飾り</MenuItem>
                     </Select>
                   </FormControl>
-                </Grid>
+                </Box>
 
                 {(formData.category === "weapon" || formData.equipmentSlot === "weapon") && (
-                  <Grid size={{ xs: 12, sm: 4 }}>
+                  <Box sx={{ flex: 1 }}>
                     <TextField
                       fullWidth
                       label="攻撃力"
@@ -391,11 +391,11 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                       onChange={(e) => handleFieldChange("damage", parseInt(e.target.value) || 0)}
                       inputProps={{ min: 0 }}
                     />
-                  </Grid>
+                  </Box>
                 )}
 
                 {(formData.category === "armor" || formData.equipmentSlot === "body" || formData.equipmentSlot === "shield") && (
-                  <Grid size={{ xs: 12, sm: 4 }}>
+                  <Box sx={{ flex: 1 }}>
                     <TextField
                       fullWidth
                       label="防御力"
@@ -404,13 +404,13 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                       onChange={(e) => handleFieldChange("defense", parseInt(e.target.value) || 0)}
                       inputProps={{ min: 0 }}
                     />
-                  </Grid>
+                  </Box>
                 )}
               </>
             )}
 
             {formData.stackable && (
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
                   label="最大スタック数"
@@ -421,9 +421,9 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                   helperText={errors.maxStack}
                   inputProps={{ min: 1 }}
                 />
-              </Grid>
+              </Box>
             )}
-          </Grid>
+          </Stack>
         </Box>
       </DialogContent>
       <DialogActions>

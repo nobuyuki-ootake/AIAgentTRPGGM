@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Advanced IndexedDB Manager for TRPG Application
  * Handles large data storage with indexing, querying, and advanced features

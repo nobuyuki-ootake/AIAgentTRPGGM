@@ -64,27 +64,54 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
       secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟ボーナス"]
     },
-    skills: [
-      "運動", "軽業", "手先の早業", "隠密", "捜査", "自然", "知覚", "生存",
-      "動物使い", "洞察", "医術", "看破", "威圧", "欺瞞", "芸能", "説得",
-      "魔法学", "歴史", "宗教"
-    ],
+    skills: {
+      AgilitySkills: [{ name: "運動", value: 50 }, { name: "軽業", value: 50 }],
+      CommunicationSkills: [{ name: "説得", value: 50 }, { name: "威圧", value: 45 }],
+      KnowledgeSkills: [{ name: "魔法学", value: 50 }, { name: "歴史", value: 45 }],
+      ManipulationSkills: [{ name: "手先の早業", value: 50 }],
+      PerceptionSkills: [{ name: "知覚", value: 60 }, { name: "洞察", value: 55 }],
+      StealthSkills: [{ name: "隠密", value: 50 }],
+      MagicSkills: [],
+      WeaponSkills: []
+    },
     characterTemplate: {
-      stats: {
-        strength: 10,
-        dexterity: 10,
-        constitution: 10,
-        intelligence: 10,
-        wisdom: 10,
-        charisma: 10,
-        hitPoints: { current: 8, max: 8, temp: 0 },
-        armorClass: 10,
-        speed: 30,
-        level: 1,
-        experience: 0,
-        proficiencyBonus: 2,
+      id: "template-dnd5e",
+      name: "D&D 5eサンプルキャラクター",
+      characterType: "PC" as const,
+      profession: "ファイター",
+      gender: "男性",
+      age: 25,
+      nation: "人間",
+      religion: "なし",
+      player: "プレイヤー",
+      description: "基本的な戦士キャラクター",
+      attributes: {
+        STR: 10,
+        CON: 10,
+        SIZ: 10,
+        INT: 10,
+        POW: 10,
+        DEX: 10,
+        CHA: 10,
       },
-      skills: ["運動", "知覚"]
+      derived: {
+        HP: 8,
+        MP: 10,
+        SW: 10,
+        RES: 10,
+      },
+      weapons: [],
+      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      skills: {
+        AgilitySkills: [{ name: "運動", value: 50 }],
+        CommunicationSkills: [],
+        KnowledgeSkills: [],
+        ManipulationSkills: [],
+        PerceptionSkills: [{ name: "知覚", value: 60 }],
+        StealthSkills: [],
+        MagicSkills: [],
+        WeaponSkills: []
+      }
     },
     diceSystem: {
       primary: "d20",
@@ -111,13 +138,18 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
       secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟度"]
     },
-    skills: [
-      "軽業", "魔法学", "運動", "製作", "欺瞞", "外交", "威圧", "学識",
-      "医術", "自然", "潜行", "知覚", "芸能", "宗教", "社会", "呪文学",
-      "生存", "盗賊", "動物使い"
-    ],
+    skills: {
+      AgilitySkills: [{ name: "軽業", value: 50 }, { name: "運動", value: 50 }],
+      CommunicationSkills: [{ name: "外交", value: 50 }, { name: "威圧", value: 45 }],
+      KnowledgeSkills: [{ name: "魔法学", value: 50 }, { name: "学識", value: 50 }],
+      ManipulationSkills: [{ name: "製作", value: 50 }, { name: "盗賊", value: 45 }],
+      PerceptionSkills: [{ name: "知覚", value: 60 }],
+      StealthSkills: [{ name: "潜行", value: 50 }],
+      MagicSkills: [{ name: "呪文学", value: 55 }],
+      WeaponSkills: []
+    },
     characterTemplate: {
-      stats: {
+      attributes: {
         strength: 10,
         dexterity: 10,
         constitution: 10,
@@ -131,7 +163,16 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         experience: 0,
         proficiencyBonus: 2,
       },
-      skills: ["知覚", "運動"]
+      skills: {
+        AgilitySkills: [{ name: "運動", value: 50 }],
+        CommunicationSkills: [],
+        KnowledgeSkills: [],
+        ManipulationSkills: [],
+        PerceptionSkills: [{ name: "知覚", value: 60 }],
+        StealthSkills: [],
+        MagicSkills: [],
+        WeaponSkills: []
+      }
     },
     diceSystem: {
       primary: "d20",
@@ -158,14 +199,18 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["STR", "CON", "POW", "DEX", "APP", "SIZ", "INT", "EDU"],
       secondary: ["HP", "MP", "正気度", "幸運"]
     },
-    skills: [
-      "言いくるめ", "威圧", "魅惑", "説得", "心理学", "精神分析",
-      "目星", "聞き耳", "図書館", "オカルト", "考古学", "人類学",
-      "医学", "機械修理", "電気修理", "コンピューター", "運転",
-      "回避", "登攀", "跳躍", "水泳", "投擲", "格闘", "拳銃", "ライフル"
-    ],
+    skills: {
+      AgilitySkills: [{ name: "回避", value: 50 }, { name: "登攀", value: 40 }],
+      CommunicationSkills: [{ name: "言いくるめ", value: 50 }, { name: "説得", value: 45 }],
+      KnowledgeSkills: [{ name: "図書館", value: 60 }, { name: "オカルト", value: 45 }],
+      ManipulationSkills: [{ name: "機械修理", value: 40 }, { name: "電気修理", value: 35 }],
+      PerceptionSkills: [{ name: "目星", value: 65 }, { name: "聞き耳", value: 60 }],
+      StealthSkills: [],
+      MagicSkills: [],
+      WeaponSkills: [{ name: "拳銃", value: 45 }, { name: "ライフル", value: 40 }]
+    },
     characterTemplate: {
-      stats: {
+      attributes: {
         strength: 50,
         dexterity: 50,
         constitution: 50,
@@ -179,7 +224,16 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         experience: 0,
         proficiencyBonus: 0,
       },
-      skills: ["目星", "聞き耳", "図書館"]
+      skills: {
+        AgilitySkills: [],
+        CommunicationSkills: [],
+        KnowledgeSkills: [{ name: "図書館", value: 50 }],
+        ManipulationSkills: [],
+        PerceptionSkills: [{ name: "目星", value: 60 }, { name: "聞き耳", value: 55 }],
+        StealthSkills: [],
+        MagicSkills: [],
+        WeaponSkills: []
+      }
     },
     diceSystem: {
       primary: "d100",
@@ -202,13 +256,18 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["器用度", "敏捷度", "筋力", "生命力", "知力", "精神力"],
       secondary: ["HP", "MP", "生命抵抗力", "精神抵抗力"]
     },
-    skills: [
-      "冒険者技能", "ファイター", "グラップラー", "フェンサー", "シューター",
-      "ソーサラー", "コンジャラー", "ウィザード", "プリースト", "マギテック",
-      "スカウト", "レンジャー", "セージ", "エンハンサー", "バード", "ライダー"
-    ],
+    skills: {
+      AgilitySkills: [],
+      CommunicationSkills: [{ name: "バード", value: 50 }],
+      KnowledgeSkills: [{ name: "冒険者技能", value: 50 }, { name: "セージ", value: 50 }],
+      ManipulationSkills: [{ name: "マギテック", value: 50 }],
+      PerceptionSkills: [{ name: "スカウト", value: 55 }, { name: "レンジャー", value: 50 }],
+      StealthSkills: [],
+      MagicSkills: [{ name: "ソーサラー", value: 60 }, { name: "プリースト", value: 55 }],
+      WeaponSkills: [{ name: "ファイター", value: 60 }, { name: "シューター", value: 50 }]
+    },
     characterTemplate: {
-      stats: {
+      attributes: {
         strength: 8,
         dexterity: 8,
         constitution: 8,
@@ -222,7 +281,16 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         experience: 0,
         proficiencyBonus: 0,
       },
-      skills: ["冒険者技能", "ファイター"]
+      skills: {
+        AgilitySkills: [],
+        CommunicationSkills: [],
+        KnowledgeSkills: [{ name: "冒険者技能", value: 50 }],
+        ManipulationSkills: [],
+        PerceptionSkills: [],
+        StealthSkills: [],
+        MagicSkills: [],
+        WeaponSkills: [{ name: "ファイター", value: 60 }]
+      }
     },
     diceSystem: {
       primary: "2d6",
@@ -249,13 +317,18 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"],
       secondary: ["HP", "魔法力", "移動力", "技能修正"]
     },
-    skills: [
-      "近接戦闘", "飛び道具", "回避", "乗騎", "隠密", "聞き耳", "見つける",
-      "追跡", "芸術", "評価", "製作", "工芸", "博学", "言語", "操縦",
-      "説得", "治療", "召喚", "ルーン魔法", "秘術"
-    ],
+    skills: {
+      AgilitySkills: [{ name: "回避", value: 55 }, { name: "乗騎", value: 40 }],
+      CommunicationSkills: [{ name: "説得", value: 50 }, { name: "芸術", value: 45 }],
+      KnowledgeSkills: [{ name: "博学", value: 50 }, { name: "言語", value: 45 }],
+      ManipulationSkills: [{ name: "製作", value: 50 }, { name: "工芸", value: 45 }],
+      PerceptionSkills: [{ name: "聞き耳", value: 60 }, { name: "見つける", value: 55 }],
+      StealthSkills: [{ name: "隠密", value: 50 }],
+      MagicSkills: [{ name: "召喚", value: 60 }, { name: "ルーン魔法", value: 55 }],
+      WeaponSkills: [{ name: "近接戦闘", value: 60 }, { name: "飛び道具", value: 50 }]
+    },
     characterTemplate: {
-      stats: {
+      attributes: {
         strength: 10,
         dexterity: 10,
         constitution: 10,
@@ -269,7 +342,16 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         experience: 0,
         proficiencyBonus: 0,
       },
-      skills: ["近接戦闘", "回避", "隠密"]
+      skills: {
+        AgilitySkills: [{ name: "回避", value: 55 }],
+        CommunicationSkills: [],
+        KnowledgeSkills: [],
+        ManipulationSkills: [],
+        PerceptionSkills: [],
+        StealthSkills: [{ name: "隠密", value: 60 }],
+        MagicSkills: [],
+        WeaponSkills: [{ name: "近接戦闘", value: 60 }]
+      }
     },
     diceSystem: {
       primary: "d100",

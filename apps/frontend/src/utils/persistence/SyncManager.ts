@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Synchronization Manager for TRPG Application
  * Handles data synchronization between different storage types and remote servers

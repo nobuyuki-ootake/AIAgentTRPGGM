@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { TRPGCampaign } from "@trpg-ai-gm/types";
+import { TRPGCampaign, BaseLocation } from "@trpg-ai-gm/types";
 
 /**
  * 空のキャンペーンデータのデフォルト値を生成
@@ -68,32 +67,43 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
 /**
  * 基本的な拠点データのテンプレート
  */
-export const createDefaultBase = (name: string = "開始地点") => {
+export const createDefaultBase = (name: string = "開始地点"): BaseLocation => {
   return {
     id: crypto.randomUUID(),
     name,
     description: "冒険の始まりの場所",
-    type: "town" as const,
-    imageUrl: "",
-    facilities: [
-      {
+    type: "town",
+    region: "初期地域",
+    rank: "中規模都市",
+    importance: "主要拠点" as const,
+    facilities: {
+      inn: {
         id: crypto.randomUUID(),
-        name: "宿屋",
-        type: "inn" as const,
-        description: "休息を取ることができる場所",
-        isAvailable: true
+        name: "旅人の宿",
+        roomTypes: ["シングル", "ダブル"],
+        pricePerNight: { シングル: 5, ダブル: 8 },
+        amenities: ["食事", "風呂"],
+        availability: true
       },
-      {
-        id: crypto.randomUUID(),
-        name: "武器屋",
-        type: "shop" as const,
-        description: "武器や防具を購入できる場所",
-        isAvailable: true
-      }
-    ],
+      shops: [
+        {
+          id: crypto.randomUUID(),
+          name: "武器屋",
+          shopType: "武器防具店",
+          inventory: ["剣", "盾", "革鎧"],
+          specialties: ["近接武器"],
+          prices: { 剣: 15, 盾: 10, 革鎧: 25 },
+          availability: true
+        }
+      ]
+    },
     npcs: [],
-    quests: [],
-    events: []
+    features: {
+      fastTravel: true,
+      playerBase: true,
+      questHub: true,
+      defenseEvent: false
+    }
   };
 };
 
@@ -106,7 +116,6 @@ export const createMinimalCampaign = (name: string = "新しいキャンペー�
   const defaultBase = createDefaultBase("初期の街");
   
   // 最低限必要な拠点を追加
-  campaign.worldBuilding.bases = [defaultBase];
   campaign.bases = [defaultBase];
   
   return campaign;

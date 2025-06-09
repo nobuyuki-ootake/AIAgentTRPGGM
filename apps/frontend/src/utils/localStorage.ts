@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { TRPGCampaign } from "@trpg-ai-gm/types";
 
 /**
@@ -189,7 +188,5 @@ export class LocalStorageManager {
       const estimatedTotal = 5 * 1024 * 1024;
       return Math.max(0, estimatedTotal - usedSpace);
     }
-
-    return 0; // ここには到達しないはず
   }
 }

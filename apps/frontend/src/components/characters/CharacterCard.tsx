@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -61,19 +60,19 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
           sx={{ mb: 1 }}
         />
         {/* TRPGキャラクター情報表示 */}
-        {character.race && (
+        {character.nation && (
           <Typography variant="body2" color="text.secondary">
-            <strong>種族:</strong> {character.race}
+            <strong>種族/国:</strong> {character.nation}
           </Typography>
         )}
-        {character.class && (
+        {character.profession && (
           <Typography variant="body2" color="text.secondary">
-            <strong>クラス:</strong> {character.class}
+            <strong>職業:</strong> {character.profession}
           </Typography>
         )}
-        {character.playerName && (
+        {character.player && (
           <Typography variant="body2" color="text.secondary">
-            <strong>プレイヤー:</strong> {character.playerName}
+            <strong>プレイヤー:</strong> {character.player}
           </Typography>
         )}
         
@@ -81,33 +80,32 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         
         {/* 基本ステータス */}
         <Grid container spacing={1} sx={{ mb: 1 }}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
-              レベル: {character.stats?.level || 1}
+              レベル: {character.attributes?.level || 1}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
-              HP: {character.stats?.hitPoints?.current || 0}/{character.stats?.hitPoints?.max || 0}
+              HP: {character.derived?.HP || 0}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
-              AC: {character.stats?.armorClass || 10}
+              MP: {character.derived?.MP || 0}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
-              速度: {character.stats?.speed || 30}
+              SW: {character.derived?.SW || 0}
             </Typography>
           </Grid>
         </Grid>
         
         {/* 簡易説明 */}
         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-          {character.appearance?.substring(0, 80) || character.personality?.substring(0, 80) || "詳細なし"}
-          {((character.appearance && character.appearance.length > 80) || 
-            (character.personality && character.personality.length > 80)) ? "..." : ""}
+          {character.description?.substring(0, 80) || "詳細なし"}
+          {(character.description && character.description.length > 80) ? "..." : ""}
         </Typography>
       </CardContent>
       <CardActions sx={{ pt: 0 }}>

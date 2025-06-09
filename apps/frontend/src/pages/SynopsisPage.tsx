@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from "react";
 import { Typography, Box, Paper, Card, Tabs, Tab } from "@mui/material";
 import { useSynopsis } from "../hooks/useSynopsis";

@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * Comprehensive Data Persistence Manager for TRPG Application
  * Handles LocalStorage, SessionStorage, IndexedDB, and offline sync
  */
 
-import { TRPGCampaign, TRPGCharacter, TRPGSession, TimelineEvent } from '@trpg-ai-gm/types';
+import { TRPGCampaign, TRPGCharacter, GameSession, TimelineEvent } from '@trpg-ai-gm/types';
 
 export interface PersistenceConfig {
   // Storage type preferences

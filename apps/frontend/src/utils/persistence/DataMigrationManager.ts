@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * Data Migration and Backup Manager for TRPG Application
  * Handles version migrations, data validation, and backup/restore operations
  */
 
-import { TRPGCampaign, TRPGCharacter, TRPGSession } from '@trpg-ai-gm/types';
+import { TRPGCampaign, TRPGCharacter, GameSession } from '@trpg-ai-gm/types';
 import DataPersistenceManager, { BackupData } from './DataPersistenceManager';
 
 export interface MigrationConfig {

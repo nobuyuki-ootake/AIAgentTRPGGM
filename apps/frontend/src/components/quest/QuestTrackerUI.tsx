@@ -31,7 +31,44 @@ import {
   Flag,
   Info,
 } from "@mui/icons-material";
-import { EnhancedQuest } from "../../pages/QuestPage";
+// QuestPageから使用していたEnhancedQuestの代替型
+interface EnhancedQuest {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  status: "未開始" | "進行中" | "完了" | "失敗" | "保留" | "hidden";
+  questType: "メイン" | "サブ" | "個人" | "隠し";
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  prerequisites: string[];
+  rewards: {
+    experience: number;
+    items: string[];
+    gold: number;
+    reputation?: string;
+  };
+  objectives: Array<{
+    id: string;
+    description: string;
+    completed: boolean;
+    type: "kill" | "collect" | "talk" | "reach" | "deliver";
+  }>;
+  discoveryConditions: {
+    npcId?: string;
+    location?: string;
+    itemRequired?: string;
+    questboardAvailable: boolean;
+  };
+  timeLimit?: {
+    days: number;
+    consequences?: string;
+  };
+  sessionId?: string;
+  relatedCharacterIds?: string[];
+  relatedPlaceIds?: string[];
+  priority?: "low" | "medium" | "high";
+  giver?: string;
+}
 
 interface QuestTrackerUIProps {
   activeQuests: EnhancedQuest[];
@@ -155,7 +192,7 @@ const QuestTrackerUI: React.FC<QuestTrackerUIProps> = ({
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                         {quest.title}
                       </Typography>
-                      {getPriorityIcon(quest.priority)}
+                      {getPriorityIcon(quest.priority || "medium")}
                       {timeWarning && (
                         <Timer color={timeWarning as any} fontSize="small" />
                       )}
@@ -321,7 +358,7 @@ const QuestTrackerUI: React.FC<QuestTrackerUIProps> = ({
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <QuestIcon />
                 <Typography variant="h6">{selectedQuest.title}</Typography>
-                {getPriorityIcon(selectedQuest.priority)}
+                {getPriorityIcon(selectedQuest.priority || "medium")}
               </Box>
             </DialogTitle>
             
