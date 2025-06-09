@@ -14,7 +14,7 @@ import {
 } from "slate";
 import { withReact } from "slate-react";
 import {
-  Chapter,
+  GameSession,
   TRPGCampaign,
   TimelineEvent,
 } from "@trpg-ai-gm/types";
@@ -75,7 +75,7 @@ export const useWriting = () => {
     console.log("=== currentProject changed ===");
     console.log("New currentProject:", currentProject);
     if (currentProject && currentChapterId) {
-      const chapter = currentProject.chapters.find(
+      const chapter = currentProject.sessions.find(
         (ch) => ch.id === currentChapterId
       );
       console.log("Chapter found in updated project:", chapter);
@@ -190,10 +190,10 @@ export const useWriting = () => {
   const handleCreateChapter = () => {
     if (!currentProject || !newChapterTitle.trim()) return;
     const newOrder =
-      currentProject.chapters.length > 0
-        ? Math.max(...currentProject.chapters.map((ch) => ch.order)) + 1
+      currentProject.sessions.length > 0
+        ? Math.max(...currentProject.sessions.map((ch) => ch.order)) + 1
         : 1;
-    const newChapter: Chapter = {
+    const newChapter: GameSession = {
       id: uuidv4(),
       title: newChapterTitle.trim(),
       synopsis: newChapterSynopsis.trim(),
@@ -205,7 +205,7 @@ export const useWriting = () => {
     };
     const updatedProject = {
       ...currentProject,
-      chapters: [...currentProject.chapters, newChapter],
+      chapters: [...currentProject.sessions, newChapter],
       updatedAt: new Date(),
     };
     setCurrentProject(updatedProject);
@@ -234,7 +234,7 @@ export const useWriting = () => {
 
   const handleAssignEvents = () => {
     if (!currentProject || !currentChapter) return;
-    const updatedChapters = currentProject.chapters.map((chapter) =>
+    const updatedChapters = currentProject.sessions.map((chapter) =>
       chapter.id === currentChapter.id
         ? { ...chapter, relatedEvents: selectedEvents }
         : chapter
@@ -309,12 +309,12 @@ export const useWriting = () => {
     }
 
     console.log(
-      "Before update - currentProject.chapters:",
-      currentProject.chapters
+      "Before update - currentProject.sessions:",
+      currentProject.sessions
     );
     console.log("Target chapter ID:", currentChapterId);
 
-    const updatedChapters = currentProject.chapters.map((chapter) => {
+    const updatedChapters = currentProject.sessions.map((chapter) => {
       if (chapter.id === currentChapterId) {
         console.log(
           "Updating chapter:",
@@ -350,7 +350,7 @@ export const useWriting = () => {
 
   const handleAddEventToChapter = (eventId: string) => {
     if (!currentProject || !currentChapter) return;
-    const updatedChapters = currentProject.chapters.map((chapter) =>
+    const updatedChapters = currentProject.sessions.map((chapter) =>
       chapter.id === currentChapter.id
         ? {
             ...chapter,
@@ -369,7 +369,7 @@ export const useWriting = () => {
 
   const handleRemoveEventFromChapter = (eventId: string) => {
     if (!currentProject || !currentChapter) return;
-    const updatedChapters = currentProject.chapters.map((chapter) =>
+    const updatedChapters = currentProject.sessions.map((chapter) =>
       chapter.id === currentChapter.id
         ? {
             ...chapter,

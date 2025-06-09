@@ -188,7 +188,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="拠点名"
                   value={formData.name}
@@ -197,7 +197,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>拠点タイプ</InputLabel>
                   <Select
@@ -213,7 +213,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="地域"
                   value={formData.region}
@@ -221,7 +221,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="ランク"
                   value={formData.rank}
@@ -229,7 +229,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>重要度</InputLabel>
                   <Select
@@ -243,7 +243,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   label="説明"
                   value={formData.description}
@@ -272,7 +272,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     <Typography variant="subtitle1">宿屋</Typography>
                   </Box>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="宿屋名"
                         value={formData.facilities.inn?.name || ""}
@@ -280,7 +280,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="一泊料金"
                         type="number"
@@ -304,7 +304,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   {/* 新規店舗追加 */}
                   <Box sx={{ mb: 2, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <TextField
                           label="店舗名"
                           value={newShop.name}
@@ -313,7 +313,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                           size="small"
                         />
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <FormControl fullWidth size="small">
                           <InputLabel>店舗タイプ</InputLabel>
                           <Select
@@ -328,7 +328,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                           </Select>
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} md={4}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <Box sx={{ display: "flex", gap: 1 }}>
                           <TextField
                             label="価格修正"
@@ -391,7 +391,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     <Typography variant="subtitle1">神殿</Typography>
                   </Box>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="神殿名"
                         value={formData.facilities.temple?.name || ""}
@@ -399,7 +399,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="祭神"
                         value={formData.facilities.temple?.deity || ""}
@@ -419,7 +419,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     <Typography variant="subtitle1">ギルド</Typography>
                   </Box>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="ギルド名"
                         value={formData.facilities.guild?.name || ""}
@@ -427,7 +427,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                         fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <TextField
                         label="ギルドタイプ"
                         value={formData.facilities.guild?.type || ""}
@@ -467,7 +467,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
             {/* 新規NPC追加 */}
             <Box sx={{ mb: 2, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
                     label="NPC名"
                     value={newNPC.name}
@@ -476,7 +476,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <TextField
                     label="役職"
                     value={newNPC.role}
@@ -485,7 +485,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     label="機能"
                     value={newNPC.function}
@@ -494,7 +494,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12} md={2}>
+                <Grid size={{ xs: 12, md: 2 }}>
                   <Button onClick={handleAddNPC} variant="outlined" size="small" fullWidth>
                     追加
                   </Button>
@@ -529,7 +529,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -540,7 +540,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   label="ファストトラベル可能"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -551,7 +551,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   label="プレイヤー拠点として使用可能"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -562,7 +562,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   label="クエストハブ"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -584,7 +584,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>危険レベル</InputLabel>
                   <Select
@@ -600,7 +600,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="支配勢力"
                   value={formData.threats.controllingFaction}
@@ -619,7 +619,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="通貨"
                   value={formData.economy.currency}
@@ -627,7 +627,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="価格修正倍率"
                   type="number"
@@ -648,7 +648,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -659,7 +659,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
                   label="解放済み"
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   label="画像URL"
                   value={formData.imageUrl || ""}

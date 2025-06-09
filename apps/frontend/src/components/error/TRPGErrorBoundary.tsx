@@ -8,6 +8,8 @@ import {
 
 interface TRPGErrorBoundaryProps {
   children: React.ReactNode;
+  section?: 'campaign' | 'character' | 'timeline' | 'worldbuilding' | 'session' | 'dice' | 'ai';
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 interface TRPGErrorBoundaryState {

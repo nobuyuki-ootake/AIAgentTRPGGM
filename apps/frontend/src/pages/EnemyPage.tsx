@@ -357,7 +357,7 @@ const EnemyPage: React.FC = () => {
       {/* エネミーリスト */}
       <Grid container spacing={3}>
         {enemies.map((enemy) => (
-          <Grid item xs={12} sm={6} md={4} key={enemy.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={enemy.id}>
             <Card>
               <CardContent>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
@@ -396,7 +396,7 @@ const EnemyPage: React.FC = () => {
 
                 {/* ステータス表示 */}
                 <Grid container spacing={1}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Favorite fontSize="small" color="error" />
                       <Typography variant="body2">
@@ -404,7 +404,7 @@ const EnemyPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Shield fontSize="small" color="primary" />
                       <Typography variant="body2">
@@ -412,7 +412,7 @@ const EnemyPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Speed fontSize="small" color="action" />
                       <Typography variant="body2">
@@ -420,7 +420,7 @@ const EnemyPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                       <Bolt fontSize="small" color="warning" />
                       <Typography variant="body2">
@@ -460,7 +460,7 @@ const EnemyPage: React.FC = () => {
           <Stack spacing={3}>
             {/* 基本情報 */}
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="エネミー名"
                   value={formData.name}
@@ -469,7 +469,7 @@ const EnemyPage: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   <InputLabel>タイプ</InputLabel>
                   <Select
@@ -483,7 +483,7 @@ const EnemyPage: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="CR (脅威度)"
                   type="number"
@@ -496,7 +496,7 @@ const EnemyPage: React.FC = () => {
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="種族"
                   value={formData.race}
@@ -504,7 +504,7 @@ const EnemyPage: React.FC = () => {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="クラス"
                   value={formData.class}
@@ -512,7 +512,7 @@ const EnemyPage: React.FC = () => {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="属性"
                   value={formData.alignment}
@@ -528,7 +528,7 @@ const EnemyPage: React.FC = () => {
                 基本ステータス
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="筋力"
                     type="number"
@@ -538,7 +538,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1, max: 30 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="敏捷力"
                     type="number"
@@ -548,7 +548,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1, max: 30 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="耐久力"
                     type="number"
@@ -558,7 +558,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1, max: 30 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="知力"
                     type="number"
@@ -568,7 +568,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1, max: 30 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="判断力"
                     type="number"
@@ -578,7 +578,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1, max: 30 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   <TextField
                     label="魅力"
                     type="number"
@@ -597,7 +597,7 @@ const EnemyPage: React.FC = () => {
                 戦闘データ
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
                     label="最大HP"
                     type="number"
@@ -607,7 +607,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 1 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
                     label="AC"
                     type="number"
@@ -617,7 +617,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 0 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
                     label="移動速度"
                     type="number"
@@ -627,7 +627,7 @@ const EnemyPage: React.FC = () => {
                     inputProps={{ min: 0 }}
                   />
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
                     label="レベル"
                     type="number"

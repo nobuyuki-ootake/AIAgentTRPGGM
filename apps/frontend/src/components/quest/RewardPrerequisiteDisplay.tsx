@@ -139,10 +139,10 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
   // 前提条件アイコンの取得
   const getPrerequisiteIcon = (type: string) => {
     switch (type) {
-      case "level": return <TrendingUp />;
+      case "level": return <ReputationIcon />;
       case "quest": return <QuestIcon />;
       case "item": return <ItemIcon />;
-      case "skill": return <Star />;
+      case "skill": return <ExperienceIcon />;
       case "reputation": return <ReputationIcon />;
       case "location": return <LocationIcon />;
       case "character": return <CharacterIcon />;
@@ -158,7 +158,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
       case "gold": return <GoldIcon />;
       case "item": return <ItemIcon />;
       case "reputation": return <ReputationIcon />;
-      case "skill_point": return <Star />;
+      case "skill_point": return <ExperienceIcon />;
       case "special": return <RewardIcon />;
       default: return <RewardIcon />;
     }
@@ -255,7 +255,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
 
       <Grid container spacing={2}>
         {/* 前提条件セクション */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 2, height: "fit-content" }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <WarningIcon sx={{ mr: 1 }} />
@@ -340,7 +340,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
         </Grid>
 
         {/* 報酬セクション */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 2, height: "fit-content" }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <RewardIcon sx={{ mr: 1 }} />
@@ -437,7 +437,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
                   </Typography>
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="subtitle2">種類</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {(selectedItem.item as QuestReward).type}
@@ -445,7 +445,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
                     </Grid>
                     
                     {(selectedItem.item as QuestReward).amount && (
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="subtitle2">数量</Typography>
                         <Typography variant="body2" color="text.secondary">
                           {(selectedItem.item as QuestReward).amount?.toLocaleString()}
@@ -454,7 +454,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
                     )}
                     
                     {(selectedItem.item as QuestReward).rarity && (
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="subtitle2">レアリティ</Typography>
                         <Chip
                           label={(selectedItem.item as QuestReward).rarity}
@@ -472,21 +472,21 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
                   </Typography>
                   
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="subtitle2">種類</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {(selectedItem.item as QuestPrerequisite).type}
                       </Typography>
                     </Grid>
                     
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="subtitle2">要求内容</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {(selectedItem.item as QuestPrerequisite).requirement}
                       </Typography>
                     </Grid>
                     
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <Typography variant="subtitle2">状態</Typography>
                       <Chip
                         icon={(selectedItem.item as QuestPrerequisite).completed 
@@ -500,7 +500,7 @@ const RewardPrerequisiteDisplay: React.FC<RewardPrerequisiteDisplayProps> = ({
                     </Grid>
                     
                     {(selectedItem.item as QuestPrerequisite).optional && (
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="subtitle2">重要度</Typography>
                         <Chip label="任意条件" color="info" size="small" />
                       </Grid>

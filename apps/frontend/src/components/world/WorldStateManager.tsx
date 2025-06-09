@@ -517,7 +517,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
           </Typography>
           
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>グローバル指標</Typography>
               {Object.entries(worldState.global).map(([key, value]) => (
                 <Box key={key} sx={{ mb: 1 }}>
@@ -545,7 +545,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
               ))}
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>地域概況</Typography>
               {Object.entries(worldState.regions).slice(0, 3).map(([regionId, region]) => (
                 <Box key={regionId} sx={{ mb: 1, p: 1, border: 1, borderColor: "divider", borderRadius: 1 }}>
@@ -638,7 +638,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>基本情報</Typography>
                   <List dense>
                     <ListItem>
@@ -656,7 +656,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
                   </List>
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>状態変化</Typography>
                   {selectedChange.changes.map((change, index) => (
                     <Box key={index} sx={{ mb: 1, p: 1, border: 1, borderColor: "divider", borderRadius: 1 }}>
@@ -673,14 +673,14 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
                   ))}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMore />}>
                       <Typography>影響と結果</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Grid container spacing={2}>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">即座の影響</Typography>
                           <List dense>
                             {selectedChange.consequences.immediate.map((effect, index) => (
@@ -691,7 +691,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
                             ))}
                           </List>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">長期的影響</Typography>
                           <List dense>
                             {selectedChange.consequences.longTerm.map((effect, index) => (
@@ -702,7 +702,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
                             ))}
                           </List>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">連鎖効果</Typography>
                           <List dense>
                             {selectedChange.consequences.cascading.map((effect, index) => (

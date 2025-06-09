@@ -247,7 +247,6 @@ export const LoadingErrorInline: React.FC<{
   return (
     <Alert 
       severity={severity}
-      size="small"
       action={
         canRetry && onRetry ? (
           <Button size="small" onClick={onRetry}>

@@ -375,7 +375,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
           </Box>
 
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="subtitle1" sx={{ display: "flex", alignItems: "center" }}>
@@ -388,7 +388,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="subtitle1" sx={{ display: "flex", alignItems: "center" }}>
@@ -401,7 +401,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="subtitle1" sx={{ display: "flex", alignItems: "center" }}>
@@ -427,7 +427,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
         {connections.length > 0 ? (
           <Grid container spacing={2}>
             {connections.map((connection) => (
-              <Grid item xs={12} md={6} key={connection.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={connection.id}>
                 <Card variant="outlined" sx={{ height: "100%" }}>
                   <CardContent>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
@@ -524,7 +524,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>基本情報</Typography>
                   <List dense>
                     <ListItem>
@@ -539,7 +539,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                   </List>
                 </Grid>
                 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>発火条件</Typography>
                   {selectedConnection.conditions.questStatus && (
                     <Chip label={`クエスト状態: ${selectedConnection.conditions.questStatus}`} sx={{ mb: 0.5, mr: 0.5 }} />
@@ -553,14 +553,14 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                   ))}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMore />}>
                       <Typography>効果一覧</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Grid container spacing={2}>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">発火時効果</Typography>
                           <List dense>
                             {selectedConnection.effects.onTrigger.map((effect, index) => (
@@ -573,7 +573,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                             ))}
                           </List>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">完了時効果</Typography>
                           <List dense>
                             {selectedConnection.effects.onComplete.map((effect, index) => (
@@ -586,7 +586,7 @@ const QuestEventIntegration: React.FC<QuestEventIntegrationProps> = ({
                             ))}
                           </List>
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Typography variant="subtitle2">失敗時効果</Typography>
                           <List dense>
                             {selectedConnection.effects.onFail.map((effect, index) => (

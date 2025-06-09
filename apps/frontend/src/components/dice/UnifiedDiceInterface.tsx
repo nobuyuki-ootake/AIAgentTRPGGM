@@ -138,8 +138,11 @@ export const UnifiedDiceInterface: React.FC<UnifiedDiceInterfaceProps> = ({
         }, 2000);
       }
 
-    } catch (error: unknown) {
-      setValidationError(`エラー: ${error instanceof Error ? error.message : 'ダイスロールに失敗しました'}`);
+    } catch (error) {
+      const errorMessage = error && typeof error === 'object' && 'message' in error
+        ? (error as Error).message 
+        : 'ダイスロールに失敗しました';
+      setValidationError(`エラー: ${errorMessage}`);
     }
   };
 

@@ -59,10 +59,10 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
   return (
     <Paper elevation={3} sx={{ p: 2, mb: 2, bgcolor: 'primary.dark', color: 'white' }}>
       <Grid container alignItems="center" spacing={2}>
-        <Grid item>
+        <Grid size={{ xs: 'auto' }}>
           <GameMasterIcon sx={{ fontSize: 40 }} />
         </Grid>
-        <Grid item xs>
+        <Grid size={{ xs: true }}>
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             {campaign?.title || "TRPGセッション"}
           </Typography>
@@ -89,7 +89,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
             )}
           </Box>
         </Grid>
-        <Grid item>
+        <Grid size={{ xs: 'auto' }}>
           <Button
             variant="contained"
             color="secondary"

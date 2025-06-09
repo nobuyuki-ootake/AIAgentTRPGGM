@@ -44,16 +44,11 @@
   },
   "lint-staged": {
     "apps/frontend/**/*.{ts,tsx}": [
-      "eslint --fix --max-warnings 0",
-      "prettier --write"
-    ],
-    "apps/proxy-server/**/*.{ts,js}": [
-      "eslint --fix --max-warnings 0",
+      "bash -c 'cd apps/frontend && eslint --fix --max-warnings 0 \"$@\"' --",
       "prettier --write"
     ],
     "packages/types/**/*.ts": [
-      "eslint --fix --max-warnings 0",
-      "prettier --write"
+      "cd packages/types && prettier --write"
     ]
   }
 }

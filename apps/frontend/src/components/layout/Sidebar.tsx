@@ -280,8 +280,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               checkedIcon={<DeveloperIcon />}
               inputProps={{
                 "aria-label": "developer mode toggle",
-                "data-testid": "developer-toggle",
-              }}
+              } as React.InputHTMLAttributes<HTMLInputElement>}
+              data-testid="developer-toggle"
             />
           }
           label={

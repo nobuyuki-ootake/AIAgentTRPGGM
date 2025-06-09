@@ -456,14 +456,14 @@ const LocationTab: React.FC = () => {
                       
                       <Grid container spacing={1} sx={{ mt: 1 }}>
                         {location.region && (
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Typography variant="body2" color="text.secondary">
                               地域: {location.region}
                             </Typography>
                           </Grid>
                         )}
                         {location.environment.climate && (
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Typography variant="body2" color="text.secondary">
                               気候: {location.environment.climate}
                             </Typography>
@@ -556,7 +556,7 @@ const LocationTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="場所名"
                       value={formData.name}
@@ -565,7 +565,7 @@ const LocationTab: React.FC = () => {
                       required
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>場所タイプ</InputLabel>
                       <Select
@@ -585,7 +585,7 @@ const LocationTab: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="地域"
                       value={formData.region}
@@ -593,7 +593,7 @@ const LocationTab: React.FC = () => {
                       fullWidth
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>危険レベル</InputLabel>
                       <Select
@@ -609,7 +609,7 @@ const LocationTab: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       label="説明"
                       value={formData.description}
@@ -698,7 +698,7 @@ const LocationTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -709,7 +709,7 @@ const LocationTab: React.FC = () => {
                       label="解放済み"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch

@@ -293,7 +293,7 @@ const QuestPage: React.FC = () => {
       {/* クエスト一覧 */}
       <Grid container spacing={3}>
         {filteredQuests.map((quest) => (
-          <Grid item xs={12} md={6} key={quest.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={quest.id}>
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                 <Box sx={{ flex: 1 }}>
@@ -454,7 +454,7 @@ const QuestPage: React.FC = () => {
             />
 
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>初期ステータス</InputLabel>
                   <Select
@@ -469,7 +469,7 @@ const QuestPage: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>難易度</InputLabel>
                   <Select
@@ -497,7 +497,7 @@ const QuestPage: React.FC = () => {
             {/* 報酬設定 */}
             <Typography variant="h6">報酬設定</Typography>
             <Grid container spacing={2}>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   label="経験値"
@@ -509,7 +509,7 @@ const QuestPage: React.FC = () => {
                   })}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   label="ゴールド"
@@ -521,7 +521,7 @@ const QuestPage: React.FC = () => {
                   })}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   label="アイテム (カンマ区切り)"

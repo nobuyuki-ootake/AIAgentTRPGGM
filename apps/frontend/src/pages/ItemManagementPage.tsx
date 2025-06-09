@@ -345,7 +345,7 @@ const ItemManagementPage: React.FC = () => {
         </Typography>
         
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle2" gutterBottom>
               タイプ別アイテム数:
             </Typography>
@@ -359,7 +359,7 @@ const ItemManagementPage: React.FC = () => {
             </Box>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle2" gutterBottom>
               レアリティ別アイテム数:
             </Typography>
@@ -480,7 +480,7 @@ const ItemManagementPage: React.FC = () => {
             {/* 検索・フィルター */}
             <Box sx={{ mb: 3 }}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     fullWidth
                     placeholder="アイテム名で検索..."
@@ -496,7 +496,7 @@ const ItemManagementPage: React.FC = () => {
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     select
                     fullWidth
@@ -516,7 +516,7 @@ const ItemManagementPage: React.FC = () => {
                   </TextField>
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     select
                     fullWidth
@@ -551,7 +551,7 @@ const ItemManagementPage: React.FC = () => {
             <TabPanel value={tabValue} index={0}>
               <Grid container spacing={3}>
                 {filteredItems.map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                     <ItemCard item={item} />
                   </Grid>
                 ))}
@@ -561,7 +561,7 @@ const ItemManagementPage: React.FC = () => {
             <TabPanel value={tabValue} index={1}>
               <Grid container spacing={3}>
                 {filteredItems.filter(item => item.type === 'consumable').map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                     <ItemCard item={item} />
                   </Grid>
                 ))}
@@ -571,7 +571,7 @@ const ItemManagementPage: React.FC = () => {
             <TabPanel value={tabValue} index={2}>
               <Grid container spacing={3}>
                 {filteredItems.filter(item => item.type === 'equipment').map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                     <ItemCard item={item} />
                   </Grid>
                 ))}
@@ -581,7 +581,7 @@ const ItemManagementPage: React.FC = () => {
             <TabPanel value={tabValue} index={3}>
               <Grid container spacing={3}>
                 {filteredItems.filter(item => item.type === 'key_item').map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={item.id}>
                     <ItemCard item={item} />
                   </Grid>
                 ))}

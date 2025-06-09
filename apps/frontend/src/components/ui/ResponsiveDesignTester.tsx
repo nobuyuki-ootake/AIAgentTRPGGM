@@ -529,7 +529,7 @@ const ResponsiveDesignTester: React.FC = () => {
           </Box>
 
           <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">総テスト数</Typography>
@@ -539,7 +539,7 @@ const ResponsiveDesignTester: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">成功</Typography>
@@ -549,7 +549,7 @@ const ResponsiveDesignTester: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">警告</Typography>
@@ -559,7 +559,7 @@ const ResponsiveDesignTester: React.FC = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">失敗</Typography>
@@ -602,7 +602,7 @@ const ResponsiveDesignTester: React.FC = () => {
         </Typography>
         <Grid container spacing={2}>
           {deviceProfiles.map((device) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={device.name}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={device.name}>
               <Card variant="outlined">
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>

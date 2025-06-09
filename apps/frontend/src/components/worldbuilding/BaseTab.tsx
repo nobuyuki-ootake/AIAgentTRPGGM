@@ -455,14 +455,14 @@ const BaseTab: React.FC = () => {
                       
                       <Grid container spacing={1} sx={{ mt: 1 }}>
                         {base.region && (
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Typography variant="body2" color="text.secondary">
                               地域: {base.region}
                             </Typography>
                           </Grid>
                         )}
                         {base.threats.controllingFaction && (
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Typography variant="body2" color="text.secondary">
                               支配勢力: {base.threats.controllingFaction}
                             </Typography>
@@ -606,7 +606,7 @@ const BaseTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="拠点名"
                       value={formData.name}
@@ -615,7 +615,7 @@ const BaseTab: React.FC = () => {
                       required
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>拠点タイプ</InputLabel>
                       <Select
@@ -631,7 +631,7 @@ const BaseTab: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="地域"
                       value={formData.region}
@@ -639,7 +639,7 @@ const BaseTab: React.FC = () => {
                       fullWidth
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="ランク"
                       value={formData.rank}
@@ -647,7 +647,7 @@ const BaseTab: React.FC = () => {
                       fullWidth
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>重要度</InputLabel>
                       <Select
@@ -661,7 +661,7 @@ const BaseTab: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       label="説明"
                       value={formData.description}
@@ -682,7 +682,7 @@ const BaseTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -693,7 +693,7 @@ const BaseTab: React.FC = () => {
                       label="ファストトラベル可能"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -704,7 +704,7 @@ const BaseTab: React.FC = () => {
                       label="プレイヤー拠点として使用可能"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -715,7 +715,7 @@ const BaseTab: React.FC = () => {
                       label="クエストハブ"
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -737,7 +737,7 @@ const BaseTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>危険レベル</InputLabel>
                       <Select
@@ -753,7 +753,7 @@ const BaseTab: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="支配勢力"
                       value={formData.threats.controllingFaction}
@@ -772,7 +772,7 @@ const BaseTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="通貨"
                       value={formData.economy.currency}
@@ -780,7 +780,7 @@ const BaseTab: React.FC = () => {
                       fullWidth
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="価格修正倍率"
                       type="number"
@@ -869,7 +869,7 @@ const BaseTab: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <FormControlLabel
                       control={
                         <Switch
@@ -880,7 +880,7 @@ const BaseTab: React.FC = () => {
                       label="解放済み"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
                       <TextField
                         label="画像URL"
@@ -904,7 +904,7 @@ const BaseTab: React.FC = () => {
                   </Grid>
                   {/* 画像プレビュー */}
                   {formData.imageUrl && (
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         画像プレビュー:
                       </Typography>

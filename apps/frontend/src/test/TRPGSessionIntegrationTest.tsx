@@ -659,7 +659,7 @@ const TRPGSessionIntegrationTest: React.FC = () => {
 
       {/* 概要統計 */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">総テスト数</Typography>
@@ -669,7 +669,7 @@ const TRPGSessionIntegrationTest: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">成功</Typography>
@@ -679,7 +679,7 @@ const TRPGSessionIntegrationTest: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">失敗</Typography>
@@ -689,7 +689,7 @@ const TRPGSessionIntegrationTest: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">カバレッジ</Typography>
@@ -742,7 +742,7 @@ const TRPGSessionIntegrationTest: React.FC = () => {
       {/* テストスイート一覧 */}
       <Grid container spacing={2}>
         {testSuites.map((suite) => (
-          <Grid item xs={12} key={suite.id}>
+          <Grid size={{ xs: 12 }} key={suite.id}>
             <Accordion>
               <AccordionSummary 
                 expandIcon={<ExpandMore />}

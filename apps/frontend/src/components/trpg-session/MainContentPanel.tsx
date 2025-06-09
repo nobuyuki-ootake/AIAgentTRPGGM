@@ -318,7 +318,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
               
               <Grid container spacing={1} data-testid="available-actions">
                 {availableActions.map((action) => (
-                  <Grid item xs={12} key={action.id}>
+                  <Grid size={{ xs: 12 }} key={action.id}>
                     <Tooltip title={action.description || action.label} placement="right">
                       <Button
                         variant="outlined"
@@ -401,7 +401,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                   </Typography>
                   <Grid container spacing={1}>
                     {currentLocationInfo.data.availableActions.map((action) => (
-                      <Grid item xs={12} key={action.id}>
+                      <Grid size={{ xs: 12 }} key={action.id}>
                         <Tooltip title={action.description} placement="right">
                           <Button
                             variant="outlined"

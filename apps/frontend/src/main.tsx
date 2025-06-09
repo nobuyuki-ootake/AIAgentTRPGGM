@@ -35,39 +35,56 @@ const dummyProject: TRPGCampaign = {
       title: "能力の発見",
       description: "主人公が自分の思考が現実になることに気づく",
       order: 1,
-      status: "決定",
+      status: "進行中",
+      questType: "サブ",
+      difficulty: 1,
     },
     {
       id: uuidv4(),
       title: "能力の制御",
       description: "能力をコントロールする方法を学ぶ",
       order: 2,
-      status: "検討中",
+      status: "未開始",
+      questType: "メイン",
+      difficulty: 2,
     },
     {
       id: uuidv4(),
       title: "世界への影響",
       description: "能力を使って世界に変化をもたらす",
       order: 3,
-      status: "検討中",
+      status: "未開始",
+      questType: "メイン",
+      difficulty: 3,
     },
   ],
   characters: [
     {
       id: uuidv4(),
       name: "山田太郎",
-      role: "protagonist",
-      description: "平凡なサラリーマンだったが、思考が現実になる能力を得る",
-      background: "東京在住の28歳のサラリーマン",
-      motivation: "この能力を使って世界をより良くしたい",
-      traits: [
-        {
-          id: uuidv4(),
-          name: "責任感",
-          value: "強い",
-        },
-      ],
-      relationships: [],
+      characterType: "PC" as const,
+      profession: "サラリーマン",
+      gender: "男性",
+      age: 28,
+      nation: "日本",
+      religion: "無宗教",
+      player: "プレイヤー1",
+      description: "平凡なサラリーマンだったが、思考が現実になる能力を得る。東京在住の28歳。",
+      attributes: {
+        STR: 10, CON: 10, SIZ: 10, INT: 12, POW: 15, DEX: 10, CHA: 11
+      },
+      derived: {
+        HP: 10, MP: 15, SW: 10, RES: 10
+      },
+      weapons: [],
+      armor: {
+        head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0
+      },
+      skills: {
+        AgilitySkills: [], CommunicationSkills: [], KnowledgeSkills: [],
+        ManipulationSkills: [], PerceptionSkills: [], StealthSkills: [],
+        MagicSkills: [], WeaponSkills: []
+      }
     },
   ],
   worldBuilding: {
@@ -115,13 +132,14 @@ const dummyProject: TRPGCampaign = {
       id: uuidv4(),
       title: "能力の発見",
       description: "主人公が思考現実化能力に気づく",
-      date: "2024-01-01",
+      sessionDay: 1,
       relatedCharacters: [],
       relatedPlaces: [],
       order: 1,
+      eventType: "discovery" as const,
     },
   ],
-  chapters: [
+  sessions: [
     {
       id: uuidv4(),
       title: "序章：能力の発見",
@@ -130,8 +148,6 @@ const dummyProject: TRPGCampaign = {
       content: convertTextToSlateValue(
         "山田太郎は、いつもと変わらない月曜日の朝を迎えていた。満員電車に揺られながら、「今日は早く帰りたいな」と考えていた。\n\nそして不思議なことに、その日は予定されていた会議がすべてキャンセルとなり、上司から「今日は早く帰っていいよ」と言われた。偶然だと思った太郎だったが、次に「雨が降らないといいな」と思った瞬間、曇っていた空が晴れ渡った。"
       ),
-      order: 1,
-      scenes: [],
     },
   ],
   feedback: [],
@@ -151,7 +167,7 @@ const migrateExistingData = () => {
       let needsMigration = false;
 
       const migratedProjects = projects.map((project) => {
-        const migratedChapters = project.chapters.map((chapter) => {
+        const migratedChapters = project.sessions.map((chapter) => {
           // contentがstring型の場合、Descendant[]に変換
           if (typeof chapter.content === "string") {
             needsMigration = true;
@@ -223,7 +239,7 @@ if (projects.length === 0) {
     characters: dummyProject.characters,
     worldBuilding: dummyProject.worldBuilding,
     timeline: dummyProject.timeline,
-    chapters: dummyProject.chapters,
+    chapters: dummyProject.sessions,
     metadata: {
       version: "1.0",
       status: "active",

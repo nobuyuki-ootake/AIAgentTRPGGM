@@ -289,7 +289,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
       <Grid container spacing={2}>
         {/* 宿屋 */}
         {facilities.inn && (
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facilities.inn, 'inn')}
@@ -315,7 +315,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* 店舗 */}
         {facilities.shops?.map((shop: any, index: number) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(shop, 'shop')}
@@ -341,7 +341,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* 鍛冶屋 */}
         {facilities.blacksmith && (
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facilities.blacksmith, 'blacksmith')}
@@ -368,7 +368,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* 神殿 */}
         {facilities.temple && (
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facilities.temple, 'temple')}
@@ -391,7 +391,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* ギルド */}
         {facilities.guild && (
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facilities.guild, 'guild')}
@@ -417,7 +417,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* 武具屋 */}
         {facilities.armory && (
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facilities.armory, 'armory')}
@@ -442,7 +442,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
         {/* その他施設 */}
         {facilities.otherFacilities?.map((facility: any, index: number) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <Card 
               sx={{ cursor: 'pointer' }}
               onClick={() => handleFacilityClick(facility, 'other')}

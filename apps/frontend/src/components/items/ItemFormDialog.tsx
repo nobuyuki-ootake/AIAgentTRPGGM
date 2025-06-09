@@ -227,13 +227,13 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
         <Box sx={{ mt: 2 }}>
           <Grid container spacing={3}>
             {/* 基本情報 */}
-            <Grid size={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="subtitle1" gutterBottom>
                 基本情報
               </Typography>
             </Grid>
 
-            <Grid size={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="アイテム名"
@@ -246,7 +246,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
               />
             </Grid>
 
-            <Grid size={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth required>
                 <InputLabel>タイプ</InputLabel>
                 <Select
@@ -266,7 +266,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid size={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="説明"
@@ -281,7 +281,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
               />
             </Grid>
 
-            <Grid size={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth>
                 <InputLabel>カテゴリ</InputLabel>
                 <Select
@@ -305,7 +305,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid size={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth>
                 <InputLabel>レアリティ</InputLabel>
                 <Select
@@ -324,7 +324,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid size={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="価値 (G)"
@@ -338,13 +338,13 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
             </Grid>
 
             {/* 詳細情報 */}
-            <Grid size={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="subtitle1" gutterBottom>
                 詳細情報
               </Typography>
             </Grid>
 
-            <Grid size={12} sm={4}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 fullWidth
                 label="重量 (kg)"
@@ -359,7 +359,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
 
             {formData.type === "equipment" && (
               <>
-                <Grid size={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <FormControl fullWidth>
                     <InputLabel>装備スロット</InputLabel>
                     <Select
@@ -382,7 +382,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 </Grid>
 
                 {(formData.category === "weapon" || formData.equipmentSlot === "weapon") && (
-                  <Grid size={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <TextField
                       fullWidth
                       label="攻撃力"
@@ -395,7 +395,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
                 )}
 
                 {(formData.category === "armor" || formData.equipmentSlot === "body" || formData.equipmentSlot === "shield") && (
-                  <Grid size={12} sm={4}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <TextField
                       fullWidth
                       label="防御力"
@@ -410,7 +410,7 @@ const ItemFormDialog: React.FC<ItemFormDialogProps> = ({
             )}
 
             {formData.stackable && (
-              <Grid size={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   fullWidth
                   label="最大スタック数"

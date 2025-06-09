@@ -130,7 +130,7 @@ const AccessibilityTestPage: React.FC = () => {
             </Typography>
             
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   id="character-name"
@@ -146,7 +146,7 @@ const AccessibilityTestPage: React.FC = () => {
                 />
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel id="character-class-label">Character Class</InputLabel>
                   <Select
@@ -172,7 +172,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </FormControl>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   id="character-level"
@@ -196,7 +196,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </Typography>
               </Grid>
               
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -233,7 +233,7 @@ const AccessibilityTestPage: React.FC = () => {
             </Typography>
             
             <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <FormControl fullWidth>
                   <InputLabel id="dice-type-label">Dice Type</InputLabel>
                   <Select
@@ -254,7 +254,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </FormControl>
               </Grid>
               
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Button
                   variant="contained"
                   size="large"
@@ -277,7 +277,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </Typography>
               </Grid>
               
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 {/* Dice Result Display with Live Region */}
                 <Box 
                   sx={{ 
@@ -333,7 +333,7 @@ const AccessibilityTestPage: React.FC = () => {
             </Typography>
             
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="h3" component="h3" gutterBottom>
                   Form Accessibility
                 </Typography>
@@ -345,7 +345,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </ul>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="h3" component="h3" gutterBottom>
                   Interactive Elements
                 </Typography>
@@ -357,7 +357,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </ul>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="h3" component="h3" gutterBottom>
                   Live Regions
                 </Typography>
@@ -369,7 +369,7 @@ const AccessibilityTestPage: React.FC = () => {
                 </ul>
               </Grid>
               
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="h3" component="h3" gutterBottom>
                   Semantic Structure
                 </Typography>

@@ -275,7 +275,7 @@ const HomePage: React.FC = () => {
           ) : (
             <Grid container spacing={3}>
               {campaigns.map((campaign) => (
-                <Grid item xs={12} sm={6} md={4} key={campaign.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={campaign.id}>
                   <Card 
                     sx={{ 
                       height: "100%", 
@@ -364,7 +364,7 @@ const HomePage: React.FC = () => {
             🎲 TRPG AI エージェント GM の機能
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 📋 キャンペーン管理
               </Typography>
@@ -376,7 +376,7 @@ const HomePage: React.FC = () => {
                 • 拠点・地理情報管理
               </Typography>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 👥 キャラクター管理
               </Typography>
@@ -388,7 +388,7 @@ const HomePage: React.FC = () => {
                 • キャラクターシート印刷・エクスポート
               </Typography>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 🤖 AI エージェント機能
               </Typography>
@@ -400,7 +400,7 @@ const HomePage: React.FC = () => {
                 • 世界観設定自動補完
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 🎮 セッション機能
               </Typography>
@@ -412,7 +412,7 @@ const HomePage: React.FC = () => {
                 • セッション履歴記録
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 🛠️ 開発者機能
               </Typography>

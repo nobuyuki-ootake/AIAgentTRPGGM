@@ -196,7 +196,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Scenario Selection */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -239,7 +239,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
         </Grid>
 
         {/* Error Testing */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -288,7 +288,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
         </Grid>
 
         {/* Loading State Display */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -308,7 +308,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
 
         {/* Error Display */}
         {demoError && (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <LoadingErrorDisplay
               error={demoError}
               onRetry={() => {
@@ -325,7 +325,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
 
         {/* Global Loading State */}
         {loadingState.isLoading && (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -355,7 +355,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
         )}
 
         {/* Performance Metrics */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -369,7 +369,7 @@ export const LoadingStateIntegrationExample: React.FC = () => {
               
               <Box mt={2}>
                 <Typography variant="caption">
-                  Current session: {performanceMonitor.sessionId || 'Not available'}
+                  Performance monitoring active
                 </Typography>
               </Box>
             </CardContent>

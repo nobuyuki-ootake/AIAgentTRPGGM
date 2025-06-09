@@ -354,7 +354,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
       {/* フィルター */}
       <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth size="small">
               <InputLabel>拠点でフィルター</InputLabel>
               <Select
@@ -370,7 +370,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth size="small">
               <InputLabel>タイプでフィルター</InputLabel>
               <Select
@@ -390,7 +390,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
               <AIAssistButton
                 onAssist={handleOpenAIAssist}
@@ -414,7 +414,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
       {/* NPCリスト */}
       <Grid container spacing={3}>
         {filteredNpcs.map((npc) => (
-          <Grid item xs={12} sm={6} md={4} key={npc.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={npc.id}>
             <Card>
               <CardContent>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
@@ -519,7 +519,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
           <Stack spacing={3}>
             {/* 基本情報 */}
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="NPC名"
                   value={formData.name}
@@ -528,7 +528,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   <InputLabel>タイプ</InputLabel>
                   <Select
@@ -547,7 +547,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
                   <InputLabel>拠点</InputLabel>
                   <Select
@@ -566,7 +566,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="役割"
                   value={formData.role}
@@ -575,7 +575,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   placeholder="宿屋の主人、衛兵隊長など"
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="友好度"
                   type="number"
@@ -585,7 +585,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   inputProps={{ min: 0, max: 100 }}
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -599,7 +599,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="種族"
                   value={formData.race}
@@ -607,7 +607,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="性別"
                   value={formData.gender}
@@ -615,7 +615,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="年齢"
                   value={formData.age}
@@ -623,7 +623,7 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                   label="所属勢力"
                   value={formData.faction}
