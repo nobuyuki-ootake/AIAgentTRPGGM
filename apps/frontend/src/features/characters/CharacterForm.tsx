@@ -48,8 +48,8 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 // import { AIAssistModal } from "../../components/common/AIAssistModal"; // 未使用のためコメントアウト (ファイル存在しないため)
 
 interface CharacterFormProps {
-  formData: Omit<TRPGCharacter, "traits"> & { traits: CharacterTrait[] };
-  setFormData: React.Dispatch<React.SetStateAction<TRPGCharacter>>;
+  formData: TRPGCharacter & { traits?: CharacterTrait[]; customFields?: CustomField[] };
+  setFormData: React.Dispatch<React.SetStateAction<TRPGCharacter & { traits?: CharacterTrait[]; customFields?: CustomField[] }>>;
   formErrors: Record<string, string>;
   onSave: () => void;
   onCancel: () => void;
@@ -127,7 +127,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const handleAddTrait = () => {
     if (!newTrait.trim()) return;
     const updatedTraits: CharacterTrait[] = [
-      ...formData.traits,
+      ...(formData.traits || []),
       { id: uuidv4(), name: newTrait.trim(), value: "" },
     ];
     setFormData({ ...formData, traits: updatedTraits });
@@ -136,7 +136,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
 
   // 特性の削除
   const handleRemoveTrait = (index: number) => {
-    const updatedTraits: CharacterTrait[] = formData.traits.filter(
+    const updatedTraits: CharacterTrait[] = (formData.traits || []).filter(
       (_, i) => i !== index
     );
     setFormData({ ...formData, traits: updatedTraits });
@@ -154,7 +154,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const handleAddCustomField = () => {
     if (!newCustomField.name.trim()) return;
 
-    const customFields = formData.customFields || [];
+    const customFields = (formData as any).customFields || [];
     const updatedCustomFields = [
       ...customFields,
       { ...newCustomField, id: uuidv4() },

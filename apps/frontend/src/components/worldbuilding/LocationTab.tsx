@@ -225,7 +225,7 @@ const LocationTab: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof typeof prev],
+          ...(prev[parentField as keyof typeof prev] as any),
           [childField]: value,
         },
       }));
@@ -275,7 +275,7 @@ const LocationTab: React.FC = () => {
         id: action.id,
         name: action.name,
         description: action.description,
-        category: action.category,
+        category: action.category as "exploration",
         requirements: action.requirements || [],
         effects: action.effects || []
       });

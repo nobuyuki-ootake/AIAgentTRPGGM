@@ -294,7 +294,7 @@ export const PositionTracker: React.FC<PositionTrackerProps> = ({
               </Stack>
 
               {movementPlan.hazards.length > 0 && (
-                <Alert severity="warning" size="small">
+                <Alert severity="warning">
                   <strong>注意事項:</strong> {movementPlan.hazards.join(', ')}
                 </Alert>
               )}

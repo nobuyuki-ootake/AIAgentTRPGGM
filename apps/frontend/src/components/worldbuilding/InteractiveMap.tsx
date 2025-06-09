@@ -285,8 +285,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   filter: 'drop-shadow(0 0 5px rgba(255, 68, 68, 0.8))'
                 }}
                 onClick={(event) => {
-                  if (onPlayerMove) {
-                    const coords = event.target.getBoundingClientRect();
+                  if (onPlayerMove && event.target) {
+                    const coords = (event.target as HTMLElement).getBoundingClientRect();
                     const lat = (event.clientY - coords.top - coords.height / 2) / 10;
                     const lng = (event.clientX - coords.left - coords.width / 2) / 10;
                     onPlayerMove({ lat, lng });

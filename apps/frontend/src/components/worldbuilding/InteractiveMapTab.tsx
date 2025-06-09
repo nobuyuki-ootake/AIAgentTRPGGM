@@ -121,9 +121,8 @@ export const InteractiveMapTab: React.FC = () => {
       },
       meta: {
         locationId: `new_location_${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        imageUrl: '',
+        unlocked: true,
+        lastUpdated: new Date().toISOString(),
       },
     };
     

@@ -68,7 +68,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
     } else {
       // 画像がない場合は役割に応じたデフォルトアイコン
       const iconConfig =
-        characterIcons[character.role as keyof typeof characterIcons] ||
+        characterIcons[character.profession as keyof typeof characterIcons] ||
         characterIcons.default;
       return (
         <Avatar
@@ -109,13 +109,13 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
               protagonist: "主人公",
               antagonist: "敵役",
               supporting: "脇役",
-            }[character.role]
+            }[(character as any).role] || character.profession
           }
           size="small"
           color={
-            character.role === "protagonist"
+            (character as any).role === "protagonist"
               ? "primary"
-              : character.role === "antagonist"
+              : (character as any).role === "antagonist"
               ? "error"
               : "default"
           }
@@ -126,9 +126,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
             性別: {character.gender}
           </Typography>
         )}
-        {character.birthDate && (
+        {character.age && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            生年月日: {character.birthDate}
+            年齢: {character.age}歳
           </Typography>
         )}
         <Typography
