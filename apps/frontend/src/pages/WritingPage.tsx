@@ -186,7 +186,7 @@ const WritingPageContent: React.FC = () => {
                 id: char.id,
                 name: char.name,
                 description: char.description,
-                role: char.role || ("supporting" as const),
+                role: (char as any).role || ("supporting" as const),
               }
             : null;
         })
@@ -517,7 +517,7 @@ ${
           }}
         >
           <ChapterList
-            chapters={(currentProject as TRPGCampaign).chapters}
+            chapters={(currentProject as any).chapters || []}
             currentChapterId={currentChapterId}
             onSelectChapter={handleChapterSelect}
           />

@@ -332,7 +332,7 @@ ${
               currentCampaign?.plot || [],
               currentCampaign?.characters || []
             );
-            setHasUnsavedChanges(true);
+            setUnsavedChanges(true);
             // 成功メッセージはuseWorldBuildingAIの通知で表示される
           } catch (error) {
             console.error("AIアシスト処理中にエラーが発生しました:", error);
@@ -353,7 +353,7 @@ ${
       )
     ) {
       resetWorldBuildingElements();
-      setHasUnsavedChanges(true); // Contextのセッターを使用
+      setUnsavedChanges(true); // Contextのセッターを使用
       // 例: setSnackbarMessage("世界観設定がリセットされました。"); setSnackbarOpen(true);
     }
   };

@@ -122,7 +122,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
     // TRPGCharacterはattributes、その他はstatsを使用
-    const stats = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
     const hp = getHPValue(stats?.hitPoints);
     const maxHp = getMaxHPValue(stats?.maxHitPoints);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
@@ -130,7 +130,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
     if (percentage <= 25) return { status: 'critical', icon: Warning, color: 'error', label: '重傷' };
     if (percentage <= 50) return { status: 'wounded', icon: LocalHospital, color: 'warning', label: '負傷' };
-    if (percentage <= 75) return { status: 'injured', icon: SentimentSatisfied, color: 'warning', label: '軽傷' };
+    if (percentage <= 75) return { status: 'injured', icon: SentimentSatisfied, color: 'warning', label: '躽傷' };
     return { status: 'healthy', icon: CheckCircle, color: 'success', label: '健康' };
   };
 
@@ -170,7 +170,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
     // TRPGCharacterはattributes、その他はstatsを使用
-    const stats = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
     const hp = getHPValue(stats?.hitPoints);
     const maxHp = getMaxHPValue(stats?.maxHitPoints);
     
@@ -178,7 +178,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
       <Card 
         sx={{ 
           mb: 1, 
-          cursor: !isSelectionDisabled && onCharacterSelect ? "pointer" : "default",
+          cursor: !isSelectionDisabled ? "pointer" : "default",
           bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper",
           opacity: isSelectionDisabled ? 0.7 : 1,
           border: status.status === 'critical' || status.status === 'dead' ? '2px solid' : '1px solid',
@@ -224,17 +224,17 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
             </Typography>
             {"class" in character && character.class && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {"race" in character ? String(character.race || "") : ""} {String(character.class || "")}
+                {"race" in character ? String((character as any).race || "") : ""} {String((character as any).class || "")}
               </Typography>
             )}
             {"role" in character && character.role && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {String(character.role)}
+                {String((character as any).role)}
               </Typography>
             )}
             {"enemyType" in character && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {String(character.enemyType)} (CR {"challengeRating" in character ? character.challengeRating : 0})
+                {String((character as any).enemyType)} (CR {"challengeRating" in character ? (character as any).challengeRating : 0})
               </Typography>
             )}
           </Box>
@@ -253,7 +253,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
 
         {/* ステータス表示 */}
         {(() => {
-          const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+          const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
           return statsObj && typeof statsObj === 'object';
         })() && (
           <Stack spacing={0.5}>
@@ -339,7 +339,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Shield />}
                   label={`AC:${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
                     return statsObj?.armorClass || 10;
                   })()}`}
                   size="small"
@@ -350,7 +350,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Speed />}
                   label={`速度:${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
                     return statsObj?.speed || 30;
                   })()}`}
                   size="small"
@@ -361,7 +361,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Bolt />}
                   label={`Lv.${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
                     return statsObj?.level || 1;
                   })()}`}
                   size="small"
@@ -514,12 +514,12 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           </Typography>
           {"personality" in selectedCharacter && selectedCharacter.personality && (
             <Typography variant="body2" color="text.secondary">
-              {String(selectedCharacter.personality)}
+              {String((selectedCharacter as any).personality)}
             </Typography>
           )}
           {"notes" in selectedCharacter && selectedCharacter.notes && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              備考: {String(selectedCharacter.notes)}
+              備考: {String((selectedCharacter as any).notes)}
             </Typography>
           )}
         </Box>

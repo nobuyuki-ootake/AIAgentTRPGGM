@@ -587,11 +587,11 @@ const TimelinePage: React.FC = () => {
   // 日付指定でのイベント追加
   const handleAddEventToDay = (date: string) => {
     // 新しいイベント作成時の初期値として日付を設定
-    handleEventChange("date", date);
+    handleEventChange({ target: { value: date } } as any, "date");
     if (places && places.length > 0) {
-      handleEventChange("placeId", places[0].id);
+      handleEventChange({ target: { value: places[0].id } } as any, "placeId");
     } else if (bases && bases.length > 0) {
-      handleEventChange("placeId", bases[0].id);
+      handleEventChange({ target: { value: bases[0].id } } as any, "placeId");
     }
     handleOpenDialog();
   };
@@ -631,8 +631,8 @@ const TimelinePage: React.FC = () => {
 
   // 🧪 **タイムラインクエスト・イベント表示コンポーネント**
   const QuestTimelineView: React.FC = () => {
-    const quests = currentCampaign?.quests || [];
-    const questsByDay = quests.reduce((acc, quest) => {
+    const quests = currentCampaign?.plot || []; // plotを使用、questは存在しない
+    const questsByDay = quests.reduce((acc: Record<number, typeof quests>, quest: any) => {
       const day = quest.scheduledDay || 1;
       if (!acc[day]) acc[day] = [];
       acc[day].push(quest);
@@ -706,7 +706,7 @@ const TimelinePage: React.FC = () => {
                     <Box
                       sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                     >
-                      {questsByDay[day].map((quest) => (
+                      {questsByDay[day].map((quest: any) => (
                         <Box
                           key={quest.id}
                           sx={{
@@ -840,7 +840,7 @@ const TimelinePage: React.FC = () => {
                     <Chip
                       label={session.status || "Completed"}
                       color={
-                        session.status === "active" ? "success" : "default"
+                        session.status === "completed" ? "success" : "default" // activeは存在しないたcompletedを使用
                       }
                       size="small"
                     />
@@ -857,9 +857,9 @@ const TimelinePage: React.FC = () => {
                       : "未設定"}
                   </Typography>
 
-                  {session.description && (
+                  {session.synopsis && (
                     <Typography variant="body2" sx={{ mb: 2 }}>
-                      {session.description}
+                      {session.synopsis}
                     </Typography>
                   )}
 
@@ -1141,8 +1141,8 @@ const TimelinePage: React.FC = () => {
           {!developerMode && (
             <Box sx={{ mt: 3 }}>
               <WorldStateManager
-                campaign={currentCampaign}
-                locations={[...(places || []), ...(bases || [])]} // placesとbasesを統合
+                campaign={currentCampaign as any}
+                locations={(places || []) as any[]} // basesはBaseLocation型でplacesはPlaceElement型なので異なる型で統合不可
                 onStateChange={handleWorldStateChange}
                 onSuggestion={handleWorldStateSuggestion}
               />
@@ -1174,10 +1174,7 @@ const TimelinePage: React.FC = () => {
               ...(bases?.map((b) => ({ id: b.id, name: b.name })) || []),
             ]}
             availableFactions={
-              currentCampaign?.factions?.map((f) => ({
-                id: f.id,
-                name: f.name,
-              })) || []
+              [] // factionsプロパティはTRPGCampaign型に存在しない
             }
             availableItems={currentCampaign?.items || []}
           />

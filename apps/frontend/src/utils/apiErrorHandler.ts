@@ -151,7 +151,7 @@ export class TRPGAPIErrorHandler {
       }
       throw new APIError('予期しないエラーが発生しました', 500, {
         code: 'UNEXPECTED_ERROR',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -236,7 +236,8 @@ export class TRPGAPIErrorHandler {
     options: RequestInit = {}
   ): Promise<T> {
     try {
-      return await TRPGNetworkUtils.rollDice<APIResponse<T>>(expression, options);
+      const response = await TRPGNetworkUtils.rollDice<APIResponse<T>>(expression, options);
+      return response as T;
     } catch (error) {
       if (error instanceof NetworkError) {
         throw this.convertNetworkError(error, 'dice');

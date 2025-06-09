@@ -16,9 +16,16 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
     
     // 世界観関連
     worldBuilding: {
+      id: crypto.randomUUID(),
+      setting: [],
+      worldmaps: [],
+      rules: [],
       places: [],
       cultures: [],
-      bases: [],
+      geographyEnvironment: [],
+      historyLegend: [],
+      magicTechnology: [],
+      stateDefinition: [],
       freeFields: [],
       geography: {
         environment: "",
@@ -94,6 +101,17 @@ export const createDefaultBase = (name: string = "開始地点"): BaseLocation =
       playerBase: true,
       questHub: true,
       defenseEvent: false
+    },
+    threats: {
+      dangerLevel: "低" as const,
+      controllingFaction: ""
+    },
+    economy: {
+      currency: "ゴールド",
+      priceModifier: 1.0
+    },
+    meta: {
+      unlocked: true
     }
   };
 };

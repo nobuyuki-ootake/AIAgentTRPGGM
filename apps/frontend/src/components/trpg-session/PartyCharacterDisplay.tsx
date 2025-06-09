@@ -109,8 +109,10 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
 
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter) => {
-    const hp = getHPValue(character.stats?.hitPoints);
-    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
+    // TRPGCharacterはattributes、NPCCharacterはstatsを使用
+    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
+    const hp = getHPValue(stats?.hitPoints);
+    const maxHp = getMaxHPValue(stats?.maxHitPoints);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
     
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
@@ -121,12 +123,12 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   };
 
   // 状態異常の視覚的表現
-  const getStatusEffects = (character: TRPGCharacter | NPCCharacter) => {
-    const effects = [];
+  const getStatusEffects = (character: TRPGCharacter | NPCCharacter): Array<{ icon: any; color: string; label: string }> => {
+    const effects: Array<{ icon: any; color: string; label: string }> = [];
     
     // キャラクターのstatusEffectsがある場合
-    if ('statusEffects' in character && character.statusEffects) {
-      character.statusEffects.forEach(effect => {
+    if ('statusEffects' in character && character.statusEffects && Array.isArray(character.statusEffects)) {
+      character.statusEffects.forEach((effect: any) => {
         switch (effect.type) {
           case 'poison':
             effects.push({ icon: Whatshot, color: 'success', label: '毒' });
@@ -153,14 +155,16 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   const PartyCharacterCard: React.FC<{ character: TRPGCharacter | NPCCharacter }> = ({ character }) => {
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
-    const hp = getHPValue(character.stats?.hitPoints);
-    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
+    // TRPGCharacterはattributes、NPCCharacterはstatsを使用
+    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
+    const hp = getHPValue(stats?.hitPoints);
+    const maxHp = getMaxHPValue(stats?.maxHitPoints);
     
     return (
       <Card 
         sx={{ 
           mb: 1, 
-          cursor: onCharacterSelect ? "pointer" : "default",
+          cursor: "pointer",
           bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper",
           border: status.status === 'critical' || status.status === 'dead' ? '2px solid' : '1px solid',
           borderColor: status.status === 'critical' || status.status === 'dead' ? 'error.main' : 'divider',
@@ -206,12 +210,12 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
             </Typography>
             {"class" in character && character.class && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {character.race} {character.class}
+                {(character as any).race} {(character as any).class}
               </Typography>
             )}
             {"role" in character && character.role && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {character.role}
+                {(character as any).role}
               </Typography>
             )}
           </Box>
@@ -229,7 +233,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
         </Box>
 
         {/* ステータス表示 */}
-        {character.stats && typeof character.stats === 'object' && (
+        {stats && typeof stats === 'object' && (
           <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -312,7 +316,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="アーマークラス">
                 <Chip
                   icon={<Shield />}
-                  label={`AC:${character.stats?.armorClass || 10}`}
+                  label={`AC:${stats?.armorClass || 10}`}
                   size="small"
                   variant="outlined"
                 />
@@ -320,7 +324,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="移動速度">
                 <Chip
                   icon={<Speed />}
-                  label={`速度:${character.stats?.speed || 30}`}
+                  label={`速度:${stats?.speed || 30}`}
                   size="small"
                   variant="outlined"
                 />
@@ -328,7 +332,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="レベル">
                 <Chip
                   icon={<Bolt />}
-                  label={`Lv.${character.stats?.level || 1}`}
+                  label={`Lv.${stats?.level || 1}`}
                   size="small"
                   variant="outlined"
                 />
@@ -338,7 +342,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
         )}
 
         {/* 状態異常表示 */}
-        {"statuses" in character && character.statuses && character.statuses.length > 0 && (
+        {"statuses" in character && character.statuses && Array.isArray(character.statuses) && character.statuses.length > 0 && (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
             {character.statuses.map((status, index) => (
               <Chip
