@@ -12,8 +12,10 @@ import {
   Chapter,
   TimelineEvent,
   TRPGCampaign,
-  Character,
+  TRPGCharacter,
   WorldBuildingElement,
+  GameSession,
+  SessionEvent,
 } from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../api/aiAgent";
 import { convertTextToSlateValue } from "../utils/slateUtils";
@@ -22,10 +24,10 @@ import { serializeToText } from "../utils/editorUtils";
 // AIによる章生成関数のパラメータ型
 export interface AIChapterGenerationParams {
   chapterTitle: string;
-  relatedEvents: Pick<TimelineEvent, "id" | "title" | "description">[];
+  relatedEvents: Pick<SessionEvent, "id" | "title" | "description">[];
   charactersInChapter: Pick<
-    Character,
-    "id" | "name" | "description" | "role"
+    TRPGCharacter,
+    "id" | "name" | "description" | "profession"
   >[];
   selectedLocations: Pick<
     WorldBuildingElement,
@@ -40,17 +42,17 @@ export interface AIChapterGenerationParams {
 export interface WritingContextType {
   // 状態
   editorValue: Descendant[];
-  currentChapter: Chapter | null;
+  currentChapter: GameSession | null;
   currentProject: TRPGCampaign | null;
   currentChapterId: string | null;
-  timelineEvents: TimelineEvent[];
+  timelineEvents: SessionEvent[];
   newChapterDialogOpen: boolean;
   newChapterTitle: string;
   newChapterSynopsis: string;
   assignEventsDialogOpen: boolean;
   selectedEvents: string[];
   eventDetailDialogOpen: boolean;
-  selectedEvent: TimelineEvent | null;
+  selectedEvent: SessionEvent | null;
 
   // ページ管理 (改ページマーカー用)
   currentPageInEditor: number;
@@ -87,7 +89,7 @@ export interface WritingContextType {
   handleOpenEventDetailDialog: (eventId: string) => void;
   handleCloseEventDetailDialog: () => void;
   handleAddEventToChapter: (eventId: string) => void;
-  handleAddNewEvent: (event: TimelineEvent) => void;
+  handleAddNewEvent: (event: SessionEvent) => void;
   handleSaveContent: () => void;
   handleRemoveEventFromChapter: (eventId: string) => void;
 
@@ -205,7 +207,7 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
       const response = await aiAgentApi.generateChapterContent(
         params.chapterTitle,
         params.relatedEvents,
-        params.charactersInChapter,
+        params.charactersInChapter as Pick<TRPGCharacter, "id" | "name" | "description" | "profession">[],
         params.selectedLocations,
         params.userInstructions,
         params.targetChapterLength || undefined,
@@ -305,16 +307,16 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
 
   const value: WritingContextType = {
     editorValue,
-    currentChapter,
+    currentChapter: currentChapter as GameSession | null,
     currentProject,
     currentChapterId,
-    timelineEvents,
+    timelineEvents: timelineEvents as SessionEvent[],
     newChapterDialogOpen,
     newChapterTitle,
     newChapterSynopsis,
     assignEventsDialogOpen,
     eventDetailDialogOpen,
-    selectedEvent,
+    selectedEvent: selectedEvent as SessionEvent | null,
     selectedEvents,
     currentPageInEditor,
     totalPagesInEditor,

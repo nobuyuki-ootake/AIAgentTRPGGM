@@ -54,7 +54,7 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   // usePlotフックからプロット関連のロジックを取得
   const {
-    currentProject,
+    currentCampaign: currentProject,
     plotItems,
     newItemTitle,
     setNewItemTitle,

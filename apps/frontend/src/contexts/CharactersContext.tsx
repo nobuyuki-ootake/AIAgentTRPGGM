@@ -3,7 +3,6 @@ import { useCharacters } from "../hooks/useCharacters";
 import { useRecoilValue } from "recoil";
 import {
   TRPGCharacter,
-  Character,
   TRPGCampaign,
   CustomField,
   CharacterStatus,
@@ -122,17 +121,14 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
     // テンプレートのデータをformDataに適用
     const templateData: Partial<TRPGCharacter> = {
       // 基本情報
-      race: character.race || "",
-      class: character.class || "",
-      // 能力値の適用
-      stats: {
-        ...formData.stats,
-        ...character.stats,
+      profession: (character as any).class || (character as any).profession || "",
+      // 能力値の適用 - Stormbringer形式
+      attributes: {
+        ...formData.attributes,
+        ...(character as any).stats,
       },
       // スキルの適用
-      skills: character.skills || [],
-      // システム情報
-      gameSystem: template.name || formData.gameSystem,
+      skills: (character as any).skills || formData.skills || {} as any,
     };
 
     // 各フィールドを個別に更新
@@ -149,12 +145,12 @@ export const CharactersProvider: React.FC<{ children: ReactNode }> = ({
             } as React.ChangeEvent<HTMLInputElement>);
           }
         });
-      } else if (key === "skills" && Array.isArray(value)) {
-        // スキルは配列として処理（現在の実装に応じて調整が必要な場合あり）
+      } else if (key === "skills" && typeof value === "object") {
+        // スキルはオブジェクトとして処理
         handleSelectChange({
           target: {
             name: "skills",
-            value: value,
+            value: value as any,
           }
         });
       } else if (value !== undefined && key !== "stats" && key !== "skills") {

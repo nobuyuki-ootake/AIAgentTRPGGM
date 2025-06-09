@@ -512,12 +512,12 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           <Typography variant="subtitle2" gutterBottom>
             選択中: {selectedCharacter.name}
           </Typography>
-          {"personality" in selectedCharacter && selectedCharacter.personality && (
+          {"personality" in selectedCharacter && (selectedCharacter as any).personality && (
             <Typography variant="body2" color="text.secondary">
               {String((selectedCharacter as any).personality)}
             </Typography>
           )}
-          {"notes" in selectedCharacter && selectedCharacter.notes && (
+          {"notes" in selectedCharacter && (selectedCharacter as any).notes && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               備考: {String((selectedCharacter as any).notes)}
             </Typography>

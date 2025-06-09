@@ -12,13 +12,13 @@ import {
   Avatar,
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { Character } from "@trpg-ai-gm/types";
+import { TRPGCharacter } from "@trpg-ai-gm/types";
 import { characterIcons } from "./characterUtils";
 // import { useCharactersContext } from "../../contexts/CharactersContext"; // 未使用のためコメントアウト
 
 interface CharacterCardProps {
-  character: Character;
-  onEdit: (character: Character) => void;
+  character: TRPGCharacter;
+  onEdit: (character: TRPGCharacter) => void;
   onDelete: (id: string) => void;
 }
 

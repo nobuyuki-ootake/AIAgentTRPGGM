@@ -30,7 +30,7 @@ import {
 } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid";
 import {
-  Character,
+  TRPGCharacter,
   CustomField,
   CharacterTrait,
   // CharacterRole, // 削除 (CharacterRoleType を types/index.ts で定義)
@@ -48,8 +48,8 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 // import { AIAssistModal } from "../../components/common/AIAssistModal"; // 未使用のためコメントアウト (ファイル存在しないため)
 
 interface CharacterFormProps {
-  formData: Omit<Character, "traits"> & { traits: CharacterTrait[] };
-  setFormData: React.Dispatch<React.SetStateAction<Character>>;
+  formData: Omit<TRPGCharacter, "traits"> & { traits: CharacterTrait[] };
+  setFormData: React.Dispatch<React.SetStateAction<TRPGCharacter>>;
   formErrors: Record<string, string>;
   onSave: () => void;
   onCancel: () => void;

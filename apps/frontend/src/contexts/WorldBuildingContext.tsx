@@ -28,13 +28,13 @@ import {
   // BaseWorldBuildingElement, // 未使用のためコメントアウト
   // WorldBuildingElement, // 未使用のためコメントアウト
 } from "@trpg-ai-gm/types";
-import { Base } from "../components/worldbuilding/BaseTab";
+import { BaseLocation } from "@trpg-ai-gm/types";
 
 // Contextで提供する値の型定義
 export interface WorldBuildingContextType {
   // 拠点管理
-  bases?: Base[];
-  setBases?: (bases: Base[]) => void;
+  bases?: BaseLocation[];
+  setBases?: (bases: BaseLocation[]) => void;
   handleFieldChange?: () => void;
   updatedTabs: { [key: number]: boolean };
   addPendingWorldmap: (worldmapData: WorldmapElement) => void;

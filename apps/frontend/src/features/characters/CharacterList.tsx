@@ -18,15 +18,15 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { Character } from "@trpg-ai-gm/types";
+import { TRPGCharacter } from "@trpg-ai-gm/types";
 import CharacterCard from "./CharacterCard";
 // import { useCharactersContext } from "../../contexts/CharactersContext"; // 未使用のためコメントアウト
 
 interface CharacterListProps {
-  characters: Character[];
+  characters: TRPGCharacter[];
   viewMode: "list" | "grid";
   onAddCharacter: () => void;
-  onEditCharacter: (character: Character) => void;
+  onEditCharacter: (character: TRPGCharacter) => void;
   onDeleteCharacter: (id: string) => void;
 }
 
