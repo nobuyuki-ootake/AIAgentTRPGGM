@@ -195,7 +195,7 @@ const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
         
         <Fade in={showProgress}>
           <Box sx={{ width: 60 }}>
-            <LinearProgress size={2} />
+            <LinearProgress sx={{ height: 2 }} />
           </Box>
         </Fade>
 

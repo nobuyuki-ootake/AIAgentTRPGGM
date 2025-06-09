@@ -5,8 +5,7 @@ import {
   TimelineEvent,
   PlaceElement,
   BaseLocation,
-  PlotElement,
-} from "@trpg-ai-gm/types"; // PlotElement をインポート
+} from "@trpg-ai-gm/types";
 // import { getEventTypeIconComponent } from "./TimelineUtils"; // TimelineEventCard に移譲
 // import { Event as EventIcon } from "@mui/icons-material"; // TimelineEventCard に移譲
 import TimelineEventCard from "./TimelineEventCard"; // TimelineEventCard をインポート
@@ -14,7 +13,7 @@ import { SxProps, Theme } from "@mui/material/styles"; // SxProps をインポ�
 
 interface PlaceColumnProps {
   place: PlaceElement | BaseLocation;
-  plots: PlotElement[]; // plots プロパティを追加
+  plots: any[]; // plots プロパティを追加（PlotElement型が未定義のため一時的にany）
   events: TimelineEvent[];
   onEventClick: (id: string) => void;
   onDeleteEvent?: (id: string) => void;

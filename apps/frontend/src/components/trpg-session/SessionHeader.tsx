@@ -62,7 +62,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
         <Grid size={{ xs: 'auto' }}>
           <GameMasterIcon sx={{ fontSize: 40 }} />
         </Grid>
-        <Grid size={{ xs: true }}>
+        <Grid size={{ xs: 'auto' }} sx={{ flexGrow: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             {campaign?.title || "TRPGセッション"}
           </Typography>

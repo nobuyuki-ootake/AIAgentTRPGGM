@@ -161,7 +161,7 @@ const TimelineEventList: React.FC<TimelineEventListProps> = ({
                 relatedPlaces: [],
                 placeId: item.placeId,
                 order: index,
-                eventType: item.eventType,
+                eventType: (item.eventType as TimelineEvent["eventType"]) || "other",
               };
               const placeNameForCard =
                 item.placeId && getPlaceNameById

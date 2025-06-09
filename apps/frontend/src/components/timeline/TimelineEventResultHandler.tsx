@@ -118,11 +118,11 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
       setResult({
         eventId: event.id,
         eventName: event.title,
-        eventType: mapEventTypeToStateChangeType(event.type),
+        eventType: mapEventTypeToStateChangeType(event.eventType || "other"),
         outcome: 'unknown',
         playerActions: [],
         consequences: [],
-        affectedLocations: event.location ? [event.location] : [],
+        affectedLocations: event.relatedPlaces || [],
         affectedFactions: [],
         worldStateChanges: [],
         longTermEffects: [],
@@ -244,7 +244,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
   };
 
   const generateWorldStateChanges = () => {
-    const changes = [];
+    const changes: any[] = [];
     
     // 結果に基づく自動的な状態変化提案
     switch (result.outcome) {
@@ -301,7 +301,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
       <DialogContent>
         <Grid container spacing={3}>
           {/* 基本情報 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -309,7 +309,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                 </Typography>
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>結果</InputLabel>
                       <Select
@@ -325,7 +325,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                     </FormControl>
                   </Grid>
                   
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>イベント種別</InputLabel>
                       <Select
@@ -351,7 +351,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
 
           {/* AI生成ボタン */}
           {onGenerateAIResult && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Alert severity="info" action={
                 <Button
                   color="inherit"
@@ -369,7 +369,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           )}
 
           {/* プレイヤーアクション */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">プレイヤーアクション ({result.playerActions.length})</Typography>
@@ -408,7 +408,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* 直接的な結果 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">直接的な結果 ({result.consequences.length})</Typography>
@@ -447,14 +447,14 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* 影響範囲 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">影響範囲</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>影響を受ける場所</InputLabel>
                       <Select
@@ -479,7 +479,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                     </FormControl>
                   </Grid>
                   
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>影響を受ける勢力</InputLabel>
                       <Select
@@ -509,7 +509,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* プレイヤー影響度 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Box>
               <Typography variant="subtitle2" gutterBottom>
                 プレイヤー影響度: {result.playerInfluenceLevel}%
@@ -532,7 +532,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* 世界状態への影響 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">世界状態への影響 ({result.worldStateChanges.length})</Typography>
@@ -562,7 +562,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* アイテム報酬 */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography variant="h6">アイテム報酬 ({result.itemRewards.length})</Typography>
@@ -570,7 +570,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
               <AccordionDetails>
                 <Box sx={{ mb: 2 }}>
                   <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                       <FormControl fullWidth size="small">
                         <InputLabel>アイテム</InputLabel>
                         <Select
@@ -588,7 +588,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                       </FormControl>
                     </Grid>
                     
-                    <Grid item xs={12} sm={2}>
+                    <Grid size={{ xs: 12, sm: 2 }}>
                       <TextField
                         label="数量"
                         type="number"
@@ -600,7 +600,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                       />
                     </Grid>
                     
-                    <Grid item xs={12} sm={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                       <FormControl fullWidth size="small">
                         <InputLabel>取得条件</InputLabel>
                         <Select
@@ -616,7 +616,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                       </FormControl>
                     </Grid>
                     
-                    <Grid item xs={12} sm={2}>
+                    <Grid size={{ xs: 12, sm: 2 }}>
                       <Button
                         onClick={addItemReward}
                         variant="outlined"
@@ -668,7 +668,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
           </Grid>
 
           {/* メモ */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label="メモ・追加情報"
               multiline

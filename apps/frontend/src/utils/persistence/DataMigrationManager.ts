@@ -576,11 +576,11 @@ class DataMigrationManager {
 
       // Verify checksum
       const metadata = await this.persistenceManager.load('backup_metadata', backupId);
-      if (metadata) {
+      if (metadata && typeof metadata === 'object' && metadata !== null && 'checksum' in metadata) {
         const serialized = JSON.stringify(backupData);
         const calculatedChecksum = await this.calculateChecksum(serialized);
         
-        if (calculatedChecksum !== metadata.checksum) {
+        if (calculatedChecksum !== (metadata as { checksum: string }).checksum) {
           throw new Error('Backup data integrity check failed');
         }
       }

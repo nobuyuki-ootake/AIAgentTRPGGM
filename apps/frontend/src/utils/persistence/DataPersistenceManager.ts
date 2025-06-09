@@ -483,9 +483,19 @@ class DataPersistenceManager {
 
     try {
       if (this.db) {
-        await this.saveToIndexedDB('version_history', historyItem);
+        const storageItem: StorageItem<typeof historyItem> = {
+          id: `version_history_${entityId}`,
+          data: historyItem,
+          timestamp: new Date().toISOString(),
+          version: this.config.version,
+          size: JSON.stringify(historyItem).length,
+          isCompressed: false,
+          isOffline: false,
+        };
+        await this.saveToIndexedDB('version_history', storageItem);
       } else {
-        const existingHistory = this.loadFromLocalStorage(`version_history_${entityId}`) || [];
+        const historyData = this.loadFromLocalStorage<Array<typeof historyItem>>(`version_history_${entityId}`);
+        const existingHistory = historyData?.data || [];
         existingHistory.push(historyItem);
         
         // Limit history size
@@ -493,7 +503,16 @@ class DataPersistenceManager {
           existingHistory.splice(0, existingHistory.length - this.config.maxVersionHistory);
         }
         
-        this.saveToLocalStorage(`version_history_${entityId}`, existingHistory);
+        const storageItem: StorageItem<Array<typeof historyItem>> = {
+          id: `version_history_${entityId}`,
+          data: existingHistory,
+          timestamp: new Date().toISOString(),
+          version: this.config.version,
+          size: JSON.stringify(existingHistory).length,
+          isCompressed: false,
+          isOffline: false,
+        };
+        this.saveToLocalStorage(`version_history_${entityId}`, storageItem);
       }
     } catch (error) {
       console.warn('Failed to save version history:', error);
@@ -523,7 +542,8 @@ class DataPersistenceManager {
           request.onerror = () => reject(request.error);
         });
       } else {
-        const history = this.loadFromLocalStorage(`version_history_${entityId}`) || [];
+        const historyData = this.loadFromLocalStorage<Array<any>>(`version_history_${entityId}`);
+        const history = historyData?.data || [];
         return history.map((item: any) => ({
           timestamp: item.timestamp,
           version: item.item.version,
@@ -555,7 +575,8 @@ class DataPersistenceManager {
           request.onerror = () => reject(request.error);
         });
       } else {
-        const history = this.loadFromLocalStorage(`version_history_${entityId}`) || [];
+        const historyData = this.loadFromLocalStorage<Array<any>>(`version_history_${entityId}`);
+        const history = historyData?.data || [];
         const historyItem = history.find((item: any) => item.timestamp === timestamp);
         return historyItem ? historyItem.item.data : null;
       }
@@ -604,7 +625,7 @@ class DataPersistenceManager {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key && key.startsWith('sync_queue_')) {
-            const item = this.loadFromLocalStorage(key);
+            const item = this.loadFromLocalStorage<SyncQueueItem>(key);
             if (item) {
               this.syncQueue.push(item.data);
             }

@@ -31,12 +31,7 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
         legends: [],
         importantEvents: []
       },
-      magicTechnology: {
-        magicSystem: "",
-        technologyLevel: "",
-        commonSpells: [],
-        magicalItems: []
-      }
+      magicTechnology: []
     },
     
     // ストーリー関連
@@ -78,22 +73,18 @@ export const createDefaultBase = (name: string = "開始地点"): BaseLocation =
     importance: "主要拠点" as const,
     facilities: {
       inn: {
-        id: crypto.randomUUID(),
         name: "旅人の宿",
-        roomTypes: ["シングル", "ダブル"],
-        pricePerNight: { シングル: 5, ダブル: 8 },
-        amenities: ["食事", "風呂"],
-        availability: true
+        pricePerNight: 5,
+        description: "冒険者に人気の宿屋",
+        services: ["食事", "風呂", "情報収集"]
       },
       shops: [
         {
-          id: crypto.randomUUID(),
           name: "武器屋",
-          shopType: "武器防具店",
-          inventory: ["剣", "盾", "革鎧"],
-          specialties: ["近接武器"],
-          prices: { 剣: 15, 盾: 10, 革鎧: 25 },
-          availability: true
+          type: "武器防具店",
+          items: ["剣", "盾", "革鎧"],
+          priceModifier: 1.0,
+          description: "基本的な武器防具を扱う店"
         }
       ]
     },

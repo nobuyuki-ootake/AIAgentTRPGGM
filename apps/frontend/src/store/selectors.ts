@@ -3,11 +3,11 @@ import {
   // selectorFamily,
   // DefaultValue, // 未使用のためコメントアウト
 } from "recoil";
-import { Chapter } from "@trpg-ai-gm/types";
+import { GameSession } from "@trpg-ai-gm/types";
 import { currentCampaignState, currentSessionIdState } from "./atoms";
 
 // 現在選択されている章を取得するセレクタ
-export const currentChapterSelector = selector<Chapter | null>({
+export const currentChapterSelector = selector<GameSession | null>({
   key: "currentChapter",
   get: ({ get }) => {
     const currentCampaign = get(currentCampaignState);
@@ -53,7 +53,7 @@ export const characterNamesSelector = selector({
     return currentCampaign.characters.map((character) => ({
       id: character.id,
       name: character.name,
-      role: character.role,
+      characterType: character.characterType,
     }));
   },
 });

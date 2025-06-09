@@ -60,11 +60,6 @@ const characterTypeIcons: Record<
     emoji: "👤",
     label: "NPC",
   },
-  Enemy: {
-    color: "#DC143C", // クリムゾン
-    emoji: "👹",
-    label: "エネミー",
-  },
   default: {
     color: "#808080", // グレー
     emoji: "❓",
@@ -100,9 +95,9 @@ interface CharacterFormProps {
   onCancel: () => void;
   onSaveStatus: (status: CharacterStatus) => void;
   onDeleteStatus: (statusId: string) => void;
-  onStatsChange: (stats: TRPGCharacter["stats"]) => void;
+  onStatsChange: (stats: any) => void;
   onSkillsChange: (skills: TRPGCharacter["skills"]) => void;
-  onEquipmentChange: (equipment: TRPGCharacter["equipment"]) => void;
+  onEquipmentChange: (equipment: any) => void;
   onTemplateApplied?: (template: any, character: Partial<TRPGCharacter>) => void;
 }
 
@@ -180,17 +175,17 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     // タブ間ナビゲーション
     const fieldTabMap: Record<string, number> = {
       'name': 1,
-      'race': 1,
-      'class': 1,
+      'nation': 1,
+      'profession': 1,
       'characterType': 1,
-      'playerName': 1,
+      'player': 1,
       'gender': 1,
       'age': 1,
-      'alignment': 1,
+      'description': 1,
       'background': 1,
       'personality': 1,
       'appearance': 1,
-      'stats': 2,
+      'attributes': 2,
       'skills': 3,
       'equipment': 4,
     };
@@ -213,23 +208,23 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   // バリデーションルールの設定
   React.useEffect(() => {
     setFieldRules("name", TRPGValidationRules.characterName());
-    setFieldRules("race", [
-      createCommonRules.required("種族を入力してください"),
-      createCommonRules.minLength(2, "種族名は2文字以上で入力してください"),
-      createCommonRules.maxLength(20, "種族名は20文字以下で入力してください")
+    setFieldRules("nation", [
+      createCommonRules.required("国籍/種族を入力してください"),
+      createCommonRules.minLength(2, "国籍名は2文字以上で入力してください"),
+      createCommonRules.maxLength(20, "国籍名は20文字以下で入力してください")
     ]);
-    setFieldRules("class", [
-      createCommonRules.required("クラス/職業を入力してください"),
-      createCommonRules.minLength(2, "クラス名は2文字以上で入力してください")
+    setFieldRules("profession", [
+      createCommonRules.required("職業を入力してください"),
+      createCommonRules.minLength(2, "職業名は2文字以上で入力してください")
     ]);
   }, [setFieldRules]);
 
   // フォームデータと検証の同期
   React.useEffect(() => {
     setValue("name", formData.name || "");
-    setValue("race", formData.race || "");
-    setValue("class", formData.class || "");
-  }, [formData.name, formData.race, formData.class, setValue]);
+    setValue("nation", formData.nation || "");
+    setValue("profession", formData.profession || "");
+  }, [formData.name, formData.nation, formData.profession, setValue]);
 
   // 検証付き入力変更ハンドラ
   const handleValidatedInputChange = (fieldName: string, value: string) => {
@@ -315,7 +310,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
   // 能力値の更新
   const handleStatChange = (statName: string, value: number) => {
     const newStats = {
-      ...formData.stats,
+      ...formData.attributes,
       [statName]: value,
     };
     onStatsChange(newStats);
@@ -408,7 +403,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
             />
           </Box>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <RealTimeValidator
                 value={formData.name || ""}
                 label="名前 *"
@@ -424,7 +419,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 allowSuggestions={true}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>キャラクタータイプ</InputLabel>
                 <Select
@@ -442,32 +437,31 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 >
                   <MenuItem value="PC">プレイヤーキャラクター</MenuItem>
                   <MenuItem value="NPC">NPC</MenuItem>
-                  <MenuItem value="Enemy">エネミー</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             {formData.characterType === "PC" && (
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   name="playerName"
                   label="プレイヤー名"
-                  value={formData.playerName || ""}
+                  value={formData.player || ""}
                   onChange={onInputChange}
                   fullWidth
                 />
               </Grid>
             )}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <RealTimeValidator
-                value={formData.race || ""}
-                label="種族"
-                placeholder="キャラクターの種族を入力"
+                value={formData.nation || ""}
+                label="国籍/種族"
+                placeholder="キャラクターの国籍や種族を入力"
                 rules={[
-                  createCommonRules.required("種族を入力してください"),
-                  createCommonRules.minLength(2, "種族名は2文字以上で入力してください"),
-                  createCommonRules.maxLength(20, "種族名は20文字以下で入力してください")
+                  createCommonRules.required("国籍/種族を入力してください"),
+                  createCommonRules.minLength(2, "国籍名は2文字以上で入力してください"),
+                  createCommonRules.maxLength(20, "国籍名は20文字以下で入力してください")
                 ]}
-                onValueChange={(value) => handleValidatedInputChange("race", value)}
+                onValueChange={(value) => handleValidatedInputChange("nation", value)}
                 onNavigateToField={handleNavigateToField}
                 suggestions={[
                   "人間", "エルフ", "ドワーフ", "ハーフリング", "オーク",
@@ -476,16 +470,16 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 allowSuggestions={true}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <RealTimeValidator
-                value={formData.class || ""}
-                label="職業/クラス"
-                placeholder="キャラクターのクラスを入力"
+                value={formData.profession || ""}
+                label="職業"
+                placeholder="キャラクターの職業を入力"
                 rules={[
-                  createCommonRules.required("クラス/職業を入力してください"),
-                  createCommonRules.minLength(2, "クラス名は2文字以上で入力してください")
+                  createCommonRules.required("職業を入力してください"),
+                  createCommonRules.minLength(2, "職業名は2文字以上で入力してください")
                 ]}
-                onValueChange={(value) => handleValidatedInputChange("class", value)}
+                onValueChange={(value) => handleValidatedInputChange("profession", value)}
                 onNavigateToField={handleNavigateToField}
                 suggestions={[
                   "ファイター", "ウィザード", "クレリック", "ローグ", "レンジャー",
@@ -494,7 +488,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 allowSuggestions={true}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 name="gender"
                 label="性別"
@@ -503,7 +497,7 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 name="age"
                 label="年齢"
@@ -512,20 +506,20 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 name="alignment"
                 label="属性/アライメント"
-                value={formData.alignment || ""}
+                value={formData.description || ""}
                 onChange={onInputChange}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 name="background"
                 label="背景"
-                value={formData.background || ""}
+                value={formData.description || ""}
                 onChange={onInputChange}
                 onFocus={handleFieldFocus("background")}
                 onBlur={handleFieldBlur}
@@ -535,11 +529,11 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 placeholder="キャラクターの背景や経歴を入力（AI自動補完が利用可能）"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 name="personality"
                 label="性格"
-                value={formData.personality || ""}
+                value={formData.description || ""}
                 onChange={onInputChange}
                 onFocus={handleFieldFocus("personality")}
                 onBlur={handleFieldBlur}
@@ -549,11 +543,11 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
                 placeholder="キャラクターの性格や特徴を入力（AI自動補完が利用可能）"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 name="appearance"
                 label="外見"
-                value={formData.appearance || ""}
+                value={formData.description || ""}
                 onChange={onInputChange}
                 onFocus={handleFieldFocus("appearance")}
                 onBlur={handleFieldBlur}
@@ -574,61 +568,71 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
             能力値（ステータス）
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
                 label="STR (筋力)"
                 type="number"
-                value={formData.stats?.STR || 10}
+                value={formData.attributes?.STR || 10}
                 onChange={(e) => handleStatChange("STR", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
                 label="CON (耐久力)"
                 type="number"
-                value={formData.stats?.CON || 10}
+                value={formData.attributes?.CON || 10}
                 onChange={(e) => handleStatChange("CON", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
                 label="DEX (器用さ)"
                 type="number"
-                value={formData.stats?.DEX || 10}
+                value={formData.attributes?.DEX || 10}
                 onChange={(e) => handleStatChange("DEX", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
                 label="INT (知力)"
                 type="number"
-                value={formData.stats?.INT || 10}
+                value={formData.attributes?.INT || 10}
                 onChange={(e) => handleStatChange("INT", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
-                label="WIS (判断力)"
+                label="POW (魔力)"
                 type="number"
-                value={formData.stats?.WIS || 10}
-                onChange={(e) => handleStatChange("WIS", parseInt(e.target.value) || 10)}
+                value={formData.attributes?.POW || 10}
+                onChange={(e) => handleStatChange("POW", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4} md={3}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+              <TextField
+                label="SIZ (体格)"
+                type="number"
+                value={formData.attributes?.SIZ || 10}
+                onChange={(e) => handleStatChange("SIZ", parseInt(e.target.value) || 10)}
+                inputProps={{ min: 1, max: 20 }}
+                fullWidth
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <TextField
                 label="CHA (魅力)"
                 type="number"
-                value={formData.stats?.CHA || 10}
+                value={formData.attributes?.CHA || 10}
                 onChange={(e) => handleStatChange("CHA", parseInt(e.target.value) || 10)}
                 inputProps={{ min: 1, max: 20 }}
                 fullWidth
@@ -640,30 +644,30 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
             派生ステータス
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6} sm={4}>
+            <Grid size={{ xs: 6, sm: 4 }}>
               <TextField
                 label="HP (ヒットポイント)"
                 type="number"
-                value={formData.stats?.HP || 10}
+                value={formData.derived?.HP || 10}
                 onChange={(e) => handleStatChange("HP", parseInt(e.target.value) || 10)}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4}>
+            <Grid size={{ xs: 6, sm: 4 }}>
               <TextField
                 label="MP (マジックポイント)"
                 type="number"
-                value={formData.stats?.MP || 10}
+                value={formData.derived?.MP || 10}
                 onChange={(e) => handleStatChange("MP", parseInt(e.target.value) || 10)}
                 fullWidth
               />
             </Grid>
-            <Grid item xs={6} sm={4}>
+            <Grid size={{ xs: 6, sm: 4 }}>
               <TextField
-                label="AC (アーマークラス)"
+                label="SW (先制値)"
                 type="number"
-                value={formData.stats?.AC || 10}
-                onChange={(e) => handleStatChange("AC", parseInt(e.target.value) || 10)}
+                value={formData.derived?.SW || 10}
+                onChange={(e) => handleStatChange("SW", parseInt(e.target.value) || 10)}
                 fullWidth
               />
             </Grid>
@@ -787,11 +791,16 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
           <Typography variant="h6" sx={{ mb: 2 }}>
             状態管理
           </Typography>
+          {/* TODO: Implement character status management 
           <CharacterStatusList
-            statuses={formData.statuses || []}
+            statuses={[]}
             onEdit={handleOpenStatusEditor}
             onDelete={onDeleteStatus}
           />
+          */}
+          <Typography variant="body2" color="text.secondary">
+            キャラクター状態管理機能は今後実装予定です
+          </Typography>
           <Button
             variant="outlined"
             onClick={() => handleOpenStatusEditor()}
@@ -822,10 +831,11 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
               追加
             </Button>
           </Box>
+          {/* TODO: Implement character traits management
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {(formData.traits || []).map((trait: CharacterTrait, index) => (
+            {[].map((trait: CharacterTrait, index: number) => (
               <Chip
-                key={trait.id || index}
+                key={index}
                 label={trait.name}
                 onDelete={() => onRemoveTrait(index)}
                 color="primary"
@@ -833,6 +843,10 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
               />
             ))}
           </Stack>
+          */}
+          <Typography variant="body2" color="text.secondary">
+            キャラクター特性管理機能は今後実装予定です
+          </Typography>
         </Box>
       </TabPanel>
 
@@ -890,16 +904,16 @@ ${formData.name ? `名前: ${formData.name}` : ""}`;
       <AIAutoComplete
         targetElement={focusedElement}
         currentValue={
-          currentField === "background" ? formData.background || "" :
-          currentField === "personality" ? formData.personality || "" :
-          currentField === "appearance" ? formData.appearance || "" :
+          currentField === "background" ? formData.description || "" :
+          currentField === "personality" ? formData.description || "" :
+          currentField === "appearance" ? formData.description || "" :
           ""
         }
         field={currentField}
         context={{
           character: formData,
-          campaign: currentCampaign,
-          gameSystem: formData.gameSystem || "Fantasy",
+          campaign: currentCampaign || undefined,
+          gameSystem: "Fantasy",
         }}
         onSuggestionAccepted={handleAISuggestionAccepted}
         onSuggestionRejected={handleAISuggestionRejected}

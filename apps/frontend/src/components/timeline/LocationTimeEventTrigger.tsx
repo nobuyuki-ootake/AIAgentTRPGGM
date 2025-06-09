@@ -268,7 +268,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
         
         <Grid container spacing={2}>
           {availableEvents.map(event => (
-            <Grid item xs={12} md={6} key={event.id}>
+            <Grid size={{ xs: 12, md: 6 }} key={event.id}>
               <Paper sx={{ p: 2 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -364,7 +364,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
         <DialogTitle>場所・時間イベント作成</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="イベント名"
@@ -373,7 +373,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="イベント説明"
@@ -384,7 +384,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>場所</InputLabel>
                 <Select
@@ -401,7 +401,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>頻度</InputLabel>
                 <Select
@@ -417,7 +417,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="開始日"
@@ -433,7 +433,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="終了日"
@@ -450,7 +450,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
             </Grid>
 
             {formData.frequency === "random" && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography gutterBottom>発生確率: {formData.probability}%</Typography>
                 <Slider
                   value={formData.probability || 50}
@@ -463,7 +463,7 @@ const LocationTimeEventTrigger: React.FC<LocationTimeEventTriggerProps> = ({
               </Grid>
             )}
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControl fullWidth>
                 <InputLabel>優先度</InputLabel>
                 <Select

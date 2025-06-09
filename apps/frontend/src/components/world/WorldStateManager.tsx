@@ -194,7 +194,7 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
       newState.locations[location.id] = {
         condition: 75,
         accessibility: 80,
-        dangerLevel: location.importance === "high" ? 60 : 30,
+        dangerLevel: location.importance === "主要拠点" ? 60 : 30,
         resources: 70,
         population: location.type === "city" ? 90 : location.type === "town" ? 60 : 20,
       };
@@ -590,11 +590,11 @@ const WorldStateManager: React.FC<WorldStateManagerProps> = ({
           <Timeline>
             {stateHistory.slice(-5).reverse().map((change) => (
               <TimelineItem key={change.id}>
-                <TimelineOppositeContent sx={{ m: "auto 0" }} variant="body2" color="text.secondary">
+                <TimelineOppositeContent sx={{ m: "auto 0" }}>
                   {change.timestamp.toLocaleString()}
                 </TimelineOppositeContent>
                 <TimelineSeparator>
-                  <TimelineDot color={getSeverityColor(change.severity)}>
+                  <TimelineDot color={getSeverityColor(change.severity) as any}>
                     <EventIcon />
                   </TimelineDot>
                   <TimelineConnector />

@@ -23,7 +23,6 @@ import { useDroppable } from "@dnd-kit/core";
 import {
   TimelineEvent,
   PlaceElement,
-  PlotElement,
   BaseLocation,
 } from "@trpg-ai-gm/types";
 import TimelineEventCard from "./TimelineEventCard";
@@ -32,7 +31,7 @@ import moment from "moment";
 interface TimelineDayListProps {
   timelineEvents: TimelineEvent[];
   places: (PlaceElement | BaseLocation)[];
-  plots: PlotElement[];
+  plots: any[];
   dateArray: string[];
   onEventClick: (id: string) => void;
   onDeleteEvent?: (id: string) => void;

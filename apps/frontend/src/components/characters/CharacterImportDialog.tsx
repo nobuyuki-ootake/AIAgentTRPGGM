@@ -283,21 +283,21 @@ export const CharacterImportDialog: React.FC<CharacterImportDialogProps> = ({
                 <Box display="flex" gap={2}>
                   <Box flex={1}>
                     <Typography variant="subtitle2" color="text.secondary">
-                      種族
+                      国籍/種族
                     </Typography>
-                    <Typography>{importedCharacter.race}</Typography>
+                    <Typography>{importedCharacter.nation}</Typography>
                   </Box>
                   <Box flex={1}>
                     <Typography variant="subtitle2" color="text.secondary">
-                      クラス
+                      職業
                     </Typography>
-                    <Typography>{importedCharacter.class}</Typography>
+                    <Typography>{importedCharacter.profession}</Typography>
                   </Box>
                   <Box flex={1}>
                     <Typography variant="subtitle2" color="text.secondary">
-                      レベル
+                      年齢
                     </Typography>
-                    <Typography>{importedCharacter.level}</Typography>
+                    <Typography>{importedCharacter.age}</Typography>
                   </Box>
                 </Box>
                 
@@ -306,20 +306,21 @@ export const CharacterImportDialog: React.FC<CharacterImportDialogProps> = ({
                     能力値
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label={`STR: ${importedCharacter.stats.strength}`} size="small" />
-                    <Chip label={`DEX: ${importedCharacter.stats.dexterity}`} size="small" />
-                    <Chip label={`CON: ${importedCharacter.stats.constitution}`} size="small" />
-                    <Chip label={`INT: ${importedCharacter.stats.intelligence}`} size="small" />
-                    <Chip label={`WIS: ${importedCharacter.stats.wisdom}`} size="small" />
-                    <Chip label={`CHA: ${importedCharacter.stats.charisma}`} size="small" />
+                    <Chip label={`STR: ${importedCharacter.attributes.STR}`} size="small" />
+                    <Chip label={`CON: ${importedCharacter.attributes.CON}`} size="small" />
+                    <Chip label={`SIZ: ${importedCharacter.attributes.SIZ}`} size="small" />
+                    <Chip label={`INT: ${importedCharacter.attributes.INT}`} size="small" />
+                    <Chip label={`POW: ${importedCharacter.attributes.POW}`} size="small" />
+                    <Chip label={`DEX: ${importedCharacter.attributes.DEX}`} size="small" />
+                    <Chip label={`CHA: ${importedCharacter.attributes.CHA}`} size="small" />
                   </Stack>
                 </Box>
                 
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
-                    備考
+                    説明
                   </Typography>
-                  <Typography variant="body2">{importedCharacter.notes}</Typography>
+                  <Typography variant="body2">{importedCharacter.description}</Typography>
                 </Box>
               </Stack>
             </Paper>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { usePlot } from "../hooks/usePlot";
 import { v4 as uuidv4 } from "uuid";
-import { PlotElement, TRPGCampaign } from "@trpg-ai-gm/types";
+import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { toast } from "sonner";
 import { SelectChangeEvent } from "@mui/material";
 import { DropResult } from "react-beautiful-dnd";
@@ -9,7 +9,7 @@ import { parseAIResponseToPlotItems } from "../utils/aiResponseParser";
 
 interface PlotContextType {
   // usePlotから取得した状態
-  plotItems: PlotElement[];
+  plotItems: any[];
   newItemTitle: string;
   newItemDescription: string;
   editItemTitle: string;
@@ -26,11 +26,11 @@ interface PlotContextType {
   setEditItemTitle: (title: string) => void;
   setEditItemDescription: (desc: string) => void;
   setEditItemStatus: React.Dispatch<React.SetStateAction<"検討中" | "決定">>;
-  setPlotItems: React.Dispatch<React.SetStateAction<PlotElement[]>>;
+  setPlotItems: React.Dispatch<React.SetStateAction<any[]>>;
   setHasUnsavedChanges: React.Dispatch<React.SetStateAction<boolean>>;
   handleAddItem: () => void;
   handleDeleteItem: (id: string) => void;
-  handleOpenEditDialog: (item: PlotElement) => void;
+  handleOpenEditDialog: (item: any) => void;
   handleCloseEditDialog: () => void;
   handleUpdateItem: () => void;
   handleDragEnd: (result: DropResult) => void;
@@ -42,7 +42,7 @@ interface PlotContextType {
   handleCloseSnackbar: () => void;
 
   // AIアシスト機能（削除予定）
-  applyAIPlotResponse: (aiResponse: string | PlotElement[]) => void;
+  applyAIPlotResponse: (aiResponse: string | any[]) => void;
 }
 
 // コンテキストの作成
@@ -83,14 +83,14 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
   } = usePlot();
 
   // AIの応答をプロットフォームに適用する関数（後方互換性のため残す）
-  const applyAIPlotResponse = (aiResponse: string | PlotElement[]) => {
+  const applyAIPlotResponse = (aiResponse: string | any[]) => {
     try {
-      let newPlotItems: PlotElement[] = [];
+      let newPlotItems: any[] = [];
 
       // 構造化されたデータ（配列）の場合
       if (Array.isArray(aiResponse)) {
         newPlotItems = aiResponse.map(
-          (item): PlotElement => ({
+          (item): any => ({
             id: item.id || uuidv4(),
             title: item.title || "無題のプロット",
             description: item.description || "",
@@ -102,7 +102,7 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
         // 従来の文字列レスポンスの場合（後方互換性）
         const parsedPlotItems = parseAIResponseToPlotItems(aiResponse);
         newPlotItems = parsedPlotItems.map(
-          (item): PlotElement => ({
+          (item): any => ({
             id: uuidv4(),
             title: item.title || "無題のプロット",
             description: item.description || "",
@@ -114,7 +114,7 @@ export const PlotProvider: React.FC<{ children: ReactNode }> = ({
 
       if (newPlotItems.length > 0) {
         // 既存のプロットアイテムと新しいプロットアイテムを結合
-        setPlotItems((prevItems: PlotElement[]) => {
+        setPlotItems((prevItems: any[]) => {
           const updatedItems = [...prevItems, ...newPlotItems];
           // 順序を再設定
           return updatedItems.map((item, index) => ({

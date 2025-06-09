@@ -92,7 +92,7 @@ const EnemyCard: React.FC<EnemyCardProps> = ({
 
         {/* 基本ステータス */}
         <Grid container spacing={1} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
               HP: {enemy.status?.currentHp || enemy.derivedStats.hp}/{enemy.derivedStats.hp}
             </Typography>
@@ -103,17 +103,17 @@ const EnemyCard: React.FC<EnemyCardProps> = ({
               sx={{ height: 4, borderRadius: 2 }}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
               MP: {enemy.status?.currentMp || enemy.derivedStats.mp}/{enemy.derivedStats.mp}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
               攻撃力: {enemy.derivedStats.attack}
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
               防御力: {enemy.derivedStats.defense}
             </Typography>
@@ -132,7 +132,7 @@ const EnemyCard: React.FC<EnemyCardProps> = ({
               {enemy.skills.specialSkills.slice(0, 3).map((skill, index) => (
                 <Chip
                   key={index}
-                  label={skill}
+                  label={typeof skill === 'string' ? skill : skill.name}
                   size="small"
                   variant="outlined"
                   color="secondary"

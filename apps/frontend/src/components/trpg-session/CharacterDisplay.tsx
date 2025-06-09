@@ -121,8 +121,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
 
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
-    const hp = getHPValue(character.stats?.hitPoints);
-    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
+    // TRPGCharacterはattributes、その他はstatsを使用
+    const stats = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+    const hp = getHPValue(stats?.hitPoints);
+    const maxHp = getMaxHPValue(stats?.maxHitPoints);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
     
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
@@ -134,11 +136,11 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
 
   // 状態異常の視覚的表現
   const getStatusEffects = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
-    const effects = [];
+    const effects: Array<{ icon: any; color: string; label: string }> = [];
     
     // キャラクターのstatusEffectsがある場合
-    if ('statusEffects' in character && character.statusEffects) {
-      character.statusEffects.forEach(effect => {
+    if ('statusEffects' in character && character.statusEffects && Array.isArray(character.statusEffects)) {
+      character.statusEffects.forEach((effect: any) => {
         switch (effect.type) {
           case 'poison':
             effects.push({ icon: Whatshot, color: 'success', label: '毒' });
@@ -167,8 +169,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     const isSelectionDisabled = combatMode || !onCharacterSelect;
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
-    const hp = getHPValue(character.stats?.hitPoints);
-    const maxHp = getMaxHPValue(character.stats?.maxHitPoints);
+    // TRPGCharacterはattributes、その他はstatsを使用
+    const stats = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+    const hp = getHPValue(stats?.hitPoints);
+    const maxHp = getMaxHPValue(stats?.maxHitPoints);
     
     return (
       <Card 
@@ -180,7 +184,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           border: status.status === 'critical' || status.status === 'dead' ? '2px solid' : '1px solid',
           borderColor: status.status === 'critical' || status.status === 'dead' ? 'error.main' : 'divider',
         }}
-        onClick={() => !isSelectionDisabled && onCharacterSelect && onCharacterSelect(character)}
+        onClick={() => !isSelectionDisabled && onCharacterSelect?.(character)}
       >
       <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -220,17 +224,17 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
             </Typography>
             {"class" in character && character.class && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {character.race} {character.class}
+                {"race" in character ? String(character.race || "") : ""} {String(character.class || "")}
               </Typography>
             )}
             {"role" in character && character.role && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {character.role}
+                {String(character.role)}
               </Typography>
             )}
             {"enemyType" in character && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {character.enemyType} (CR {character.challengeRating})
+                {String(character.enemyType)} (CR {"challengeRating" in character ? character.challengeRating : 0})
               </Typography>
             )}
           </Box>
@@ -248,7 +252,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
         </Box>
 
         {/* ステータス表示 */}
-        {character.stats && typeof character.stats === 'object' && (
+        {(() => {
+          const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+          return statsObj && typeof statsObj === 'object';
+        })() && (
           <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -331,7 +338,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="アーマークラス">
                 <Chip
                   icon={<Shield />}
-                  label={`AC:${character.stats?.armorClass || 10}`}
+                  label={`AC:${(() => {
+                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    return statsObj?.armorClass || 10;
+                  })()}`}
                   size="small"
                   variant="outlined"
                 />
@@ -339,7 +349,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="移動速度">
                 <Chip
                   icon={<Speed />}
-                  label={`速度:${character.stats?.speed || 30}`}
+                  label={`速度:${(() => {
+                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    return statsObj?.speed || 30;
+                  })()}`}
                   size="small"
                   variant="outlined"
                 />
@@ -347,7 +360,10 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
               <Tooltip title="レベル">
                 <Chip
                   icon={<Bolt />}
-                  label={`Lv.${character.stats?.level || 1}`}
+                  label={`Lv.${(() => {
+                    const statsObj = 'attributes' in character ? character.attributes : ('stats' in character ? character.stats : null);
+                    return statsObj?.level || 1;
+                  })()}`}
                   size="small"
                   variant="outlined"
                 />
@@ -357,12 +373,12 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
         )}
 
         {/* 状態異常表示 */}
-        {"statuses" in character && character.statuses && character.statuses.length > 0 && (
+        {"statuses" in character && character.statuses && Array.isArray(character.statuses) && character.statuses.length > 0 && (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
-            {character.statuses.map((status, index) => (
+            {character.statuses.map((status: any, index: number) => (
               <Chip
                 key={index}
-                label={status}
+                label={String(status)}
                 size="small"
                 color="warning"
               />
@@ -496,14 +512,14 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           <Typography variant="subtitle2" gutterBottom>
             選択中: {selectedCharacter.name}
           </Typography>
-          {selectedCharacter.personality && (
+          {"personality" in selectedCharacter && selectedCharacter.personality && (
             <Typography variant="body2" color="text.secondary">
-              {selectedCharacter.personality}
+              {String(selectedCharacter.personality)}
             </Typography>
           )}
-          {selectedCharacter.notes && (
+          {"notes" in selectedCharacter && selectedCharacter.notes && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              備考: {selectedCharacter.notes}
+              備考: {String(selectedCharacter.notes)}
             </Typography>
           )}
         </Box>

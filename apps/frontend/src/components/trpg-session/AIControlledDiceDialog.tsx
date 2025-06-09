@@ -164,8 +164,12 @@ export const AIControlledDiceDialog: React.FC<AIControlledDiceDialogProps> = ({
       onClose={(event, reason) => {
         // バックドロップクリックとエスケープキーでの閉じるを無効化
         if (reason === 'backdropClick' || reason === 'escapeKeyDown') {
-          event?.preventDefault();
-          event?.stopPropagation();
+          if (event && 'preventDefault' in event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+          }
+          if (event && 'stopPropagation' in event && typeof event.stopPropagation === 'function') {
+            event.stopPropagation();
+          }
         }
       }}
       maxWidth="sm"
@@ -282,7 +286,7 @@ export const AIControlledDiceDialog: React.FC<AIControlledDiceDialogProps> = ({
               </Typography>
               <Grid container spacing={2} justifyContent="center">
                 {Array.from({ length: count }, (_, index) => (
-                  <Grid item key={index}>
+                  <Grid size={{ xs: 'auto' }} key={index}>
                     <DiceDisplay
                       diceType={`d${sides}` as any}
                       result={rolledDice?.rolls[index]}
@@ -311,14 +315,12 @@ export const AIControlledDiceDialog: React.FC<AIControlledDiceDialogProps> = ({
                         icon={<CheckCircle />}
                         label="成功！"
                         color="success"
-                        size="large"
                       />
                     ) : (
                       <Chip
                         icon={<ErrorIcon />}
                         label="失敗..."
                         color="error"
-                        size="large"
                       />
                     )}
                   </Box>

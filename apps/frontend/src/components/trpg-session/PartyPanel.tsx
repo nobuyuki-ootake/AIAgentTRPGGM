@@ -110,7 +110,7 @@ const PartyPanel: React.FC<PartyPanelProps> = ({
         <PartyCharacterDisplay
           playerCharacters={playerCharacters}
           npcs={npcs}
-          selectedCharacter={selectedCharacter}
+          selectedCharacter={selectedCharacter || null}
           tabValue={tabValue}
           onTabChange={handleTabChange}
           onCharacterSelect={handleCharacterSelect}

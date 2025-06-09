@@ -191,7 +191,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           key={`encounter-${location.id}`}
           cx={location.coordinates?.lng || 0}
           cy={location.coordinates?.lat || 0}
-          r={location.encounterRules?.range || 15}
+          r={15}
           fill={alpha('#ff9800', 0.2)}
           stroke="#ff9800"
           strokeWidth={1}
@@ -210,7 +210,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         <ZoomableGroup zoom={mapSettings.zoom} center={mapSettings.center}>
           {/* 🌍 地形表示 */}
           <Geographies geography={FANTASY_WORLD_GEOJSON}>
-            {({ geographies }) =>
+            {({ geographies }: { geographies: any[] }) =>
               geographies.map((geo) => (
                 <Geography
                   key={geo.rsmKey}

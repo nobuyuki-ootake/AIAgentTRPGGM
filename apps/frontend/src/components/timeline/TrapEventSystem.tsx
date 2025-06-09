@@ -156,7 +156,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
   // トラップ発見チェック
   const performDetectionCheck = (trap: TrapEvent, character: TRPGCharacter) => {
     const roll = rollDice("1d20");
-    const wisdomMod = getAbilityModifier(character.stats.wisdom);
+    const wisdomMod = getAbilityModifier(character.attributes.POW);
     const total = roll + wisdomMod;
     
     const result: TrapCheckResult = {
@@ -180,7 +180,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
   // トラップ解除チェック
   const performDisarmCheck = (trap: TrapEvent, character: TRPGCharacter) => {
     const roll = rollDice("1d20");
-    const dexterityMod = getAbilityModifier(character.stats.dexterity);
+    const dexterityMod = getAbilityModifier(character.attributes.DEX);
     const total = roll + dexterityMod;
     
     const result: TrapCheckResult = {
@@ -292,7 +292,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
           }
 
           return (
-            <Grid item xs={12} md={6} key={trap.id}>
+            <Grid size={{ xs: 12, md: 6 }} key={trap.id}>
               <Paper sx={{ p: 2 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -406,8 +406,8 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
                     <MenuItem key={char.id} value={char.id}>
                       {char.name} (
                       {checkDialog.type === "detection" 
-                        ? `判断力: ${char.stats.wisdom}` 
-                        : `器用さ: ${char.stats.dexterity}`
+                        ? `知力/POW: ${char.attributes.POW}` 
+                        : `器用さ/DEX: ${char.attributes.DEX}`
                       })
                     </MenuItem>
                   ))}
@@ -473,7 +473,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
         <DialogTitle>新しいトラップを設置</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="トラップ名"
@@ -482,7 +482,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="説明"
@@ -493,7 +493,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>トラップタイプ</InputLabel>
                 <Select
@@ -509,7 +509,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={3}>
+            <Grid size={{ xs: 3 }}>
               <TextField
                 fullWidth
                 label="発見DC"
@@ -519,7 +519,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               />
             </Grid>
 
-            <Grid item xs={3}>
+            <Grid size={{ xs: 3 }}>
               <TextField
                 fullWidth
                 label="解除DC"
@@ -529,7 +529,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>ダメージタイプ</InputLabel>
                 <Select
@@ -550,7 +550,7 @@ const TrapEventSystem: React.FC<TrapEventSystemProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
                 label="ダメージ量 (ダイス記法)"

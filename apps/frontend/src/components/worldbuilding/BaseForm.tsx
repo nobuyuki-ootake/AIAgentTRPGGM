@@ -57,7 +57,7 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
       setFormData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof typeof prev],
+          ...(prev[parentField as keyof typeof prev] as Record<string, any> || {}),
           [childField]: value,
         },
       }));
@@ -73,8 +73,8 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
       setFormData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof typeof prev],
-          [childField]: [...(prev[parentField as keyof typeof prev] as any)[childField], item],
+          ...(prev[parentField as keyof typeof prev] as Record<string, any> || {}),
+          [childField]: [...((prev[parentField as keyof typeof prev] as any)?.[childField] || []), item],
         },
       }));
     } else {
@@ -92,8 +92,8 @@ const BaseForm: React.FC<BaseFormProps> = ({ base, onSave, onCancel }) => {
       setFormData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof typeof prev],
-          [childField]: (prev[parentField as keyof typeof prev] as any)[childField].filter((_: any, i: number) => i !== index),
+          ...(prev[parentField as keyof typeof prev] as Record<string, any> || {}),
+          [childField]: ((prev[parentField as keyof typeof prev] as any)?.[childField] || []).filter((_: any, i: number) => i !== index),
         },
       }));
     } else {

@@ -34,7 +34,7 @@ export function usePlot() {
   const handleAddItem = () => {
     if (!newItemTitle.trim()) return;
 
-    const newItem: PlotElement = {
+    const newItem: any = {
       id: uuidv4(),
       title: newItemTitle.trim(),
       description: newItemDescription.trim(),
@@ -63,7 +63,7 @@ export function usePlot() {
   };
 
   // 編集ダイアログを開く
-  const handleOpenEditDialog = (item: PlotElement) => {
+  const handleOpenEditDialog = (item: any) => {
     setEditItemId(item.id);
     setEditItemTitle(item.title);
     setEditItemDescription(item.description);

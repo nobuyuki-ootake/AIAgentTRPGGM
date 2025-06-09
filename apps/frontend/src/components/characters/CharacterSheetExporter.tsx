@@ -141,12 +141,21 @@ export const CharacterSheetExporterComponent: React.FC<CharacterSheetExporterPro
               ...prev,
               completed: [...prev.completed, character.name],
             }));
-          } catch (error) {
+          } catch (error: unknown) {
+            let errorMessage: string;
+            if (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string') {
+              errorMessage = (error as { message: string }).message;
+            } else if (typeof error === 'string') {
+              errorMessage = error;
+            } else {
+              errorMessage = 'Unknown error';
+            }
+            
             setProgress(prev => ({
               ...prev,
               errors: [...prev.errors, {
                 character: character.name,
-                error: error instanceof Error ? error.message : 'Unknown error'
+                error: errorMessage
               }],
             }));
           }
@@ -157,14 +166,23 @@ export const CharacterSheetExporterComponent: React.FC<CharacterSheetExporterPro
 
         setProgress(prev => ({ ...prev, isExporting: false }));
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Export error:', error);
+      let errorMessage: string;
+      if (error && typeof error === 'object' && 'message' in error && typeof (error as { message: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else {
+        errorMessage = 'Export failed';
+      }
+      
       setProgress(prev => ({
         ...prev,
         isExporting: false,
         errors: [{
           character: 'General',
-          error: error instanceof Error ? error.message : 'Export failed'
+          error: errorMessage
         }],
       }));
     }

@@ -306,7 +306,7 @@ const RealTimeValidator: React.FC<RealTimeValidatorProps> = ({
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               {isValidating && (
                 <Box sx={{ width: 20 }}>
-                  <LinearProgress size={20} />
+                  <LinearProgress sx={{ height: 20 }} />
                 </Box>
               )}
               {!isValidating && (
@@ -463,7 +463,7 @@ const RealTimeValidator: React.FC<RealTimeValidatorProps> = ({
             {suggestions.slice(0, 5).map((suggestion, index) => (
               <ListItem
                 key={index}
-                button
+                component="button"
                 onClick={() => applySuggestion(suggestion)}
                 sx={{ borderRadius: 1, mb: 0.5 }}
               >

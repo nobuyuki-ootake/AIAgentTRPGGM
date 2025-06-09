@@ -209,7 +209,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
             </Typography>
             <Grid container spacing={1}>
               {presets.map((preset) => (
-                <Grid item key={preset.name}>
+                <Grid size={{ xs: 'auto' }} key={preset.name}>
                   <Tooltip title={preset.desc}>
                     <Button
                       variant="outlined"
@@ -227,7 +227,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
 
           {/* 手動設定 */}
           <Grid container spacing={2}>
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <FormControl fullWidth>
                 <InputLabel>ダイス数</InputLabel>
                 <Select
@@ -242,7 +242,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <FormControl fullWidth>
                 <InputLabel>ダイスタイプ</InputLabel>
                 <Select
@@ -261,7 +261,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={4}>
+            <Grid size={{ xs: 4 }}>
               <TextField
                 label="修正値"
                 type="number"
@@ -337,7 +337,7 @@ const DiceRollUI: React.FC<DiceRollUIProps> = ({
             {diceCount <= 3 && diceType !== 100 ? (
               <Grid container spacing={2}>
                 {Array.from({ length: Math.max(1, rollResults.length || diceCount) }, (_, index) => (
-                  <Grid item xs={12 / Math.min(3, diceCount)} key={index}>
+                  <Grid size={{ xs: 12 / Math.min(3, diceCount) }} key={index}>
                     <DiceDisplay
                       diceType={`d${diceType}` as any}
                       result={rollResults[index]}

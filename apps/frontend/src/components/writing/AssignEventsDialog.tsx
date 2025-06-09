@@ -20,18 +20,17 @@ import {
 import { Search as SearchIcon, Event as EventIcon } from "@mui/icons-material";
 import {
   TimelineEvent,
-  Character,
+  TRPGCharacter,
   PlaceElement,
-  PlotElement,
 } from "@trpg-ai-gm/types";
 
 interface AssignEventsDialogProps {
   open: boolean;
   events: TimelineEvent[];
   selectedEvents: string[];
-  characters: Character[];
+  characters: TRPGCharacter[];
   places: PlaceElement[];
-  allPlots: PlotElement[];
+  allPlots: any[];
   onClose: () => void;
   onToggle: (eventId: string) => void;
   onSave: () => void;

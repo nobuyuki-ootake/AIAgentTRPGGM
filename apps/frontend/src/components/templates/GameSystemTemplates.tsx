@@ -64,16 +64,7 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
       secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟ボーナス"]
     },
-    skills: {
-      AgilitySkills: [{ name: "運動", value: 50 }, { name: "軽業", value: 50 }],
-      CommunicationSkills: [{ name: "説得", value: 50 }, { name: "威圧", value: 45 }],
-      KnowledgeSkills: [{ name: "魔法学", value: 50 }, { name: "歴史", value: 45 }],
-      ManipulationSkills: [{ name: "手先の早業", value: 50 }],
-      PerceptionSkills: [{ name: "知覚", value: 60 }, { name: "洞察", value: 55 }],
-      StealthSkills: [{ name: "隠密", value: 50 }],
-      MagicSkills: [],
-      WeaponSkills: []
-    },
+    skills: ["運動", "軽業", "説得", "威圧", "魔法学", "歴史", "手先の早業", "知覚", "洞察", "隠密"],
     characterTemplate: {
       id: "template-dnd5e",
       name: "D&D 5eサンプルキャラクター",
@@ -138,31 +129,35 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
       secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟度"]
     },
-    skills: {
-      AgilitySkills: [{ name: "軽業", value: 50 }, { name: "運動", value: 50 }],
-      CommunicationSkills: [{ name: "外交", value: 50 }, { name: "威圧", value: 45 }],
-      KnowledgeSkills: [{ name: "魔法学", value: 50 }, { name: "学識", value: 50 }],
-      ManipulationSkills: [{ name: "製作", value: 50 }, { name: "盗賊", value: 45 }],
-      PerceptionSkills: [{ name: "知覚", value: 60 }],
-      StealthSkills: [{ name: "潜行", value: 50 }],
-      MagicSkills: [{ name: "呪文学", value: 55 }],
-      WeaponSkills: []
-    },
+    skills: ["軽業", "運動", "外交", "威圧", "魔法学", "学識", "製作", "盗賊", "知覚", "潜行", "呪文学"],
     characterTemplate: {
+      id: "template-pathfinder2e",
+      name: "Pathfinder 2eサンプルキャラクター",
+      characterType: "PC" as const,
+      profession: "ファイター",
+      gender: "男性",
+      age: 25,
+      nation: "人間",
+      religion: "なし",
+      player: "プレイヤー",
+      description: "基本的な戦士キャラクター",
       attributes: {
-        strength: 10,
-        dexterity: 10,
-        constitution: 10,
-        intelligence: 10,
-        wisdom: 10,
-        charisma: 10,
-        hitPoints: { current: 8, max: 8, temp: 0 },
-        armorClass: 10,
-        speed: 25,
-        level: 1,
-        experience: 0,
-        proficiencyBonus: 2,
+        STR: 10,
+        CON: 10,
+        SIZ: 10,
+        INT: 10,
+        POW: 10,
+        DEX: 10,
+        CHA: 10,
       },
+      derived: {
+        HP: 8,
+        MP: 10,
+        SW: 10,
+        RES: 10,
+      },
+      weapons: [],
+      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
       skills: {
         AgilitySkills: [{ name: "運動", value: 50 }],
         CommunicationSkills: [],
@@ -199,31 +194,35 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["STR", "CON", "POW", "DEX", "APP", "SIZ", "INT", "EDU"],
       secondary: ["HP", "MP", "正気度", "幸運"]
     },
-    skills: {
-      AgilitySkills: [{ name: "回避", value: 50 }, { name: "登攀", value: 40 }],
-      CommunicationSkills: [{ name: "言いくるめ", value: 50 }, { name: "説得", value: 45 }],
-      KnowledgeSkills: [{ name: "図書館", value: 60 }, { name: "オカルト", value: 45 }],
-      ManipulationSkills: [{ name: "機械修理", value: 40 }, { name: "電気修理", value: 35 }],
-      PerceptionSkills: [{ name: "目星", value: 65 }, { name: "聞き耳", value: 60 }],
-      StealthSkills: [],
-      MagicSkills: [],
-      WeaponSkills: [{ name: "拳銃", value: 45 }, { name: "ライフル", value: 40 }]
-    },
+    skills: ["回避", "登攀", "言いくるめ", "説得", "図書館", "オカルト", "機械修理", "電気修理", "目星", "聞き耳", "拳銃", "ライフル"],
     characterTemplate: {
+      id: "template-coc7e",
+      name: "CoC 7eサンプル探索者",
+      characterType: "PC" as const,
+      profession: "記者",
+      gender: "男性",
+      age: 28,
+      nation: "アメリカ",
+      religion: "なし",
+      player: "プレイヤー",
+      description: "基本的な探索者キャラクター",
       attributes: {
-        strength: 50,
-        dexterity: 50,
-        constitution: 50,
-        intelligence: 50,
-        wisdom: 50,
-        charisma: 50,
-        hitPoints: { current: 10, max: 10, temp: 0 },
-        armorClass: 0,
-        speed: 0,
-        level: 1,
-        experience: 0,
-        proficiencyBonus: 0,
+        STR: 50,
+        CON: 50,
+        SIZ: 50,
+        INT: 50,
+        POW: 50,
+        DEX: 50,
+        CHA: 50,
       },
+      derived: {
+        HP: 10,
+        MP: 10,
+        SW: 50,
+        RES: 50,
+      },
+      weapons: [],
+      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
       skills: {
         AgilitySkills: [],
         CommunicationSkills: [],
@@ -256,31 +255,35 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["器用度", "敏捷度", "筋力", "生命力", "知力", "精神力"],
       secondary: ["HP", "MP", "生命抵抗力", "精神抵抗力"]
     },
-    skills: {
-      AgilitySkills: [],
-      CommunicationSkills: [{ name: "バード", value: 50 }],
-      KnowledgeSkills: [{ name: "冒険者技能", value: 50 }, { name: "セージ", value: 50 }],
-      ManipulationSkills: [{ name: "マギテック", value: 50 }],
-      PerceptionSkills: [{ name: "スカウト", value: 55 }, { name: "レンジャー", value: 50 }],
-      StealthSkills: [],
-      MagicSkills: [{ name: "ソーサラー", value: 60 }, { name: "プリースト", value: 55 }],
-      WeaponSkills: [{ name: "ファイター", value: 60 }, { name: "シューター", value: 50 }]
-    },
+    skills: ["バード", "冒険者技能", "セージ", "マギテック", "スカウト", "レンジャー", "ソーサラー", "プリースト", "ファイター", "シューター"],
     characterTemplate: {
+      id: "template-sw25",
+      name: "SW2.5サンプルキャラクター",
+      characterType: "PC" as const,
+      profession: "ファイター",
+      gender: "男性",
+      age: 18,
+      nation: "人間",
+      religion: "なし",
+      player: "プレイヤー",
+      description: "基本的な冒険者キャラクター",
       attributes: {
-        strength: 8,
-        dexterity: 8,
-        constitution: 8,
-        intelligence: 8,
-        wisdom: 8,
-        charisma: 8,
-        hitPoints: { current: 15, max: 15, temp: 0 },
-        armorClass: 10,
-        speed: 30,
-        level: 1,
-        experience: 0,
-        proficiencyBonus: 0,
+        STR: 8,
+        CON: 8,
+        SIZ: 8,
+        INT: 8,
+        POW: 8,
+        DEX: 8,
+        CHA: 8,
       },
+      derived: {
+        HP: 15,
+        MP: 8,
+        SW: 8,
+        RES: 8,
+      },
+      weapons: [],
+      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
       skills: {
         AgilitySkills: [],
         CommunicationSkills: [],
@@ -317,31 +320,35 @@ const gameSystemTemplates: GameSystemTemplate[] = [
       primary: ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"],
       secondary: ["HP", "魔法力", "移動力", "技能修正"]
     },
-    skills: {
-      AgilitySkills: [{ name: "回避", value: 55 }, { name: "乗騎", value: 40 }],
-      CommunicationSkills: [{ name: "説得", value: 50 }, { name: "芸術", value: 45 }],
-      KnowledgeSkills: [{ name: "博学", value: 50 }, { name: "言語", value: 45 }],
-      ManipulationSkills: [{ name: "製作", value: 50 }, { name: "工芸", value: 45 }],
-      PerceptionSkills: [{ name: "聞き耳", value: 60 }, { name: "見つける", value: 55 }],
-      StealthSkills: [{ name: "隠密", value: 50 }],
-      MagicSkills: [{ name: "召喚", value: 60 }, { name: "ルーン魔法", value: 55 }],
-      WeaponSkills: [{ name: "近接戦闘", value: 60 }, { name: "飛び道具", value: 50 }]
-    },
+    skills: ["回避", "乗騎", "説得", "芸術", "博学", "言語", "製作", "工芸", "聞き耳", "見つける", "隠密", "召喚", "ルーン魔法", "近接戦闘", "飛び道具"],
     characterTemplate: {
+      id: "template-stormbringer",
+      name: "ストームブリンガーサンプルキャラクター",
+      characterType: "PC" as const,
+      profession: "戦士",
+      gender: "男性",
+      age: 22,
+      nation: "メルニボネ",
+      religion: "混沌",
+      player: "プレイヤー",
+      description: "基本的な冒険者キャラクター",
       attributes: {
-        strength: 10,
-        dexterity: 10,
-        constitution: 10,
-        intelligence: 10,
-        wisdom: 10,
-        charisma: 10,
-        hitPoints: { current: 10, max: 10, temp: 0 },
-        armorClass: 0,
-        speed: 30,
-        level: 1,
-        experience: 0,
-        proficiencyBonus: 0,
+        STR: 10,
+        CON: 10,
+        SIZ: 10,
+        INT: 10,
+        POW: 10,
+        DEX: 10,
+        CHA: 10,
       },
+      derived: {
+        HP: 10,
+        MP: 10,
+        SW: 10,
+        RES: 10,
+      },
+      weapons: [],
+      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
       skills: {
         AgilitySkills: [{ name: "回避", value: 55 }],
         CommunicationSkills: [],
@@ -407,14 +414,14 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
     }
   };
 
-  const getSystemColor = (systemId: string) => {
+  const getSystemColor = (systemId: string): "primary" | "secondary" | "warning" | "success" | "error" | "info" => {
     switch (systemId) {
       case "dnd5e": return "primary";
       case "pathfinder2e": return "secondary";
       case "coc7e": return "warning";
       case "sw25": return "success";
       case "stormbringer": return "error";
-      default: return "default";
+      default: return "primary";
     }
   };
 
@@ -431,7 +438,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
 
       <Grid container spacing={3}>
         {gameSystemTemplates.map((template) => (
-          <Grid item xs={12} md={6} lg={4} key={template.id}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={template.id}>
             <Card 
               sx={{ 
                 height: "100%", 
@@ -542,7 +549,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
               </Alert>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     システムの特徴
                   </Typography>
@@ -555,7 +562,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   </List>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     ダイスシステム
                   </Typography>
@@ -581,7 +588,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   )}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     基本能力値 ({selectedTemplate.stats.primary.length}種類)

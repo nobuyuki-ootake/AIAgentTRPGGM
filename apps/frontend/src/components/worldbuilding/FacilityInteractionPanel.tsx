@@ -65,7 +65,7 @@ export const FacilityInteractionPanel: React.FC<FacilityInteractionPanelProps> =
 
   const handleFacilityAction = (action: string) => {
     if (selectedFacility) {
-      onFacilityAction(selectedFacility.type, action);
+      onFacilityAction(selectedFacility);
       setFacilityDialog(false);
     }
   };

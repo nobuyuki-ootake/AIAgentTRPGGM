@@ -118,7 +118,7 @@ const NPCCard: React.FC<NPCCardProps> = ({
         {/* 基本情報 */}
         <Grid container spacing={1} sx={{ mb: 1 }}>
           {npc.location && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <LocationOn fontSize="small" />
                 場所: {npc.location}
@@ -126,21 +126,21 @@ const NPCCard: React.FC<NPCCardProps> = ({
             </Grid>
           )}
           {npc.profession && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="caption" color="text.secondary">
                 職業: {npc.profession}
               </Typography>
             </Grid>
           )}
           {npc.gender && (
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="caption" color="text.secondary">
                 性別: {npc.gender}
               </Typography>
             </Grid>
           )}
           {npc.age && (
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="caption" color="text.secondary">
                 年齢: {npc.age}歳
               </Typography>

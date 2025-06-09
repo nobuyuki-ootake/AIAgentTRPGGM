@@ -98,13 +98,14 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
   onEventTriggered,
   onEventCreated,
 }) => {
-  const [triggeredEvents, setTriggeredEvents] = useState<ConditionalEvent[]>([]);
+  const [triggeredEvents, setTriggeredEvents] = useState<TimelineEvent[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState<Partial<ConditionalEvent>>({
+  const [newEvent, setNewEvent] = useState<{
+    title?: string;
+    description?: string;
+    triggerConditions?: EventTriggerCondition[];
+  }>({
     triggerConditions: [],
-    triggered: false,
-    preventable: true,
-    severity: "info",
   });
 
   // イベント条件チェック
@@ -155,7 +156,10 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
                 const char = characters.find(c => c.id === condition.characterCondition!.characterId);
                 if (char) {
                   if (condition.characterCondition.health) {
-                    const healthPercentage = (char.stats.hitPoints.current / char.stats.hitPoints.max) * 100;
+                    // TRPGCharacterのderived.HPは単純数値なので、簡易的な判定に変更
+                    const currentHP = char.derived.HP;
+                    const maxHP = char.derived.HP; // 最大値と現在値が同じ場合の仮定
+                    const healthPercentage = (currentHP / maxHP) * 100;
                     if (condition.characterCondition.health === "low" && healthPercentage > 25) return false;
                     if (condition.characterCondition.health === "high" && healthPercentage < 75) return false;
                   }
@@ -213,30 +217,28 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
   const handleCreateEvent = () => {
     if (!newEvent.title || !newEvent.description) return;
 
-    const event: ConditionalEvent = {
+    const event: TimelineEvent = {
       id: `conditional-event-${Date.now()}`,
       title: newEvent.title,
       description: newEvent.description,
-      type: newEvent.type || "encounter",
-      day: currentDay,
-      timeOfDay: "morning",
-      location: currentLocation,
-      characters: [],
-      plotElementId: "",
-      triggerConditions: newEvent.triggerConditions || [],
-      triggered: false,
-      consequenceEvents: [],
-      preventable: newEvent.preventable !== false,
-      severity: newEvent.severity || "info",
+      date: new Date().toISOString(),
+      dayNumber: currentDay,
+      relatedCharacters: [],
+      relatedPlaces: [currentLocation],
+      order: Date.now(),
+      eventType: "other",
     };
 
-    onEventCreated(event);
+    // TimelineEventをConditionalEvent形式に変換
+    const conditionalEvent = {
+      condition: "manual_trigger",
+      event: `${event.title}: ${event.description}`,
+      probability: 100,
+    };
+    onEventCreated(conditionalEvent as any);
     setCreateDialogOpen(false);
     setNewEvent({
       triggerConditions: [],
-      triggered: false,
-      preventable: true,
-      severity: "info",
     });
   };
 
@@ -276,7 +278,7 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
           {triggeredEvents.map(event => (
             <Alert
               key={event.id}
-              severity={getSeverityColor(event.severity) as any}
+              severity="info"
               sx={{ mb: 1 }}
               icon={<EventIcon />}
             >
@@ -286,11 +288,6 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
               <Typography variant="body2">
                 {event.description}
               </Typography>
-              {!event.preventable && (
-                <Typography variant="caption" color="error">
-                  このイベントは回避不可能です
-                </Typography>
-              )}
             </Alert>
           ))}
         </Box>
@@ -370,7 +367,7 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
         <DialogTitle>条件発火イベント作成</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="イベント名"
@@ -379,7 +376,7 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="イベント説明"
@@ -390,37 +387,7 @@ const ConditionalEventSystem: React.FC<ConditionalEventSystemProps> = ({
               />
             </Grid>
 
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>重要度</InputLabel>
-                <Select
-                  value={newEvent.severity || "info"}
-                  label="重要度"
-                  onChange={(e) => setNewEvent({ ...newEvent, severity: e.target.value as any })}
-                >
-                  <MenuItem value="info">情報</MenuItem>
-                  <MenuItem value="warning">警告</MenuItem>
-                  <MenuItem value="danger">危険</MenuItem>
-                  <MenuItem value="critical">緊急</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>回避可能性</InputLabel>
-                <Select
-                  value={newEvent.preventable !== false ? "true" : "false"}
-                  label="回避可能性"
-                  onChange={(e) => setNewEvent({ ...newEvent, preventable: e.target.value === "true" })}
-                >
-                  <MenuItem value="true">回避可能</MenuItem>
-                  <MenuItem value="false">回避不可</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                 <Typography variant="h6">発火条件</Typography>
                 <Button variant="outlined" onClick={addCondition}>

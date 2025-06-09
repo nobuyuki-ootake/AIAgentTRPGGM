@@ -151,7 +151,7 @@ const EnemySelectionPanel: React.FC<EnemySelectionPanelProps> = ({
           </Box>
 
           {/* ステータス表示 */}
-          {enemy.stats && (
+          {enemy.status && (
             <Stack spacing={0.5}>
               {/* HP */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

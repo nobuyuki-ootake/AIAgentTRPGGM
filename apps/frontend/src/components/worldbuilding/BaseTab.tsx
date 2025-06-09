@@ -143,7 +143,7 @@ const BaseTab: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         [parentField]: {
-          ...prev[parentField as keyof typeof prev],
+          ...(prev[parentField as keyof typeof prev] as Record<string, any> || {}),
           [childField]: value,
         },
       }));
@@ -209,7 +209,7 @@ const BaseTab: React.FC = () => {
         id: action.id,
         name: action.name,
         description: action.description,
-        category: action.category,
+        category: action.category as "custom",
         requirements: action.requirements || [],
         effects: action.effects || []
       });
@@ -284,7 +284,7 @@ const BaseTab: React.FC = () => {
       }
     } catch (error) {
       console.error('AI画像生成エラー:', error);
-      setNotificationMessage(`画像生成に失敗しました: ${error.message || 'Unknown error'}`);
+      setNotificationMessage(`画像生成に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setNotificationSeverity('error');
       setShowNotification(true);
     } finally {
@@ -393,7 +393,8 @@ const BaseTab: React.FC = () => {
                           onError={(e) => {
                             // 画像読み込みエラー時の処理
                             e.currentTarget.style.display = "none";
-                            e.currentTarget.nextElementSibling.style.display = "flex";
+                            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (nextElement) nextElement.style.display = "flex";
                           }}
                         />
                       ) : null}
@@ -924,7 +925,8 @@ const BaseTab: React.FC = () => {
                           onError={(e) => {
                             // プレビュー画像読み込みエラー時
                             e.currentTarget.style.display = "none";
-                            e.currentTarget.nextElementSibling.style.display = "flex";
+                            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (nextElement) nextElement.style.display = "flex";
                           }}
                         />
                         <Box

@@ -107,7 +107,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
 
         case "persuade":
           // 説得判定を含む会話
-          const persuadeRoll = rollDice("1d20", "説得判定");
+          const persuadeRoll = await rollDice("1d20", "説得判定");
           addMessage("システム", "system", `説得判定: ${persuadeRoll.total}`);
           await executeAction({
             id: "persuade",
@@ -128,7 +128,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
 
         case "skill_check":
           if (selectedSkill) {
-            const skillRoll = rollDice("1d20", `${selectedSkill}判定`);
+            const skillRoll = await rollDice("1d20", `${selectedSkill}判定`);
             addMessage("システム", "system", `${selectedSkill}判定: ${skillRoll.total}`);
           }
           break;
@@ -227,7 +227,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
         <AccordionDetails>
           <Grid container spacing={2}>
             {availableNPCs.map((npc) => (
-              <Grid item xs={12} md={6} key={npc.id}>
+              <Grid size={{ xs: 12, md: 6 }} key={npc.id}>
                 <Card variant="outlined">
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -311,7 +311,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
           <AccordionDetails>
             <Grid container spacing={2}>
               {otherCharacters.map((character) => (
-                <Grid item xs={12} md={6} key={character.id}>
+                <Grid size={{ xs: 12, md: 6 }} key={character.id}>
                   <Card variant="outlined">
                     <CardContent>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -378,7 +378,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
         <AccordionDetails>
           <Grid container spacing={2}>
             {currentLocation.facilities.inn && (
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined">
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -405,7 +405,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
             )}
 
             {currentLocation.facilities.shops?.map((shop, index) => (
-              <Grid item xs={12} md={4} key={index}>
+              <Grid size={{ xs: 12, md: 4 }} key={index}>
                 <Card variant="outlined">
                   <CardContent>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>

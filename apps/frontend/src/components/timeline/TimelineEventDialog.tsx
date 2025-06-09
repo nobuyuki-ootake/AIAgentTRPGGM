@@ -25,7 +25,6 @@ import {
   TRPGCharacter,
   TimelineEvent,
   CharacterStatus,
-  PlotElement,
   PlaceElement,
   BaseLocation,
   EventResult,
@@ -83,7 +82,7 @@ interface TimelineEventDialogProps {
     newStatuses: CharacterStatus[]
   ) => void;
   definedCharacterStatuses?: CharacterStatus[];
-  allPlots: PlotElement[];
+  allPlots: any[];
   onRelatedPlotsChange: (selectedPlotIds: string[]) => void;
 }
 
@@ -842,7 +841,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                     const character = characters.find((c) => c.id === charId);
                     if (!character) return null;
 
-                    const currentStatuses = character.statuses || [];
+                    const currentStatuses: CharacterStatus[] = []; // TRPGCharacterにstatusesプロパティが存在しないため空配列を使用
                     const postEventStatusesForChar =
                       newEvent.postEventCharacterStatuses?.[charId] || [];
 

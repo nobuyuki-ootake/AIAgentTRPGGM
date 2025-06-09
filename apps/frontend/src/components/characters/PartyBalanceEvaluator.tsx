@@ -147,22 +147,22 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
   // キャラクターの役割を分析
   const analyzeCharacterRole = (character: TRPGCharacter): string[] => {
     const roles: string[] = [];
-    const stats = character.stats;
+    const attributes = character.attributes;
 
-    // 基本ステータスから役割を推定
-    if (stats.constitution > 14 && stats.strength > 12) {
+    // Stormbringerの能力値から役割を推定
+    if (attributes.CON > 14 && attributes.STR > 12) {
       roles.push("tank");
     }
-    if (stats.wisdom > 14 || character.skills?.includes("医術") || character.skills?.includes("治療")) {
-      roles.push("healer");
+    if (attributes.POW > 14) {
+      roles.push("healer", "magic");
     }
-    if (stats.strength > 14 || stats.dexterity > 14) {
+    if (attributes.STR > 14 || attributes.DEX > 14) {
       roles.push("damage");
     }
-    if (stats.intelligence > 14 || stats.charisma > 14) {
+    if (attributes.INT > 14 || attributes.CHA > 14) {
       roles.push("support", "magic");
     }
-    if (stats.dexterity > 12 || character.skills?.includes("隠密") || character.skills?.includes("解錠")) {
+    if (attributes.DEX > 12) {
       roles.push("utility");
     }
 
@@ -259,14 +259,18 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
     }
 
     // シナジー分析
-    const hasTankAndHealer = roleAnalysis.find(r => r.role.id === "tank")?.currentCount > 0 &&
-                            roleAnalysis.find(r => r.role.id === "healer")?.currentCount > 0;
+    const tankRole = roleAnalysis.find(r => r.role.id === "tank");
+    const healerRole = roleAnalysis.find(r => r.role.id === "healer");
+    const hasTankAndHealer = tankRole && healerRole && 
+                            tankRole.currentCount > 0 && healerRole.currentCount > 0;
     if (hasTankAndHealer) {
       synergies.push("タンクとヒーラーの組み合わせで安定した戦闘");
     }
 
-    const hasMagicAndSupport = roleAnalysis.find(r => r.role.id === "magic")?.currentCount > 0 &&
-                              roleAnalysis.find(r => r.role.id === "support")?.currentCount > 0;
+    const magicRole = roleAnalysis.find(r => r.role.id === "magic");
+    const supportRole = roleAnalysis.find(r => r.role.id === "support");
+    const hasMagicAndSupport = magicRole && supportRole &&
+                              magicRole.currentCount > 0 && supportRole.currentCount > 0;
     if (hasMagicAndSupport) {
       synergies.push("魔法使いとサポートで多彩な戦術選択肢");
     }
@@ -283,13 +287,13 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
   }, [characters]);
 
   // 役割状態の色
-  const getRoleStatusColor = (status: RoleAnalysis["status"]) => {
+  const getRoleStatusColor = (status: RoleAnalysis["status"]): "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
     switch (status) {
       case "good": return "success";
       case "adequate": return "info";
       case "lacking": return "error";
       case "excessive": return "warning";
-      default: return "default";
+      default: return "primary";
     }
   };
 
@@ -327,7 +331,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
         </Typography>
         <Grid container spacing={2}>
           {partyAnalysis.roleAnalysis.map((analysis) => (
-            <Grid item xs={12} md={6} key={analysis.role.id}>
+            <Grid size={{ xs: 12, md: 6 }} key={analysis.role.id}>
               <Paper
                 sx={{
                   p: 2,
@@ -370,7 +374,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
       <Grid container spacing={2}>
         {/* 強み */}
         {partyAnalysis.strengths.length > 0 && (
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Alert severity="success" icon={<CheckIcon />}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 パーティの強み
@@ -388,7 +392,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
 
         {/* 弱み */}
         {partyAnalysis.weaknesses.length > 0 && (
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Alert severity="error" icon={<WarningIcon />}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 改善が必要な点
@@ -406,7 +410,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
 
         {/* 推奨事項 */}
         {partyAnalysis.recommendations.length > 0 && (
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Alert severity="info" icon={<InfoIcon />}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 推奨事項
@@ -434,7 +438,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
             <AccordionDetails>
               <Grid container spacing={2}>
                 {partyAnalysis.synergies.length > 0 && (
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1, color: "success.main" }}>
                       シナジー効果
                     </Typography>
@@ -452,7 +456,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
                 )}
 
                 {partyAnalysis.riskFactors.length > 0 && (
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1, color: "warning.main" }}>
                       リスクファクター
                     </Typography>
@@ -488,7 +492,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 2 }}>
                     役割情報
                   </Typography>
@@ -508,7 +512,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 2 }}>
                     現在の状況
                   </Typography>
@@ -535,7 +539,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
                 </Grid>
 
                 {selectedRole.characters.length > 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       該当キャラクター
                     </Typography>
@@ -552,7 +556,7 @@ const PartyBalanceEvaluator: React.FC<PartyBalanceEvaluatorProps> = ({
                 )}
 
                 {selectedRole.recommendations.length > 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       推奨事項
                     </Typography>

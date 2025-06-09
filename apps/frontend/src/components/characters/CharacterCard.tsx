@@ -36,25 +36,19 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
           icon={
             character.characterType === "PC" ? (
               <Person />
-            ) : character.characterType === "NPC" ? (
-              <SmartToy />
             ) : (
-              <Dangerous />
+              <SmartToy />
             )
           }
           label={
             character.characterType === "PC"
               ? "PC"
-              : character.characterType === "NPC"
-              ? "NPC"
-              : "エネミー"
+              : "NPC"
           }
           size="small"
           color={
             character.characterType === "PC"
               ? "primary"
-              : character.characterType === "Enemy"
-              ? "error"
               : "default"
           }
           sx={{ mb: 1 }}
@@ -82,7 +76,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         <Grid container spacing={1} sx={{ mb: 1 }}>
           <Grid size={{ xs: 6 }}>
             <Typography variant="caption" color="text.secondary">
-              レベル: {character.attributes?.level || 1}
+              STR: {character.attributes?.STR || 10}
             </Typography>
           </Grid>
           <Grid size={{ xs: 6 }}>
