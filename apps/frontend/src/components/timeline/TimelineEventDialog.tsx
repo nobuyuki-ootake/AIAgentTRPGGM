@@ -30,6 +30,7 @@ import {
   BaseLocation,
   EventResult,
   Item,
+  EventCondition,
 } from "@trpg-ai-gm/types";
 import { getCharacterIcon, eventTypes } from "./TimelineUtils";
 import moment from "moment";
@@ -74,6 +75,7 @@ interface TimelineEventDialogProps {
   ) => void;
   onCharactersChange: (event: SelectChangeEvent<string[]>) => void;
   onEventResultsChange: (results: EventResult[]) => void;
+  onEventConditionsChange: (conditions: EventCondition[]) => void;
   getCharacterName: (id: string) => string;
   getPlaceName: (id: string) => string;
   onPostEventStatusChange: (
@@ -97,6 +99,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
   onEventChange,
   onCharactersChange,
   onEventResultsChange,
+  onEventConditionsChange,
   getCharacterName,
   getPlaceName,
   onPostEventStatusChange,
@@ -396,6 +399,258 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               disabled={allPlots.length === 0}
             />
           </FormControl>
+
+          {/* イベント発生条件セクション */}
+          <Box component={Paper} variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: 1 }}>
+              イベント発生条件
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              このイベントが発生するために必要な条件を設定します
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            
+            <Stack spacing={2}>
+              {newEvent.conditions && newEvent.conditions.length > 0 ? (
+                newEvent.conditions.map((condition, index) => (
+                  <Box
+                    key={condition.id}
+                    sx={{
+                      p: 2,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      bgcolor: "grey.50",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                      <Typography variant="subtitle2" fontWeight="medium">
+                        条件 #{index + 1}
+                      </Typography>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          const newConditions = newEvent.conditions?.filter((_, i) => i !== index) || [];
+                          onEventConditionsChange(newConditions);
+                        }}
+                      >
+                        削除
+                      </Button>
+                    </Box>
+                    
+                    <Stack spacing={2}>
+                      <FormControl fullWidth>
+                        <InputLabel>条件タイプ</InputLabel>
+                        <Select
+                          value={condition.type}
+                          onChange={(e) => {
+                            const newConditions = [...(newEvent.conditions || [])];
+                            newConditions[index] = { ...condition, type: e.target.value as EventCondition['type'] };
+                            onEventConditionsChange(newConditions);
+                          }}
+                          label="条件タイプ"
+                        >
+                          <MenuItem value="item_required">アイテム所持</MenuItem>
+                          <MenuItem value="flag_required">フラグ条件</MenuItem>
+                          <MenuItem value="character_status">キャラクター状態</MenuItem>
+                          <MenuItem value="location_required">場所条件</MenuItem>
+                          <MenuItem value="quest_completed">クエスト完了</MenuItem>
+                          <MenuItem value="day_range">日数範囲</MenuItem>
+                          <MenuItem value="custom">カスタム条件</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      <TextField
+                        label="条件の説明"
+                        fullWidth
+                        value={condition.description}
+                        onChange={(e) => {
+                          const newConditions = [...(newEvent.conditions || [])];
+                          newConditions[index] = { ...condition, description: e.target.value };
+                          onEventConditionsChange(newConditions);
+                        }}
+                        placeholder="例：「魔法のカギを所持している」「村を救済済み」"
+                      />
+
+                      {condition.type === "item_required" && (
+                        <>
+                          <FormControl fullWidth>
+                            <InputLabel>必要アイテム</InputLabel>
+                            <Select
+                              value={condition.itemId || ""}
+                              onChange={(e) => {
+                                const newConditions = [...(newEvent.conditions || [])];
+                                newConditions[index] = { ...condition, itemId: e.target.value };
+                                onEventConditionsChange(newConditions);
+                              }}
+                              label="必要アイテム"
+                            >
+                              <MenuItem value="">
+                                <em>アイテムを選択</em>
+                              </MenuItem>
+                              {items.filter(item => item.type === 'key_item').map((item) => (
+                                <MenuItem key={item.id} value={item.id}>
+                                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <Chip
+                                      label="キーアイテム"
+                                      size="small"
+                                      color="primary"
+                                      sx={{ mr: 1, minWidth: 80 }}
+                                    />
+                                    {item.name}
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          
+                          <TextField
+                            label="必要数量"
+                            type="number"
+                            fullWidth
+                            value={condition.itemQuantity || 1}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, itemQuantity: parseInt(e.target.value) || 1 };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            inputProps={{ min: 1 }}
+                          />
+                        </>
+                      )}
+
+                      {condition.type === "flag_required" && (
+                        <>
+                          <TextField
+                            label="フラグキー"
+                            fullWidth
+                            value={condition.flagKey || ""}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, flagKey: e.target.value };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            placeholder="例：village_saved, boss_defeated"
+                          />
+                          
+                          <TextField
+                            label="期待値"
+                            fullWidth
+                            value={condition.flagValue || ""}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, flagValue: e.target.value };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            placeholder="例：true, completed, 3"
+                          />
+                        </>
+                      )}
+
+                      {condition.type === "quest_completed" && (
+                        <FormControl fullWidth>
+                          <InputLabel>完了必須クエスト</InputLabel>
+                          <Select
+                            value={condition.questId || ""}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, questId: e.target.value };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            label="完了必須クエスト"
+                          >
+                            <MenuItem value="">
+                              <em>クエストを選択</em>
+                            </MenuItem>
+                            {allPlots.map((plot) => (
+                              <MenuItem key={plot.id} value={plot.id}>
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                  <Chip
+                                    label={plot.questType}
+                                    size="small"
+                                    color={plot.questType === 'メイン' ? 'primary' : 'secondary'}
+                                    sx={{ mr: 1, minWidth: 60 }}
+                                  />
+                                  {plot.title}
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+
+                      {condition.type === "day_range" && (
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <TextField
+                            label="最小日数"
+                            type="number"
+                            value={condition.dayMin || 1}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, dayMin: parseInt(e.target.value) || 1 };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            inputProps={{ min: 1 }}
+                            sx={{ flex: 1 }}
+                          />
+                          <TextField
+                            label="最大日数"
+                            type="number"
+                            value={condition.dayMax || 999}
+                            onChange={(e) => {
+                              const newConditions = [...(newEvent.conditions || [])];
+                              newConditions[index] = { ...condition, dayMax: parseInt(e.target.value) || 999 };
+                              onEventConditionsChange(newConditions);
+                            }}
+                            inputProps={{ min: 1 }}
+                            sx={{ flex: 1 }}
+                          />
+                        </Box>
+                      )}
+
+                      {condition.type === "custom" && (
+                        <TextField
+                          label="カスタム条件"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={condition.customCondition || ""}
+                          onChange={(e) => {
+                            const newConditions = [...(newEvent.conditions || [])];
+                            newConditions[index] = { ...condition, customCondition: e.target.value };
+                            onEventConditionsChange(newConditions);
+                          }}
+                          placeholder="詳細な条件を記述してください"
+                        />
+                      )}
+                    </Stack>
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                  イベント発生条件が設定されていません
+                </Typography>
+              )}
+              
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  const newCondition: EventCondition = {
+                    id: crypto.randomUUID(),
+                    type: "item_required",
+                    description: "",
+                  };
+                  const newConditions = [...(newEvent.conditions || []), newCondition];
+                  onEventConditionsChange(newConditions);
+                }}
+                sx={{ alignSelf: "flex-start" }}
+              >
+                条件を追加
+              </Button>
+            </Stack>
+          </Box>
 
           {/* イベント結果セクション */}
           <Box component={Paper} variant="outlined" sx={{ p: 2 }}>

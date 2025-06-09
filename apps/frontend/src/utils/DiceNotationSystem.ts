@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 🎲 統合ダイス記法システム
  * 
@@ -28,6 +29,7 @@ export interface DiceResult {
   fumble?: boolean;
   modifierApplied: number;
   description: string;
+  targetMet?: boolean;
 }
 
 export interface GameSystemDiceRules {

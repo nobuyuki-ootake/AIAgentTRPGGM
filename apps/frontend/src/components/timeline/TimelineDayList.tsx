@@ -10,12 +10,14 @@ import {
   Divider,
   useTheme,
   IconButton,
+  Button,
 } from "@mui/material";
 import {
   Event as EventIcon,
   Place as PlaceIcon,
   CalendarToday as CalendarIcon,
   Add as AddIcon,
+  Flag as FlagIcon,
 } from "@mui/icons-material";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -36,6 +38,7 @@ interface TimelineDayListProps {
   onDeleteEvent?: (id: string) => void;
   onEventResultClick?: (event: TimelineEvent) => void;
   onAddEventToDay?: (date: string) => void;
+  onClearConditionClick?: () => void;
 }
 
 const TimelineDayList: React.FC<TimelineDayListProps> = ({
@@ -47,6 +50,7 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
   onDeleteEvent,
   onEventResultClick,
   onAddEventToDay,
+  onClearConditionClick,
 }) => {
   const theme = useTheme();
 
@@ -196,6 +200,7 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
           const dayEvents = eventsByDate.get(dayKey) || [];
           const dayNumber = index + 1;
           const formattedDate = validDate.isValid() ? validDate.format("MM月DD日(ddd)") : `${dayNumber}日目`;
+          const isFinalDay = index === dateArray.length - 1;
           
           return (
             <Paper 
@@ -242,19 +247,45 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
                   />
                 </Box>
                 
-                {onAddEventToDay && (
-                  <IconButton
-                    size="small"
-                    onClick={() => onAddEventToDay(dateString)}
-                    sx={{
-                      color: dayEvents.length > 0 
-                        ? theme.palette.primary.contrastText 
-                        : theme.palette.primary.main,
-                    }}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                )}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {onAddEventToDay && (
+                    <IconButton
+                      size="small"
+                      onClick={() => onAddEventToDay(dateString)}
+                      sx={{
+                        color: dayEvents.length > 0 
+                          ? theme.palette.primary.contrastText 
+                          : theme.palette.primary.main,
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  )}
+                  
+                  {isFinalDay && onClearConditionClick && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<FlagIcon />}
+                      onClick={onClearConditionClick}
+                      sx={{
+                        color: dayEvents.length > 0 
+                          ? theme.palette.primary.contrastText 
+                          : theme.palette.primary.main,
+                        borderColor: dayEvents.length > 0 
+                          ? theme.palette.primary.contrastText 
+                          : theme.palette.primary.main,
+                        '&:hover': {
+                          backgroundColor: dayEvents.length > 0 
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : theme.palette.primary.main + '10',
+                        }
+                      }}
+                    >
+                      クリア条件設定
+                    </Button>
+                  )}
+                </Box>
               </Box>
 
               {/* イベントコンテンツエリア */}

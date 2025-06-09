@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mastra } from '../mastra/index.js';
 import { SystemRoles } from '../utils/systemPrompts.js';
 

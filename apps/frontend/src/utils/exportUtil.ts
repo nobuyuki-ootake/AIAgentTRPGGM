@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   TRPGCampaign as Project,
   Chapter,

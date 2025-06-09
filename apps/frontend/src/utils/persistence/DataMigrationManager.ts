@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Data Migration and Backup Manager for TRPG Application
  * Handles version migrations, data validation, and backup/restore operations

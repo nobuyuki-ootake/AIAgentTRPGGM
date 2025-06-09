@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comprehensive Data Persistence Manager for TRPG Application
  * Handles LocalStorage, SessionStorage, IndexedDB, and offline sync

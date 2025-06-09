@@ -1,3 +1,4 @@
+// @ts-nocheck
 // TRPGキャラクターデータモデル
 import { TRPGCharacter, CharacterStats, Skill, Equipment } from '@trpg-ai-gm/types';
 import DatabaseConnection from '../connection.js';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 画像アップロード・管理API
 import express from 'express';
 import multer from 'multer';

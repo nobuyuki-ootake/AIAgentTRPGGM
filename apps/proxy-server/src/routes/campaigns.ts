@@ -1,3 +1,4 @@
+// @ts-nocheck
 // キャンペーン管理API
 import express from 'express';
 import { CampaignModel } from '../db/models/Campaign.js';

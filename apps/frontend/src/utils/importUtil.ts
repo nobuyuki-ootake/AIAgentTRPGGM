@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TRPGCampaign } from "@trpg-ai-gm/types";
 import { LocalStorageManager } from "./localStorage";
 

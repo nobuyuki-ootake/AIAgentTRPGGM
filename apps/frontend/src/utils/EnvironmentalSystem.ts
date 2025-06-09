@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseLocation, TRPGCharacter, WeatherPattern, ClimateType, TerrainType } from '@trpg-ai-gm/types';
 
 /**

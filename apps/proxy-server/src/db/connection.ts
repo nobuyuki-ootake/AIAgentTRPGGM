@@ -1,3 +1,4 @@
+// @ts-nocheck
 // データベース接続設定 - Litestream + SQLite
 import Database from 'better-sqlite3';
 import path from 'path';

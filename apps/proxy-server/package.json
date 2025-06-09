@@ -8,7 +8,9 @@
     "dev": "bash -c 'PID=$(lsof -ti:4001); [ -n \"$PID\" ] && echo \"⚠️ 4001ポート使用中 (PID: $PID) - 停止中...\" && kill -9 $PID && sleep 1; echo \"🚀 プロキシサーバーを4001ポートで起動中...\"; nodemon'",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'ESLint not configured for proxy-server yet'"
   },
   "keywords": [
     "api-proxy",

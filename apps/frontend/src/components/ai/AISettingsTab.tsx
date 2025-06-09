@@ -38,7 +38,7 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({
   const [modelName, setModelName] = useState(
     currentSettings?.modelName ||
       providerModels.find((m) => m.isRecommended)?.id ||
-      (providerModels.length > 0 ? providerModels[0].id : "")
+      (providerModels.length > 0 ? providerModels[0]?.id : "")
   );
   const [temperature, setTemperature] = useState(
     currentSettings?.parameters?.temperature || 0.7
@@ -80,7 +80,7 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({
     setTestResult(null);
 
     try {
-      const success = await onTest(provider, apiKey, modelName);
+      const success = await onTest(provider, apiKey || "", modelName || "");
       setTestResult({
         success,
         message: success
@@ -111,7 +111,7 @@ export const AISettingsTab: React.FC<AISettingsTabProps> = ({
       await onSave({
         provider,
         apiKey,
-        modelName,
+        modelName: modelName || "",
         parameters: {
           temperature,
           maxTokens: Number(maxTokens),

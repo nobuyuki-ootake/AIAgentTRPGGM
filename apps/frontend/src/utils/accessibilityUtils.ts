@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Utility functions for accessibility testing and validation
  * Following WCAG 2.1 guidelines

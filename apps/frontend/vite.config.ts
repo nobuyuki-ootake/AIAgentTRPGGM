@@ -1,5 +1,5 @@
 import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react-swc"; // SWCに変更
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -7,6 +7,18 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+  },
+  esbuild: {
+    // WSL環境での安定性向上
+    keepNames: true,
+    logLevel: 'error',
+    // WSL環境でのプロセス通信問題を回避
+    platform: 'node',
+    target: 'node18'
+  },
+  worker: {
+    // Worker使用を無効化してプロセス間通信エラーを回避
+    format: 'es'
   },
   server: {
     port: 5173,
@@ -19,6 +31,7 @@ export default defineConfig({
     },
     watch: {
       usePolling: true, // WSL環境でのファイル監視改善
+      interval: 300,    // ポーリング間隔を調整
     },
     proxy: {
       "/api": {
@@ -34,5 +47,12 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["@trpg-ai-gm/types"],
+    // WSL環境での安定性向上
+    force: false,
+    esbuildOptions: {
+      // プロセス通信の安定化
+      keepNames: true,
+      target: 'node18'
+    }
   },
 });

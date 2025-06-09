@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from "react";
 import { Box, Container, Button, Typography, Paper } from "@mui/material";
-import { Error as ErrorIcon, Refresh as RefreshIcon, Home as HomeIcon } from "@mui/material/icons";
+import { Error as ErrorIcon, Refresh as RefreshIcon, Home as HomeIcon } from "@mui/icons-material";
 import ErrorDisplay from "../ui/ErrorDisplay";
 
 interface ErrorBoundaryState {

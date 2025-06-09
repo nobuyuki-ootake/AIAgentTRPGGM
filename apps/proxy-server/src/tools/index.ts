@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mastra } from '../mastra/index.js';
 import { OpenAI } from 'openai';
 

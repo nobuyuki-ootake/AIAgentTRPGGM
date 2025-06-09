@@ -1,0 +1,37 @@
+# 開発専用 Docker Compose 設定
+services:
+  # フロントエンド開発サーバー
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
+      target: development
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:4001
+      - VITE_WS_URL=ws://localhost:4001
+      # WSL/esbuild問題の回避
+      - ESBUILD_BINARY_PATH=/usr/local/bin/esbuild
+    volumes:
+      # ソースコードのホットリロード
+      - ./apps/frontend:/app/apps/frontend
+      - ./packages:/app/packages
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # node_modulesはコンテナ内で管理
+      - frontend_node_modules:/app/apps/frontend/node_modules
+      - packages_node_modules:/app/packages/types/node_modules
+    working_dir: /app/apps/frontend
+    command: ["pnpm", "vite", "--host", "0.0.0.0", "--port", "5173"]
+    stdin_open: true
+    tty: true
+
+  # 必要に応じてバックエンドも追加可能
+  # proxy-server-dev:
+  #   # バックエンドの設定
+
+volumes:
+  frontend_node_modules:
+  packages_node_modules:

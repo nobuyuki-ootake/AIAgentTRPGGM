@@ -64,11 +64,11 @@ services:
       - sqlite_data:/data
       - litestream_replicas:/replicas
 
-  # TRPG Frontend (React SPA)
+  # TRPG Frontend (React SPA) - 開発環境
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
       target: development
     ports:
       - "5173:5173"
@@ -76,12 +76,19 @@ services:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:4001
       - VITE_WS_URL=ws://localhost:4001
+      # esbuild問題回避のための環境変数
+      - ESBUILD_BINARY_PATH=/usr/local/bin/esbuild
     volumes:
+      # ソースコードをマウント（ホットリロード対応）
       - ./apps/frontend:/app
+      - ./packages:/app/packages
       - /app/node_modules
       - /app/dist
     depends_on:
       - proxy-server
+    # 開発用の追加設定
+    stdin_open: true
+    tty: true
 
 volumes:
   redis_data:

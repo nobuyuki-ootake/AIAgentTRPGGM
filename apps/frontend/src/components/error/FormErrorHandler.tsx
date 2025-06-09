@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
 import { Box, Typography, Alert, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
-import { Error as ErrorIcon, Warning as WarningIcon } from "@mui/material/icons";
+import { Error as ErrorIcon, Warning as WarningIcon } from "@mui/icons-material";
 
 // Form validation error types
 export interface FormFieldError {
@@ -91,7 +91,7 @@ function formValidationReducer(
       return {
         isValid: true,
         errors: [],
-        touched: new Set(),
+        touched: new Set<string>(),
         submitted: false,
       };
     }
@@ -114,7 +114,7 @@ export const FormValidationProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [state, dispatch] = useReducer(formValidationReducer, {
     isValid: true,
     errors: [],
-    touched: new Set(),
+    touched: new Set<string>(),
     submitted: false,
   });
 

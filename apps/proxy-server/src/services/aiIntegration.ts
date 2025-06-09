@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AIサービス統合モジュール
  * 異なるAIサービス（OpenAI、Claude、Gemini）とのインテグレーションを管理

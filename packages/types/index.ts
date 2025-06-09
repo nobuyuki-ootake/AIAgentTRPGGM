@@ -35,6 +35,7 @@ export interface TRPGCampaign {
   }[];
   imageUrl?: string; // キャンペーン画像
   startingLocation?: StartingLocationInfo; // ゲーム開始時の場所設定
+  clearConditions?: ClearCondition[]; // キャンペーンクリア条件
 }
 
 
@@ -666,6 +667,7 @@ export interface TimelineEvent {
   placeId?: string; // 主要な場所ID
   experienceAwarded?: number;
   results?: EventResult[]; // イベントの結果（アイテム取得、フラグ設定など）
+  conditions?: EventCondition[]; // イベントの発生条件
 }
 
 // イベント結果の型定義
@@ -680,6 +682,46 @@ export interface EventResult {
   metadata?: Record<string, any>; // その他の情報
 }
 
+// イベント発生条件の型定義
+export interface EventCondition {
+  id: string;
+  type: "item_required" | "flag_required" | "character_status" | "location_required" | "quest_completed" | "day_range" | "custom";
+  description: string;
+  itemId?: string; // type が "item_required" の場合
+  itemQuantity?: number; // 必要なアイテム数量（デフォルト1）
+  flagKey?: string; // type が "flag_required" の場合
+  flagValue?: string | number | boolean; // 必要なフラグの値
+  characterId?: string; // type が "character_status" の場合
+  characterStatusId?: string; // 必要なキャラクター状態
+  locationId?: string; // type が "location_required" の場合
+  questId?: string; // type が "quest_completed" の場合
+  dayMin?: number; // type が "day_range" の場合の最小日数
+  dayMax?: number; // type が "day_range" の場合の最大日数
+  customCondition?: string; // type が "custom" の場合の条件説明
+  operator?: "AND" | "OR"; // 複数条件の組み合わせ方法
+}
+
+// キャンペーンクリア条件の型定義
+export interface ClearCondition {
+  id: string;
+  title: string;
+  description: string;
+  type: "item_collection" | "quest_completion" | "character_survival" | "location_reached" | "story_milestone" | "custom";
+  requiredItems?: {
+    itemId: string;
+    itemName: string;
+    quantity: number;
+  }[];
+  requiredQuests?: string[]; // 完了必須のクエストID配列
+  requiredCharacters?: string[]; // 生存必須のキャラクターID配列
+  requiredLocation?: string; // 到達必須の場所ID
+  storyMilestone?: string; // ストーリー上の重要な節目
+  customDescription?: string; // type が "custom" の場合の詳細説明
+  priority: "primary" | "secondary" | "optional"; // クリア条件の重要度
+  successDescription: string; // 条件達成時の説明
+  failureDescription?: string; // 条件未達成時の説明
+}
+
 // アイテムの型定義
 export interface Item {
   id: string;
@@ -690,14 +732,25 @@ export interface Item {
   rarity: ItemRarity;
   value?: number; // 価値（ゴールドなど）
   weight?: number; // 重量
-  imageUrl?: string;
-  isStackable: boolean; // スタック可能か
-  maxStack?: number; // 最大スタック数
-  tags?: string[]; // 検索・フィルター用タグ
-  gameSystemId?: string; // ゲームシステム固有のID
-  customProperties?: Record<string, any>; // カスタムプロパティ
-  createdAt: Date;
-  updatedAt: Date;
+  stackable: boolean; // スタック可能か（isStackableからstackableに統一）
+  maxStack: number; // 最大スタック数
+  usable: boolean; // 使用可能か
+  consumable: boolean; // 消耗品か
+  effects: ItemEffect[]; // アイテム効果
+  attributes: ItemAttribute[]; // アイテム属性
+  requirements: {
+    level: number;
+    stats: Record<string, number>;
+    skills: string[];
+    classes: string[];
+  };
+  equipmentSlot?: EquipmentSlot; // 装備スロット
+  damage?: number; // 攻撃力（武器用）
+  defense?: number; // 防御力（防具用）
+  tags: string[]; // 検索・フィルター用タグ
+  questRelated: boolean; // クエスト関連か
+  tradable: boolean; // 取引可能か
+  destroyable: boolean; // 破棄可能か
 }
 
 // アイテムタイプ
@@ -705,17 +758,33 @@ export type ItemType = "consumable" | "equipment" | "key_item" | "material" | "q
 
 // アイテムカテゴリ
 export type ItemCategory = 
-  // 消耗品
-  | "potion" | "food" | "scroll" | "ammunition"
-  // 装備
-  | "weapon" | "armor" | "accessory" | "shield"
-  // キーアイテム
-  | "story_key" | "dungeon_key" | "quest_objective" | "tool"
-  // その他
-  | "material" | "gem" | "currency" | "misc";
+  | "general" | "weapon" | "armor" | "accessory" | "consumable" 
+  | "material" | "tool" | "book" | "food" | "magic" | "treasure" | "junk";
 
 // アイテムのレアリティ
 export type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "artifact";
+
+// アイテム効果
+export interface ItemEffect {
+  id: string;
+  type: "heal" | "damage" | "buff" | "debuff" | "special";
+  magnitude: number;
+  duration?: number;
+  description: string;
+}
+
+// アイテム属性
+export interface ItemAttribute {
+  id: string;
+  name: string;
+  value: string | number | boolean;
+  description?: string;
+}
+
+// 装備スロット
+export type EquipmentSlot = 
+  | "head" | "body" | "hands" | "feet" | "weapon" | "shield" 
+  | "accessory" | "ring" | "necklace";
 
 // アイテムの入手場所
 export interface ItemLocation {
@@ -741,24 +810,8 @@ export interface ItemRequirement {
   description: string;
 }
 
-// 装備アイテム専用の拡張
-export interface Equipment extends Item {
-  type: "equipment";
-  equipmentType: EquipmentType;
-  stats?: EquipmentStats;
-  enchantments?: Enchantment[];
-  durability?: {
-    current: number;
-    max: number;
-  };
-  requirements?: {
-    level?: number;
-    strength?: number;
-    dexterity?: number;
-    intelligence?: number;
-    class?: string[];
-  };
-}
+// 装備アイテム専用の拡張（削除）
+// Equipment interfaceはItem型で統一する
 
 // 装備タイプ
 export type EquipmentType = 

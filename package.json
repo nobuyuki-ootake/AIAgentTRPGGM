@@ -11,6 +11,8 @@
     "dev": "npx turbo run dev",
     "dev:frontend": "cd apps/frontend && pnpm run dev",
     "dev:proxy": "cd apps/proxy-server && pnpm run dev",
+    "dev:docker": "./scripts/dev-docker.sh",
+    "dev:docker-frontend": "docker compose -f docker-compose.dev.yml up --build frontend-dev",
     "build": "npx turbo run build",
     "build:frontend": "cd apps/frontend && pnpm run build",
     "build:proxy": "cd apps/proxy-server && pnpm run build",
@@ -25,11 +27,33 @@
     "test:e2e": "cd apps/frontend && pnpm run test:e2e",
     "test:e2e:ui": "cd apps/frontend && pnpm run test:e2e:ui",
     "test:trpg-session": "cd apps/frontend && pnpm run test:trpg-session",
-    "test:ai-enhanced": "cd apps/frontend && pnpm run test:ai-enhanced"
+    "test:ai-enhanced": "cd apps/frontend && pnpm run test:ai-enhanced",
+    "typecheck": "npx turbo run typecheck",
+    "typecheck:frontend": "cd apps/frontend && npx tsc --project tsconfig.app.json --noEmit",
+    "typecheck:proxy": "cd apps/proxy-server && npx tsc --noEmit",
+    "typecheck:types": "cd packages/types && npx tsc --noEmit",
+    "precommit-check": "pnpm run typecheck && pnpm run lint && pnpm run build",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
     "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "turbo": "^1.0.0"
+  },
+  "lint-staged": {
+    "apps/frontend/**/*.{ts,tsx}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "apps/proxy-server/**/*.{ts,js}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "packages/types/**/*.ts": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ]
   }
 }

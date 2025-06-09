@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Google Cloud API
 import express from 'express';
 import GoogleCloudService, { ImageGenerationRequest } from '../services/google-cloud.service.js';

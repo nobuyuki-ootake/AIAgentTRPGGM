@@ -45,9 +45,9 @@ const Dice: React.FC<DiceProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.color,
+        backgroundColor: theme.colors[type],
         color: theme.textColor || '#fff',
-        border: `2px solid ${theme.borderColor || theme.color}`,
+        border: `2px solid ${theme.colors[type]}`,
         borderRadius: 2,
         animation: isRolling ? 'roll 0.5s infinite' : 'none',
         '@keyframes roll': {

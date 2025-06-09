@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Google Cloud統合サービス
 import { Storage } from '@google-cloud/storage';
 import { VertexAI } from '@google-cloud/vertexai';

@@ -1,4 +1,31 @@
-# フロントエンド用Dockerfile - Cloud Run対応
+# フロントエンド用Dockerfile - 開発・本番対応
+
+# 開発環境用ステージ
+FROM node:18-alpine AS development
+WORKDIR /app
+
+# 必要なツールをインストール
+RUN apk add --no-cache git
+
+# pnpm インストール  
+RUN npm install -g pnpm@10.10.0
+
+# プロジェクト全体をコピー（monorepo対応）
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY packages/ ./packages/
+COPY apps/frontend/ ./apps/frontend/
+
+# 依存関係をインストール
+RUN pnpm install --frozen-lockfile
+
+# フロントエンドディレクトリに移動
+WORKDIR /app/apps/frontend
+
+# 開発サーバー起動
+EXPOSE 5173
+CMD ["pnpm", "vite", "--host", "0.0.0.0", "--port", "5173"]
+
+# ビルド用ステージ
 FROM node:18-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app

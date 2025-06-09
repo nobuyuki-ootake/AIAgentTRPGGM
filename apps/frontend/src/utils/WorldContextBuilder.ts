@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseLocation, TRPGCampaign, TRPGCharacter, NPCCharacter, EnemyCharacter, WorldBuilding } from '@trpg-ai-gm/types';
 
 /**

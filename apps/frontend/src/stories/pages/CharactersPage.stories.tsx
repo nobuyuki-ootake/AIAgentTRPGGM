@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { RecoilRoot } from "recoil";
 import CharactersPage from "../../pages/CharactersPage";

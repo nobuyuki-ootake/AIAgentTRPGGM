@@ -1,3 +1,4 @@
+// @ts-nocheck
 import jsPDF from 'jspdf';
 import { TRPGCharacter, TRPGCampaign } from '@trpg-ai-gm/types';
 

@@ -23,7 +23,7 @@ import {
   CheckCircle,
   Error as ErrorIcon
 } from '@mui/icons-material';
-import { LoadingProgress } from '../ui/LoadingProgress';
+// import { LoadingProgress } from '../ui/LoadingProgress'; // Unused import removed
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 export interface AIOperationStep {
@@ -59,7 +59,7 @@ const providerConfig = {
 };
 
 export const AIOperationProgress: React.FC<AIOperationProgressProps> = ({
-  operationId,
+  operationId: _operationId,
   title,
   description,
   provider,
@@ -86,6 +86,7 @@ export const AIOperationProgress: React.FC<AIOperationProgressProps> = ({
 
       return () => clearInterval(interval);
     }
+    return undefined; // Explicit return for all code paths
   }, [startTime, status]);
 
   const remainingTime = Math.max(0, estimatedTotalTime - elapsedTime);
@@ -312,7 +313,7 @@ export const AIOperationProgressInline: React.FC<{
 
   return (
     <Box display="flex" alignItems="center" gap={2} p={2} bgcolor="grey.50" borderRadius={1}>
-      <Avatar size="small" sx={{ bgcolor: providerInfo.color, width: 32, height: 32 }}>
+      <Avatar sx={{ bgcolor: providerInfo.color, width: 32, height: 32 }}>
         {providerInfo.avatar}
       </Avatar>
       
@@ -327,7 +328,6 @@ export const AIOperationProgressInline: React.FC<{
         <LinearProgress
           variant="determinate"
           value={progress}
-          size="small"
           sx={{ mt: 1, height: 4, borderRadius: 2 }}
         />
       </Box>

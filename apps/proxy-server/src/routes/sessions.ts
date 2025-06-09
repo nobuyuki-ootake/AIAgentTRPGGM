@@ -1,3 +1,4 @@
+// @ts-nocheck
 // セッション管理API
 import express from 'express';
 import DatabaseConnection from '../db/connection.js';

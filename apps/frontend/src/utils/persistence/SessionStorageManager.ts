@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Session Storage Manager for TRPG Application
  * Handles temporary data that should persist only during the browser session

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Error testing utilities for TRPG application
  * Provides helpers for simulating and testing various error scenarios

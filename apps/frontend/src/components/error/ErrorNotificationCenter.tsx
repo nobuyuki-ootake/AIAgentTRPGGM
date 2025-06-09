@@ -28,7 +28,7 @@ import {
   ExpandLess as ExpandLessIcon,
   Notifications as NotificationsIcon,
   ClearAll as ClearAllIcon,
-} from "@mui/material/icons";
+} from "@mui/icons-material";
 import { useErrorState, ErrorState } from "./ErrorStateManager";
 
 interface ErrorNotificationCenterProps {

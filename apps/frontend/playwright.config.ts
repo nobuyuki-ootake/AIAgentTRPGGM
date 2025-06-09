@@ -58,6 +58,16 @@ export default defineConfig({
       testDir: "./e2e/trpg-core",
       testMatch: "**/*.spec.ts",
     },
+    /* Page tests */
+    {
+      name: "pages",
+      use: { 
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1920, height: 1080 },
+      },
+      testDir: "./e2e/pages",
+      testMatch: "**/*.spec.ts",
+    },
     /* TRPG session-specific tests */
     {
       name: "trpg-session",

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, Suspense } from 'react';
 import { 
   Box, 

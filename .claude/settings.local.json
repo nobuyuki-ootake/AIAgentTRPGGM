@@ -82,7 +82,14 @@
       "mcp__browsermcp__browser_type",
       "mcp__browsermcp__browser_press_key",
       "mcp__browsermcp__browser_wait",
-      "mcp__browsermcp__browser_get_console_logs"
+      "mcp__browsermcp__browser_get_console_logs",
+      "Bash(git restore:*)",
+      "Bash(npx husky init:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker:*)",
+      "Bash(./scripts/check-docker.sh:*)",
+      "Bash(/mnt/c/Users/irure/git/AIAgentTRPGGM/scripts/check-docker.sh:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

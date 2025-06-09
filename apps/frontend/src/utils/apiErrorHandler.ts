@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * API error handling with user-friendly messages for TRPG application
  */

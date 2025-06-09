@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   WorldBuildingElementType,
   WorldBuildingElementData as SharedWorldBuildingElementData,

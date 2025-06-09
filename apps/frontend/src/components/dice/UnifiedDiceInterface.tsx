@@ -138,7 +138,7 @@ export const UnifiedDiceInterface: React.FC<UnifiedDiceInterfaceProps> = ({
         }, 2000);
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       setValidationError(`エラー: ${error instanceof Error ? error.message : 'ダイスロールに失敗しました'}`);
     }
   };
@@ -329,7 +329,7 @@ export const UnifiedDiceInterface: React.FC<UnifiedDiceInterfaceProps> = ({
                 </Typography>
                 <Grid container spacing={1}>
                   {Object.entries(commonChecks).map(([key, value]) => (
-                    <Grid item xs={6} sm={4} key={key}>
+                    <Grid size={{ xs: 6, sm: 4 }} key={key}>
                       <Button
                         variant="outlined"
                         size="small"

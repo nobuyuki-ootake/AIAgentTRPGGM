@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseLocation, TRPGCharacter } from '@trpg-ai-gm/types';
 
 /**

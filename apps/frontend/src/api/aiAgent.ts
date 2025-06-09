@@ -753,20 +753,20 @@ function isWorldBuildingApiResponse(
   const d = data as Record<string, unknown>;
 
   // 基本的な構造をチェック
-  const hasValidStatus = typeof d.status === "string";
-  const hasData = d.data !== undefined; // dataの存在のみチェック（型は問わない）
-  const hasMetadata = typeof d.metadata === "object" && d.metadata !== null;
+  const hasValidStatus = typeof d['status'] === "string";
+  const hasData = d['data'] !== undefined; // dataの存在のみチェック（型は問わない）
+  const hasMetadata = typeof d['metadata'] === "object" && d['metadata'] !== null;
 
   if (!hasValidStatus || !hasData || !hasMetadata) {
     return false;
   }
 
   // metadataの詳細チェック
-  const metadata = d.metadata as Record<string, unknown>;
+  const metadata = d['metadata'] as Record<string, unknown>;
   const hasValidMetadata =
-    typeof metadata.model === "string" &&
-    typeof metadata.processingTime === "number" &&
-    typeof metadata.requestType === "string";
+    typeof metadata['model'] === "string" &&
+    typeof metadata['processingTime'] === "number" &&
+    typeof metadata['requestType'] === "string";
   // formatは必須ではないため削除
 
   return hasValidMetadata;

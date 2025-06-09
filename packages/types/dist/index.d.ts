@@ -16,6 +16,8 @@ export interface TRPGCampaign {
     enemies: EnemyCharacter[];
     npcs: NPCCharacter[];
     bases: BaseLocation[];
+    items: Item[];
+    itemLocations: ItemLocation[];
     rules: CampaignRule[];
     handouts: Handout[];
     feedback: Feedback[];
@@ -31,6 +33,7 @@ export interface TRPGCampaign {
     }[];
     imageUrl?: string;
     startingLocation?: StartingLocationInfo;
+    clearConditions?: ClearCondition[];
 }
 export interface Player {
     id: string;
@@ -514,6 +517,176 @@ export interface SessionEvent {
     placeId?: string;
     experienceAwarded?: number;
     lootGained?: Equipment[];
+}
+export interface TimelineEvent {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    dayNumber?: number;
+    relatedCharacters: string[];
+    relatedPlaces: string[];
+    order: number;
+    eventType?: "battle" | "rest" | "dialogue" | "journey" | "discovery" | "turning_point" | "info" | "mystery" | "setup" | "celebration" | "other";
+    outcome?: "success" | "failure" | "partial" | "ongoing";
+    postEventCharacterStatuses?: {
+        [characterId: string]: CharacterStatus[];
+    };
+    relatedPlotIds?: string[];
+    placeId?: string;
+    experienceAwarded?: number;
+    results?: EventResult[];
+    conditions?: EventCondition[];
+}
+export interface EventResult {
+    id: string;
+    type: "item_gained" | "item_lost" | "flag_set" | "flag_unset" | "condition_met" | "story_progress" | "character_change";
+    description: string;
+    itemId?: string;
+    itemQuantity?: number;
+    flagKey?: string;
+    flagValue?: string | number | boolean;
+    metadata?: Record<string, any>;
+}
+export interface EventCondition {
+    id: string;
+    type: "item_required" | "flag_required" | "character_status" | "location_required" | "quest_completed" | "day_range" | "custom";
+    description: string;
+    itemId?: string;
+    itemQuantity?: number;
+    flagKey?: string;
+    flagValue?: string | number | boolean;
+    characterId?: string;
+    characterStatusId?: string;
+    locationId?: string;
+    questId?: string;
+    dayMin?: number;
+    dayMax?: number;
+    customCondition?: string;
+    operator?: "AND" | "OR";
+}
+export interface ClearCondition {
+    id: string;
+    title: string;
+    description: string;
+    type: "item_collection" | "quest_completion" | "character_survival" | "location_reached" | "story_milestone" | "custom";
+    requiredItems?: {
+        itemId: string;
+        itemName: string;
+        quantity: number;
+    }[];
+    requiredQuests?: string[];
+    requiredCharacters?: string[];
+    requiredLocation?: string;
+    storyMilestone?: string;
+    customDescription?: string;
+    priority: "primary" | "secondary" | "optional";
+    successDescription: string;
+    failureDescription?: string;
+}
+export interface Item {
+    id: string;
+    name: string;
+    description: string;
+    type: ItemType;
+    category: ItemCategory;
+    rarity: ItemRarity;
+    value?: number;
+    weight?: number;
+    stackable: boolean;
+    maxStack: number;
+    usable: boolean;
+    consumable: boolean;
+    effects: ItemEffect[];
+    attributes: ItemAttribute[];
+    requirements: {
+        level: number;
+        stats: Record<string, number>;
+        skills: string[];
+        classes: string[];
+    };
+    equipmentSlot?: EquipmentSlot;
+    damage?: number;
+    defense?: number;
+    tags: string[];
+    questRelated: boolean;
+    tradable: boolean;
+    destroyable: boolean;
+}
+export type ItemType = "consumable" | "equipment" | "key_item" | "material" | "quest_item" | "currency" | "other";
+export type ItemCategory = "general" | "weapon" | "armor" | "accessory" | "consumable" | "material" | "tool" | "book" | "food" | "magic" | "treasure" | "junk";
+export type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "artifact";
+export interface ItemEffect {
+    id: string;
+    type: "heal" | "damage" | "buff" | "debuff" | "special";
+    magnitude: number;
+    duration?: number;
+    description: string;
+}
+export interface ItemAttribute {
+    id: string;
+    name: string;
+    value: string | number | boolean;
+    description?: string;
+}
+export type EquipmentSlot = "head" | "body" | "hands" | "feet" | "weapon" | "shield" | "accessory" | "ring" | "necklace";
+export interface ItemLocation {
+    id: string;
+    itemId: string;
+    locationType: "shop" | "event" | "loot" | "craft" | "reward";
+    locationId: string;
+    locationName: string;
+    availability: ItemAvailability;
+    price?: number;
+    currency?: string;
+    requirements?: ItemRequirement[];
+    notes?: string;
+}
+export type ItemAvailability = "always" | "limited" | "seasonal" | "quest_locked" | "level_locked" | "story_locked";
+export interface ItemRequirement {
+    type: "level" | "quest_complete" | "item_owned" | "flag_set" | "location_discovered";
+    value: string | number;
+    description: string;
+}
+export type EquipmentType = "main_weapon" | "off_weapon" | "two_handed_weapon" | "ranged_weapon" | "helmet" | "chest_armor" | "leg_armor" | "boots" | "gloves" | "ring" | "necklace" | "earring" | "bracelet" | "cloak";
+export interface EquipmentStats {
+    attack?: number;
+    defense?: number;
+    magicAttack?: number;
+    magicDefense?: number;
+    speed?: number;
+    accuracy?: number;
+    evasion?: number;
+    criticalRate?: number;
+    hp?: number;
+    mp?: number;
+    [stat: string]: number | undefined;
+}
+export interface Enchantment {
+    id: string;
+    name: string;
+    description: string;
+    effect: string;
+    magnitude: number;
+    type: "buff" | "debuff" | "special";
+}
+export interface ItemInventory {
+    id: string;
+    ownerId: string;
+    ownerType: "character" | "base" | "party";
+    items: InventoryItem[];
+    capacity?: number;
+    weightLimit?: number;
+    updatedAt: Date;
+}
+export interface InventoryItem {
+    itemId: string;
+    quantity: number;
+    condition?: number;
+    enchantments?: string[];
+    notes?: string;
+    acquiredAt: Date;
+    acquiredFrom?: string;
 }
 export interface CombatEncounter {
     id: string;

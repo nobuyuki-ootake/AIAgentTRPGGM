@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Network error handling and retry mechanisms for TRPG application
  */

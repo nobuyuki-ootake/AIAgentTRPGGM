@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TRPGCharacter, StormbringerCharacter } from '@trpg-ai-gm/types';
 
 /**

@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "tsc -b --watch",
     "build": "tsc -b",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "slate": "^0.112.0"

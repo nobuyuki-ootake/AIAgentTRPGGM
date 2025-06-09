@@ -350,7 +350,7 @@ export class TRPGPerformanceTestSuite {
       const events = TRPGTestDataGenerator.generateTimelineEvents(config.eventCount);
       const locations = TRPGTestDataGenerator.generateLocations(config.locationCount);
 
-      metrics.dataGenerationTime = performance.now() - startTime;
+      metrics['dataGenerationTime'] = performance.now() - startTime;
 
       // Simulate data processing
       const processingStart = performance.now();
@@ -368,11 +368,11 @@ export class TRPGPerformanceTestSuite {
       const sortedEvents = events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       // Process locations and connections
-      const locationGraph = this.buildLocationGraph(locations);
+      this.buildLocationGraph(locations); // Use without assignment to avoid unused variable
 
-      metrics.processingTime = performance.now() - processingStart;
-      metrics.totalTime = performance.now() - startTime;
-      metrics.itemCounts = {
+      metrics['processingTime'] = performance.now() - processingStart;
+      metrics['totalTime'] = performance.now() - startTime;
+      metrics['itemCounts'] = {
         characters: processedCharacters.length,
         npcs: npcs.length,
         enemies: enemies.length,
@@ -381,16 +381,16 @@ export class TRPGPerformanceTestSuite {
       };
 
       // Check for performance warnings
-      if (metrics.totalTime > 5000) {
+      if (metrics['totalTime'] > 5000) {
         warnings.push('Campaign load time exceeded 5 seconds');
       }
-      if (metrics.processingTime > metrics.totalTime * 0.8) {
+      if (metrics['processingTime'] > metrics['totalTime'] * 0.8) {
         warnings.push('Processing time is disproportionately high');
       }
 
       return {
         testName: 'campaign-load',
-        duration: metrics.totalTime,
+        duration: metrics['totalTime'],
         success: true,
         metrics,
         warnings
@@ -478,6 +478,7 @@ export class TRPGPerformanceTestSuite {
           hitPoints: this.calculateHitPoints(character.level, character.stats.constitution),
           proficiencyBonus: Math.ceil(character.level / 4) + 1
         };
+        void computed; // Use computed result for performance testing
         
         renderTimes.push(performance.now() - renderStart);
       }
@@ -520,11 +521,11 @@ export class TRPGPerformanceTestSuite {
       // Test various timeline operations
       const sortingStart = performance.now();
       const sortedEvents = events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      metrics.sortingTime = performance.now() - sortingStart;
+      metrics['sortingTime'] = performance.now() - sortingStart;
 
       const filteringStart = performance.now();
       const filteredEvents = sortedEvents.filter(event => event.participants.length > 2);
-      metrics.filteringTime = performance.now() - filteringStart;
+      metrics['filteringTime'] = performance.now() - filteringStart;
 
       const groupingStart = performance.now();
       const groupedByLocation = sortedEvents.reduce((groups: Record<string, any[]>, event) => {
@@ -533,14 +534,19 @@ export class TRPGPerformanceTestSuite {
         groups[location].push(event);
         return groups;
       }, {});
-      metrics.groupingTime = performance.now() - groupingStart;
+      metrics['groupingTime'] = performance.now() - groupingStart;
 
       const searchStart = performance.now();
       const searchResults = sortedEvents.filter(event => 
         event.title.toLowerCase().includes('event') ||
         event.description.toLowerCase().includes('event')
       );
-      metrics.searchTime = performance.now() - searchStart;
+      metrics['searchTime'] = performance.now() - searchStart;
+
+      // Use results to avoid unused variable warnings
+      void filteredEvents;
+      void groupedByLocation;
+      void searchResults;
 
       const totalTime = performance.now() - startTime;
 
@@ -627,23 +633,26 @@ export class TRPGPerformanceTestSuite {
       }
 
       const midMemory = (performance as any).memory?.usedJSHeapSize || 0;
-      metrics.memoryIncrease = midMemory - initialMemory;
+      metrics['memoryIncrease'] = midMemory - initialMemory;
 
       // Process all data sets
       const processedData = largeDataSets.map(dataset => ({
         characterCount: dataset.characters.length,
-        totalStats: dataset.characters.reduce((sum, char) => 
+        totalStats: dataset.characters.reduce((sum: number, char: any) => 
           sum + Object.values(char.stats).reduce((s: number, stat: any) => s + stat, 0), 0),
         locationConnections: this.buildLocationGraph(dataset.locations)
       }));
 
       const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
       const totalTime = performance.now() - startTime;
+      
+      // Use processed data for memory testing
+      void processedData;
 
       return {
         testName: 'memory-stress-test',
         duration: totalTime,
-        success: metrics.memoryIncrease < 100 * 1024 * 1024, // Less than 100MB increase
+        success: metrics['memoryIncrease'] < 100 * 1024 * 1024, // Less than 100MB increase
         metrics: {
           totalTime,
           initialMemory,

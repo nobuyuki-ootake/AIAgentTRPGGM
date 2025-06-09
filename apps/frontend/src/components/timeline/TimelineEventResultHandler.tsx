@@ -38,8 +38,10 @@ import {
   LocationOn as LocationIcon,
   Group as FactionIcon,
   TrendingUp as ImpactIcon,
+  Inventory as ItemIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
-import { TimelineEvent } from '@trpg-ai-gm/types';
+import { TimelineEvent, Item } from '@trpg-ai-gm/types';
 
 export interface EventResult {
   eventId: string;
@@ -56,6 +58,12 @@ export interface EventResult {
     description: string;
   }[];
   longTermEffects: string[];
+  itemRewards: {
+    itemId: string;
+    itemName: string;
+    quantity: number;
+    condition: 'always' | 'success_only' | 'failure_only' | 'partial_success_only';
+  }[];
   playerInfluenceLevel: number; // 0-100
   notes: string;
 }
@@ -68,6 +76,7 @@ interface TimelineEventResultHandlerProps {
   onGenerateAIResult?: (event: TimelineEvent) => Promise<Partial<EventResult>>;
   availableLocations: Array<{ id: string; name: string }>;
   availableFactions?: Array<{ id: string; name: string }>;
+  availableItems?: Item[];
 }
 
 const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
@@ -78,6 +87,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
   onGenerateAIResult,
   availableLocations,
   availableFactions = [],
+  availableItems = [],
 }) => {
   const [result, setResult] = useState<EventResult>({
     eventId: '',
@@ -90,6 +100,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
     affectedFactions: [],
     worldStateChanges: [],
     longTermEffects: [],
+    itemRewards: [],
     playerInfluenceLevel: 50,
     notes: '',
   });
@@ -97,6 +108,9 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
   const [newPlayerAction, setNewPlayerAction] = useState('');
   const [newConsequence, setNewConsequence] = useState('');
   const [newLongTermEffect, setNewLongTermEffect] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [itemQuantity, setItemQuantity] = useState(1);
+  const [itemCondition, setItemCondition] = useState<'always' | 'success_only' | 'failure_only' | 'partial_success_only'>('always');
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   React.useEffect(() => {
@@ -112,6 +126,7 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
         affectedFactions: [],
         worldStateChanges: [],
         longTermEffects: [],
+        itemRewards: [],
         playerInfluenceLevel: 50,
         notes: '',
       });
@@ -179,11 +194,38 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
     }
   };
 
+  const addItemReward = () => {
+    if (selectedItemId) {
+      const selectedItem = availableItems.find(item => item.id === selectedItemId);
+      if (selectedItem) {
+        setResult(prev => ({
+          ...prev,
+          itemRewards: [...prev.itemRewards, {
+            itemId: selectedItemId,
+            itemName: selectedItem.name,
+            quantity: itemQuantity,
+            condition: itemCondition,
+          }],
+        }));
+        setSelectedItemId('');
+        setItemQuantity(1);
+        setItemCondition('always');
+      }
+    }
+  };
+
   const removeItem = (array: string[], index: number, field: keyof EventResult) => {
     const newArray = array.filter((_, i) => i !== index);
     setResult(prev => ({
       ...prev,
       [field]: newArray,
+    }));
+  };
+
+  const removeItemReward = (index: number) => {
+    setResult(prev => ({
+      ...prev,
+      itemRewards: prev.itemRewards.filter((_, i) => i !== index),
     }));
   };
 
@@ -513,6 +555,112 @@ const TimelineEventResultHandler: React.FC<TimelineEventResultHandlerProps> = ({
                 ) : (
                   <Alert severity="info">
                     世界状態への影響は結果に基づいて自動計算されます
+                  </Alert>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
+
+          {/* アイテム報酬 */}
+          <Grid item xs={12}>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="h6">アイテム報酬 ({result.itemRewards.length})</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ mb: 2 }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>アイテム</InputLabel>
+                        <Select
+                          value={selectedItemId}
+                          onChange={(e) => setSelectedItemId(e.target.value)}
+                          label="アイテム"
+                        >
+                          {availableItems.filter(item => item.type === 'key_item').map((item) => (
+                            <MenuItem key={item.id} value={item.id}>
+                              <ItemIcon sx={{ mr: 1 }} />
+                              {item.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={2}>
+                      <TextField
+                        label="数量"
+                        type="number"
+                        value={itemQuantity}
+                        onChange={(e) => setItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        size="small"
+                        fullWidth
+                        inputProps={{ min: 1 }}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>取得条件</InputLabel>
+                        <Select
+                          value={itemCondition}
+                          onChange={(e) => setItemCondition(e.target.value as typeof itemCondition)}
+                          label="取得条件"
+                        >
+                          <MenuItem value="always">常に</MenuItem>
+                          <MenuItem value="success_only">成功時のみ</MenuItem>
+                          <MenuItem value="partial_success_only">部分成功時のみ</MenuItem>
+                          <MenuItem value="failure_only">失敗時のみ</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={2}>
+                      <Button
+                        onClick={addItemReward}
+                        variant="outlined"
+                        fullWidth
+                        size="small"
+                        startIcon={<AddIcon />}
+                        disabled={!selectedItemId}
+                      >
+                        追加
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+                
+                {result.itemRewards.length > 0 && (
+                  <List dense>
+                    {result.itemRewards.map((reward, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          <ItemIcon />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`${reward.itemName} x${reward.quantity}`}
+                          secondary={`取得条件: ${
+                            reward.condition === 'always' ? '常に' :
+                            reward.condition === 'success_only' ? '成功時のみ' :
+                            reward.condition === 'partial_success_only' ? '部分成功時のみ' :
+                            '失敗時のみ'
+                          }`}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => removeItemReward(index)}
+                        >
+                          削除
+                        </Button>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+                
+                {availableItems.filter(item => item.type === 'key_item').length === 0 && (
+                  <Alert severity="info">
+                    キーアイテムが登録されていません。アイテム管理画面でキーアイテムを登録してください。
                   </Alert>
                 )}
               </AccordionDetails>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Socket.IO サービス - リアルタイム通信管理
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';

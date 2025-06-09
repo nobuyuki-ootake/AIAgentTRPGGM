@@ -1,6 +1,6 @@
 // Error Boundary Components
 export { ErrorBoundary } from './ErrorBoundary';
-export { TRPGErrorBoundary } from './TRPGErrorBoundary';
+export { default as TRPGErrorBoundary } from './TRPGErrorBoundary';
 export { AsyncErrorBoundary, useAsyncError, useAsyncErrorHandler } from './AsyncErrorBoundary';
 
 // Error State Management
@@ -51,6 +51,8 @@ export {
 } from '../../utils/apiErrorHandler';
 
 // Error Handling Hook for Components
+import { useErrorState, useTRPGErrorHandler } from './ErrorStateManager';
+
 export const useErrorHandling = () => {
   const errorState = useErrorState();
   const trpgHandler = useTRPGErrorHandler();
@@ -77,6 +79,8 @@ export const setupGlobalErrorHandling = () => {
 };
 
 // Error Boundary HOC for easy wrapping
+import { ErrorBoundary } from './ErrorBoundary';
+
 export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryProps?: {
@@ -95,6 +99,8 @@ export const withErrorBoundary = <P extends object>(
 };
 
 // TRPG Error Boundary HOC
+import TRPGErrorBoundary from './TRPGErrorBoundary';
+
 export const withTRPGErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   section: 'campaign' | 'character' | 'timeline' | 'worldbuilding' | 'session' | 'dice' | 'ai',

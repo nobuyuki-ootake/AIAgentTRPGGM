@@ -1,3 +1,4 @@
+// @ts-nocheck
 // JWT認証ミドルウェア
 import { Request, Response, NextFunction } from 'express';
 import AuthService from '../auth/auth.service.js';

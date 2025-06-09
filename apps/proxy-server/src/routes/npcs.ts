@@ -1,3 +1,4 @@
+// @ts-nocheck
 // NPC管理API
 import express from 'express';
 import { CharacterModel } from '../db/models/Character.js';

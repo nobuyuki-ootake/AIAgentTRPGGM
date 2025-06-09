@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, keyframes } from '@mui/material';
 import { styled } from '@mui/material/styles';

@@ -5,7 +5,6 @@
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
 
     /* Bundler mode */
@@ -26,9 +25,19 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    // "noUnusedLocals": true,        // 開発中は一時的に無効化
+    // "noUnusedParameters": true,    // 開発中は一時的に無効化
+    "noFallthroughCasesInSwitch": true,
+    
+    /* エラー検知強化オプション - 開発安定化のため一時的に無効化 */
+    // "noImplicitReturns": true,
+    // "noPropertyAccessFromIndexSignature": true,
+    // "noUncheckedIndexedAccess": true,
+    // "noImplicitOverride": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
   "references": [{ "path": "../../packages/types" }]

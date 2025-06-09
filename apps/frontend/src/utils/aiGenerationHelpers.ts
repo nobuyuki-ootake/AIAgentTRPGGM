@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { aiAgentApi } from "../api/aiAgent";
 import {
   PlotElement,

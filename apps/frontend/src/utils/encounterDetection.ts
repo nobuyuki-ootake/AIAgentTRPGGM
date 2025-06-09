@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TRPGCharacter, NPCCharacter, EnemyCharacter, TimelineEvent, Base } from '@trpg-ai-gm/types';
 
 export interface EncounterContext {

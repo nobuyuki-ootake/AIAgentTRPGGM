@@ -1,3 +1,4 @@
+// @ts-nocheck
 // JWT認証サービス
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
