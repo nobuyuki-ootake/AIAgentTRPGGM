@@ -52,14 +52,18 @@ interface QuestObjective {
 }
 
 interface EnhancedQuest extends QuestElement {
-  prerequisites: string[]; // 前提クエスト
-  rewards: {
+  // QuestElementから継承される基本プロパティ
+  // difficulty: 1 | 2 | 3 | 4 | 5 (継承)
+  // prerequisites?: string[] (継承)
+  
+  // 拡張プロパティ
+  objectives: QuestObjective[];
+  detailedRewards: {
     experience: number;
     items: string[];
     gold: number;
     reputation?: string;
   };
-  objectives: QuestObjective[];
   discoveryConditions: {
     npcId?: string;
     location?: string;
@@ -70,7 +74,9 @@ interface EnhancedQuest extends QuestElement {
     days: number;
     consequences?: string;
   };
-  difficulty: "easy" | "medium" | "hard" | "legendary";
+  priority: "low" | "medium" | "high";
+  giver: string;
+  notes: string;
 }
 
 const QuestPage: React.FC = () => {
@@ -84,14 +90,16 @@ const QuestPage: React.FC = () => {
   const [formData, setFormData] = useState<Partial<EnhancedQuest>>({
     title: "",
     description: "",
-    status: "hidden" as QuestStatus,
+    status: "未開始",
+    questType: "サブ",
+    difficulty: 2, // 1=簡単, 5=非常に困難
+    order: 0,
     priority: "medium",
     giver: "",
     notes: "",
     objectives: [],
-    rewards: { experience: 0, items: [], gold: 0 },
+    detailedRewards: { experience: 0, items: [], gold: 0 },
     discoveryConditions: { questboardAvailable: false },
-    difficulty: "medium",
     prerequisites: [],
   });
 
@@ -100,11 +108,13 @@ const QuestPage: React.FC = () => {
     if (currentCampaign?.plot) {
       const enhancedQuests: EnhancedQuest[] = currentCampaign.plot.map((quest: any) => ({
         ...quest,
-        prerequisites: [],
-        rewards: { experience: 100, items: [], gold: 50 },
+        prerequisites: quest.prerequisites || [],
+        detailedRewards: { experience: 100, items: [], gold: 50 },
         objectives: [],
         discoveryConditions: { questboardAvailable: true },
-        difficulty: "medium" as const,
+        priority: "medium" as const,
+        giver: "",
+        notes: "",
       }));
       setQuests(enhancedQuests);
     }
@@ -120,10 +130,15 @@ const QuestPage: React.FC = () => {
         id: quest.id,
         title: quest.title,
         description: quest.description,
+        order: quest.order,
         status: quest.status,
-        priority: quest.priority,
-        giver: quest.giver,
-        notes: quest.notes || "",
+        questType: quest.questType,
+        difficulty: quest.difficulty,
+        rewards: quest.rewards,
+        prerequisites: quest.prerequisites,
+        sessionId: quest.sessionId,
+        relatedCharacterIds: quest.relatedCharacterIds,
+        relatedPlaceIds: quest.relatedPlaceIds,
       })),
       updatedAt: new Date(),
     };
@@ -140,15 +155,22 @@ const QuestPage: React.FC = () => {
       id: `quest-${Date.now()}`,
       title: formData.title || "",
       description: formData.description || "",
-      status: formData.status || "hidden",
+      order: quests.length,
+      status: formData.status || "未開始",
+      questType: formData.questType || "サブ",
+      difficulty: formData.difficulty || 2,
+      rewards: [],
+      prerequisites: formData.prerequisites || [],
+      sessionId: undefined,
+      relatedCharacterIds: [],
+      relatedPlaceIds: [],
+      // Enhanced properties
+      objectives: formData.objectives || [],
+      detailedRewards: formData.detailedRewards || { experience: 100, items: [], gold: 50 },
+      discoveryConditions: formData.discoveryConditions || { questboardAvailable: true },
       priority: formData.priority || "medium",
       giver: formData.giver || "",
-      rewards: formData.rewards || { experience: 100, items: [], gold: 50 },
-      objectives: formData.objectives || [],
       notes: formData.notes || "",
-      prerequisites: formData.prerequisites || [],
-      discoveryConditions: formData.discoveryConditions || { questboardAvailable: true },
-      difficulty: formData.difficulty || "medium",
     };
 
     const updatedQuests = [...quests, newQuest];
@@ -206,14 +228,16 @@ const QuestPage: React.FC = () => {
     setFormData({
       title: "",
       description: "",
-      status: "hidden" as QuestStatus,
+      status: "未開始",
+      questType: "サブ",
+      difficulty: 2,
+      order: 0,
       priority: "medium",
       giver: "",
       notes: "",
       objectives: [],
-      rewards: { experience: 100, items: [], gold: 50 },
+      detailedRewards: { experience: 100, items: [], gold: 50 },
       discoveryConditions: { questboardAvailable: false },
-      difficulty: "medium",
       prerequisites: [],
     });
   };
@@ -228,30 +252,32 @@ const QuestPage: React.FC = () => {
   // フィルター済みクエスト
   const filteredQuests = quests.filter(quest => {
     if (questFilter === "all") return true;
-    if (questFilter === "available") return quest.status === "available" || quest.status === "hidden";
-    if (questFilter === "active") return quest.status === "active";
-    if (questFilter === "completed") return quest.status === "completed";
+    if (questFilter === "available") return quest.status === "未開始";
+    if (questFilter === "active") return quest.status === "進行中";
+    if (questFilter === "completed") return quest.status === "完了";
     return true;
   });
 
   // ステータス色の取得
-  const getStatusColor = (status: QuestStatus) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "hidden": return "default";
-      case "available": return "primary";
-      case "active": return "warning";
-      case "completed": return "success";
+      case "未開始": return "default";
+      case "進行中": return "warning";
+      case "完了": return "success";
+      case "失敗": return "error";
+      case "保留": return "info";
       default: return "default";
     }
   };
 
   // 難易度色の取得
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: number) => {
     switch (difficulty) {
-      case "easy": return "success";
-      case "medium": return "warning";
-      case "hard": return "error";
-      case "legendary": return "secondary";
+      case 1: return "success"; // 簡単
+      case 2: return "info";    // 普通
+      case 3: return "warning"; // 中程度
+      case 4: return "error";   // 困難
+      case 5: return "secondary"; // 非常に困難
       default: return "default";
     }
   };
@@ -347,10 +373,10 @@ const QuestPage: React.FC = () => {
                   <strong>報酬:</strong>
                 </Typography>
                 <Stack direction="row" spacing={1}>
-                  <Chip label={`EXP: ${quest.rewards.experience}`} size="small" />
-                  <Chip label={`ゴールド: ${quest.rewards.gold}`} size="small" />
-                  {quest.rewards.items.length > 0 && (
-                    <Chip label={`アイテム: ${quest.rewards.items.length}個`} size="small" />
+                  <Chip label={`EXP: ${quest.detailedRewards.experience}`} size="small" />
+                  <Chip label={`ゴールド: ${quest.detailedRewards.gold}`} size="small" />
+                  {quest.detailedRewards.items.length > 0 && (
+                    <Chip label={`アイテム: ${quest.detailedRewards.items.length}個`} size="small" />
                   )}
                 </Stack>
               </Box>
@@ -399,22 +425,22 @@ const QuestPage: React.FC = () => {
                 <Stack direction="row" spacing={1}>
                   <Button
                     size="small"
-                    variant={quest.status === "available" ? "contained" : "outlined"}
-                    onClick={() => handleStatusChange(quest.id, "available")}
+                    variant={quest.status === "未開始" ? "contained" : "outlined"}
+                    onClick={() => handleStatusChange(quest.id, "未開始")}
                   >
                     利用可能
                   </Button>
                   <Button
                     size="small"
-                    variant={quest.status === "active" ? "contained" : "outlined"}
-                    onClick={() => handleStatusChange(quest.id, "active")}
+                    variant={quest.status === "進行中" ? "contained" : "outlined"}
+                    onClick={() => handleStatusChange(quest.id, "進行中")}
                   >
                     進行中
                   </Button>
                   <Button
                     size="small"
-                    variant={quest.status === "completed" ? "contained" : "outlined"}
-                    onClick={() => handleStatusChange(quest.id, "completed")}
+                    variant={quest.status === "完了" ? "contained" : "outlined"}
+                    onClick={() => handleStatusChange(quest.id, "完了")}
                   >
                     完了
                   </Button>
@@ -462,14 +488,15 @@ const QuestPage: React.FC = () => {
                 <FormControl fullWidth>
                   <InputLabel>初期ステータス</InputLabel>
                   <Select
-                    value={formData.status || "hidden"}
+                    value={formData.status || "未開始"}
                     label="初期ステータス"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as QuestStatus })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <MenuItem value="hidden">非表示</MenuItem>
-                    <MenuItem value="available">利用可能</MenuItem>
-                    <MenuItem value="active">進行中</MenuItem>
-                    <MenuItem value="completed">完了</MenuItem>
+                    <MenuItem value="未開始">未開始</MenuItem>
+                    <MenuItem value="進行中">進行中</MenuItem>
+                    <MenuItem value="完了">完了</MenuItem>
+                    <MenuItem value="失敗">失敗</MenuItem>
+                    <MenuItem value="保留">保留</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -477,14 +504,15 @@ const QuestPage: React.FC = () => {
                 <FormControl fullWidth>
                   <InputLabel>難易度</InputLabel>
                   <Select
-                    value={formData.difficulty || "medium"}
+                    value={formData.difficulty || 2}
                     label="難易度"
-                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, difficulty: Number(e.target.value) as 1 | 2 | 3 | 4 | 5 })}
                   >
-                    <MenuItem value="easy">簡単</MenuItem>
-                    <MenuItem value="medium">普通</MenuItem>
-                    <MenuItem value="hard">困難</MenuItem>
-                    <MenuItem value="legendary">伝説</MenuItem>
+                    <MenuItem value={1}>簡単 (1)</MenuItem>
+                    <MenuItem value={2}>普通 (2)</MenuItem>
+                    <MenuItem value={3}>中程度 (3)</MenuItem>
+                    <MenuItem value={4}>困難 (4)</MenuItem>
+                    <MenuItem value={5}>非常に困難 (5)</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -506,10 +534,10 @@ const QuestPage: React.FC = () => {
                   fullWidth
                   label="経験値"
                   type="number"
-                  value={formData.rewards?.experience || 0}
+                  value={formData.detailedRewards?.experience || 0}
                   onChange={(e) => setFormData({
                     ...formData,
-                    rewards: { ...formData.rewards!, experience: parseInt(e.target.value) || 0 }
+                    detailedRewards: { ...formData.detailedRewards!, experience: parseInt(e.target.value) || 0 }
                   })}
                 />
               </Grid>
@@ -518,10 +546,10 @@ const QuestPage: React.FC = () => {
                   fullWidth
                   label="ゴールド"
                   type="number"
-                  value={formData.rewards?.gold || 0}
+                  value={formData.detailedRewards?.gold || 0}
                   onChange={(e) => setFormData({
                     ...formData,
-                    rewards: { ...formData.rewards!, gold: parseInt(e.target.value) || 0 }
+                    detailedRewards: { ...formData.detailedRewards!, gold: parseInt(e.target.value) || 0 }
                   })}
                 />
               </Grid>
@@ -529,11 +557,11 @@ const QuestPage: React.FC = () => {
                 <TextField
                   fullWidth
                   label="アイテム (カンマ区切り)"
-                  value={formData.rewards?.items?.join(", ") || ""}
+                  value={formData.detailedRewards?.items?.join(", ") || ""}
                   onChange={(e) => setFormData({
                     ...formData,
-                    rewards: { 
-                      ...formData.rewards!, 
+                    detailedRewards: { 
+                      ...formData.detailedRewards!, 
                       items: e.target.value.split(",").map(item => item.trim()).filter(item => item)
                     }
                   })}

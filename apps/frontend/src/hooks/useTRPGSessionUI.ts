@@ -1074,9 +1074,9 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
     setUIState((prev) => ({
       ...prev,
       lastDiceResult: {
-        result: result.total,
-        notation: `${result.skillName} 判定`,
-        details: `${result.skillName}: ${result.total} (${
+        result: result.value,
+        notation: `スキル判定`,
+        details: `スキル判定: ${result.value} (${
           result.success ? "成功" : "失敗"
         })`,
       },
@@ -1089,9 +1089,9 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
     setUIState((prev) => ({
       ...prev,
       lastDiceResult: {
-        result: result.total,
-        notation: `${result.powerName} 判定`,
-        details: `${result.powerName}: ${result.total} (${
+        result: result.powerLevel,
+        notation: `パワー判定`,
+        details: `パワー判定: ${result.powerLevel} (${
           result.success ? "成功" : "失敗"
         })`,
       },

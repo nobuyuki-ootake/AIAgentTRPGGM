@@ -17,6 +17,7 @@ import {
   GameSession,
   TRPGCampaign,
   SessionEvent,
+  TimelineEvent,
 } from "@trpg-ai-gm/types";
 import { currentChapterSelector } from "../store/selectors";
 import { currentChapterIdState } from "../store/atoms";
@@ -64,7 +65,25 @@ export const useWriting = () => {
   const [currentPageInEditor, setCurrentPageInEditor] = useState(1);
   const [totalPagesInEditor, setTotalPagesInEditor] = useState(1);
 
-  const timelineEvents: SessionEvent[] = currentProject?.timeline || [];
+  const mapEventType = (sessionEventType: string): TimelineEvent['eventType'] => {
+    switch (sessionEventType) {
+      case 'combat': return 'battle';
+      case 'roleplay': return 'dialogue';
+      case 'exploration': return 'journey';
+      case 'puzzle': return 'mystery';
+      case 'social': return 'dialogue';
+      case 'discovery': return 'discovery';
+      case 'rest': return 'rest';
+      default: return 'other';
+    }
+  };
+
+  const timelineEvents: TimelineEvent[] = (currentProject?.timeline || []).map(sessionEvent => ({
+    ...sessionEvent,
+    date: new Date().toISOString(),
+    dayNumber: sessionEvent.sessionDay,
+    eventType: mapEventType(sessionEvent.eventType),
+  }));
 
   useEffect(() => {
     console.log("Current project timeline:", currentProject?.timeline);
@@ -110,7 +129,7 @@ export const useWriting = () => {
       console.log("Chapter content to load:", currentChapter.content);
 
       // React stateを更新
-      setEditorValue(currentChapter.content);
+      setEditorValue(currentChapter.content || []);
       setCurrentPageInEditor(1);
 
       // エディタを再作成して新しい内容を表示
@@ -205,14 +224,42 @@ export const useWriting = () => {
       status: "planned" as const,
       currentState: {
         currentDay: 1,
-        currentTime: 12,
-        timeOfDay: "noon" as const,
-        dayStatus: "active" as const
+        currentTimeOfDay: "noon" as const,
+        actionCount: 0,
+        maxActionsPerDay: 6,
+        currentLocation: "",
+        currentLocationId: "",
+        activeCharacter: "",
+        partyLocation: {
+          groupLocation: "",
+          memberLocations: {},
+          movementHistory: [],
+        },
+        partyStatus: "exploring" as const,
+        activeEvents: [],
+        completedEvents: [],
+        triggeredEvents: [],
       },
       spatialTracking: {
-        trackedLocations: [],
-        movementHistory: [],
-        currentLocation: null
+        currentPositions: {
+          players: {},
+          npcs: {},
+          enemies: {},
+        },
+        collisionDetection: {
+          enableSpatialCollision: true,
+          enableTemporalCollision: true,
+          collisionRadius: 10,
+          timeWindow: 30,
+          automaticEncounters: true,
+          encounterProbability: {
+            npc: 0.3,
+            enemy: 0.2,
+            event: 0.1,
+          },
+        },
+        definedAreas: [],
+        encounterRules: [],
       },
       encounterHistory: []
     };

@@ -54,7 +54,7 @@ const PlotPageContent: React.FC = () => {
   // AIアシスト機能の統合
   const handleOpenAIAssist = async (): Promise<void> => {
     openAIAssist(
-      "quest",
+      "plot",
       {
         title: "TRPGクエスト作成アシスタント",
         description:
@@ -118,10 +118,13 @@ ${(currentProject as TRPGCampaign)?.synopsis || "（キャンペーン設定が�
         >
           <Stack direction="row" spacing={2}>
             <Typography variant="body2" color="text.secondary">
-              未実施: {countByStatus["検討中"] || 0}
+              未開始: {countByStatus["未開始"] || 0}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              完了: {countByStatus["決定"] || 0}
+              進行中: {countByStatus["進行中"] || 0}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              完了: {countByStatus["完了"] || 0}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               合計: {plotItems.length}
@@ -147,7 +150,7 @@ ${(currentProject as TRPGCampaign)?.synopsis || "（キャンペーン設定が�
                   title: "",
                   description: "",
                   order: plotItems.length,
-                  status: "検討中",
+                  status: "未開始",
                 });
               }}
             >
@@ -240,11 +243,14 @@ ${(currentProject as TRPGCampaign)?.synopsis || "（キャンペーン設定が�
                 value={editItemStatus}
                 label="ステータス"
                 onChange={(e) =>
-                  setEditItemStatus(e.target.value as "検討中" | "決定")
+                  setEditItemStatus(e.target.value as "未開始" | "進行中" | "完了" | "失敗" | "保留")
                 }
               >
-                <MenuItem value="検討中">未実施</MenuItem>
-                <MenuItem value="決定">完了</MenuItem>
+                <MenuItem value="未開始">未開始</MenuItem>
+                <MenuItem value="進行中">進行中</MenuItem>
+                <MenuItem value="完了">完了</MenuItem>
+                <MenuItem value="失敗">失敗</MenuItem>
+                <MenuItem value="保留">保留</MenuItem>
               </Select>
             </FormControl>
           </Box>

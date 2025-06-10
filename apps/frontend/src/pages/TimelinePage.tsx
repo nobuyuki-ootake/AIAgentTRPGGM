@@ -396,7 +396,7 @@ const TimelinePage: React.FC = () => {
       if (handleUpdateEventLocationAndDate) {
         handleUpdateEventLocationAndDate(
           originalEventId,
-          targetPlaceId,
+          targetPlaceId || "",
           finalDate
         );
         console.log(
@@ -429,7 +429,7 @@ const TimelinePage: React.FC = () => {
         // 場所IDは既存のものを保持し、日付のみ更新
         handleUpdateEventLocationAndDate(
           originalEventId,
-          draggedEventData.placeId, // 既存の場所IDを保持
+          draggedEventData.placeId || "", // 既存の場所IDを保持
           finalDate
         );
         console.log(

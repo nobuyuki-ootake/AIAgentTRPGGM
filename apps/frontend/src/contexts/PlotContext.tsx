@@ -14,7 +14,7 @@ interface PlotContextType {
   newItemDescription: string;
   editItemTitle: string;
   editItemDescription: string;
-  editItemStatus: "検討中" | "決定";
+  editItemStatus: "未開始" | "進行中" | "完了" | "失敗" | "保留";
   isDialogOpen: boolean;
   hasUnsavedChanges: boolean;
   snackbarOpen: boolean;
@@ -25,7 +25,7 @@ interface PlotContextType {
   setNewItemDescription: (desc: string) => void;
   setEditItemTitle: (title: string) => void;
   setEditItemDescription: (desc: string) => void;
-  setEditItemStatus: React.Dispatch<React.SetStateAction<"検討中" | "決定">>;
+  setEditItemStatus: React.Dispatch<React.SetStateAction<"未開始" | "進行中" | "完了" | "失敗" | "保留">>;
   setPlotItems: React.Dispatch<React.SetStateAction<any[]>>;
   setHasUnsavedChanges: React.Dispatch<React.SetStateAction<boolean>>;
   handleAddItem: () => void;
@@ -36,7 +36,7 @@ interface PlotContextType {
   handleDragEnd: (result: DropResult) => void;
   handleStatusChange: (
     id: string,
-    event: SelectChangeEvent<"検討中" | "決定">
+    event: SelectChangeEvent<"未開始" | "進行中" | "完了" | "失敗" | "保留">
   ) => void;
   handleSave: () => void;
   handleCloseSnackbar: () => void;

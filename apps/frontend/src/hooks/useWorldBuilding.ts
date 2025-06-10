@@ -1,13 +1,12 @@
 import { useState } from "react";
-
-import { Base } from "../components/worldbuilding/BaseTab";
+import { BaseLocation } from "@trpg-ai-gm/types";
 
 export function useWorldBuilding() {
   const [tabValue, setTabValue] = useState(0);
   const [updatedTabs, setUpdatedTabs] = useState<{ [key: number]: boolean }>(
     {}
   );
-  const [bases, setBases] = useState<Base[]>([]);
+  const [bases, setBases] = useState<BaseLocation[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // const [snackbarOpen, setSnackbarOpen] = useState(false);
   // const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -31,7 +30,7 @@ export function useWorldBuilding() {
     places: [],
     freeFields: [],
     bases,
-    setBases: (newBases: Base[]) => {
+    setBases: (newBases: BaseLocation[]) => {
       setBases(newBases);
       setHasUnsavedChanges(true);
       markTabAsUpdated(10); // 拠点タブのindex

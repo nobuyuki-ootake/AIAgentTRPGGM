@@ -3,11 +3,11 @@ import { TRPGCampaign, BaseLocation } from "@trpg-ai-gm/types";
 /**
  * 空のキャンペーンデータのデフォルト値を生成
  */
-export const createEmptyCampaign = (name: string = "新しいキャンペーン"): TRPGCampaign => {
+export const createEmptyCampaign = (title: string = "新しいキャンペーン"): TRPGCampaign => {
   return {
     id: crypto.randomUUID(),
-    name,
-    description: "",
+    title,
+    synopsis: "",
     
     // キャラクター関連
     characters: [],
@@ -41,7 +41,6 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
     },
     
     // ストーリー関連
-    synopsis: "",
     plot: [],
     
     // タイムライン関連
@@ -53,15 +52,20 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
     // 画像・アセット
     imageUrl: "",
     
+    // その他の必須プロパティ
+    gameSystem: "オリジナル",
+    gamemaster: "",
+    players: [],
+    bases: [],
+    items: [],
+    itemLocations: [],
+    rules: [],
+    handouts: [],
+    feedback: [],
+    
     // その他のメタデータ
     createdAt: new Date(),
     updatedAt: new Date(),
-    
-    // 書籍データ（空）
-    chapters: [],
-    
-    // 拠点（アクセス用）
-    bases: [],
   };
 };
 

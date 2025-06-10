@@ -141,7 +141,7 @@ export const useWorldState = (): UseWorldStateReturn => {
         newState.locations[location.id] = {
           condition: 75,
           accessibility: 80,
-          dangerLevel: location.importance === "high" ? 60 : 30,
+          dangerLevel: location.importance === "主要拠点" ? 60 : 30,
           resources: 70,
           population: location.type === "city" ? 90 : location.type === "town" ? 60 : 20,
         };

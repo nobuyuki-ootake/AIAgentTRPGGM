@@ -25,6 +25,9 @@ if (!("__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED" in React)) {
 const dummyProject: TRPGCampaign = {
   id: uuidv4(),
   title: "思考が現実になる世界",
+  gameSystem: "オリジナル",
+  gamemaster: "",
+  players: [],
   createdAt: new Date(),
   updatedAt: new Date(),
   synopsis:
@@ -139,6 +142,13 @@ const dummyProject: TRPGCampaign = {
       eventType: "discovery" as const,
     },
   ],
+  npcs: [],
+  enemies: [],
+  bases: [],
+  items: [],
+  itemLocations: [],
+  rules: [],
+  handouts: [],
   sessions: [
     {
       id: uuidv4(),
@@ -155,14 +165,42 @@ const dummyProject: TRPGCampaign = {
       status: "completed" as const,
       currentState: {
         currentDay: 1,
-        currentTime: 18,
-        timeOfDay: "evening" as const,
-        dayStatus: "active" as const
+        currentTimeOfDay: "evening" as const,
+        actionCount: 0,
+        maxActionsPerDay: 6,
+        currentLocation: "",
+        currentLocationId: "",
+        activeCharacter: "",
+        partyLocation: {
+          groupLocation: "",
+          memberLocations: {},
+          movementHistory: [],
+        },
+        partyStatus: "exploring" as const,
+        activeEvents: [],
+        completedEvents: [],
+        triggeredEvents: [],
       },
       spatialTracking: {
-        trackedLocations: [],
-        movementHistory: [],
-        currentLocation: null
+        currentPositions: {
+          players: {},
+          npcs: {},
+          enemies: {},
+        },
+        collisionDetection: {
+          enableSpatialCollision: true,
+          enableTemporalCollision: true,
+          collisionRadius: 10,
+          timeWindow: 30,
+          automaticEncounters: true,
+          encounterProbability: {
+            npc: 0.3,
+            enemy: 0.2,
+            event: 0.1,
+          },
+        },
+        definedAreas: [],
+        encounterRules: [],
       },
       encounterHistory: []
     },

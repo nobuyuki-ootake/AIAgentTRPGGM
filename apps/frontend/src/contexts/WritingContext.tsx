@@ -310,13 +310,63 @@ export const WritingProvider: React.FC<{ children: ReactNode }> = ({
     currentChapter: currentChapter as GameSession | null,
     currentProject,
     currentChapterId,
-    timelineEvents: timelineEvents as SessionEvent[],
+    timelineEvents: timelineEvents.map(timelineEvent => ({
+      id: timelineEvent.id,
+      title: timelineEvent.title,
+      description: timelineEvent.description,
+      sessionDay: 1,
+      sessionTime: timelineEvent.date || new Date().toISOString(),
+      relatedCharacters: timelineEvent.relatedCharacters,
+      relatedPlaces: timelineEvent.relatedPlaces,
+      order: timelineEvent.order,
+      eventType: (() => {
+        switch (timelineEvent.eventType) {
+          case 'battle': return 'combat';
+          case 'dialogue': return 'roleplay';
+          case 'journey': return 'exploration';
+          case 'mystery': return 'puzzle';
+          case 'discovery': return 'discovery';
+          case 'rest': return 'rest';
+          default: return 'social';
+        }
+      })() as SessionEvent['eventType'],
+      outcome: timelineEvent.outcome,
+      postEventCharacterStatuses: timelineEvent.postEventCharacterStatuses,
+      relatedQuestIds: timelineEvent.relatedPlotIds || [],
+      placeId: timelineEvent.placeId,
+      experienceAwarded: timelineEvent.experienceAwarded,
+    } as SessionEvent)),
     newChapterDialogOpen,
     newChapterTitle,
     newChapterSynopsis,
     assignEventsDialogOpen,
     eventDetailDialogOpen,
-    selectedEvent: selectedEvent as SessionEvent | null,
+    selectedEvent: selectedEvent ? {
+      id: selectedEvent.id,
+      title: selectedEvent.title,
+      description: selectedEvent.description,
+      sessionDay: 1,
+      sessionTime: selectedEvent.sessionTime || new Date().toISOString(),
+      relatedCharacters: selectedEvent.relatedCharacters,
+      relatedPlaces: selectedEvent.relatedPlaces,
+      order: selectedEvent.order,
+      eventType: (() => {
+        switch (selectedEvent.eventType) {
+          case 'combat': return 'combat';
+          case 'roleplay': return 'roleplay';
+          case 'exploration': return 'exploration';
+          case 'puzzle': return 'puzzle';
+          case 'discovery': return 'discovery';
+          case 'rest': return 'rest';
+          default: return 'social';
+        }
+      })() as SessionEvent['eventType'],
+      outcome: selectedEvent.outcome,
+      postEventCharacterStatuses: selectedEvent.postEventCharacterStatuses,
+      relatedQuestIds: selectedEvent.relatedQuestIds || [],
+      placeId: selectedEvent.placeId,
+      experienceAwarded: selectedEvent.experienceAwarded,
+    } as SessionEvent : null,
     selectedEvents,
     currentPageInEditor,
     totalPagesInEditor,

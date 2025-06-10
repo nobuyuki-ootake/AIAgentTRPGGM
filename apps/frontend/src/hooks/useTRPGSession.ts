@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom } from "../store/atoms";
-import { TRPGCharacter, NPCCharacter, BaseLocation, GameSession, EnemyCharacter } from "@trpg-ai-gm/types";
+import { TRPGCharacter, NPCCharacter, BaseLocation, GameSession, EnemyCharacter, TimelineEvent } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 import { trpgEncounterDetection, EncounterInfo, EncounterContext } from "../utils/TRPGEncounterDetection";
-import { aiTacticalEngine, TacticalDecision } from "../utils/AITacticalEngine";
+import { aiTacticalEngine, TacticalDecision, EncounterContext as AIEncounterContext } from "../utils/AITacticalEngine";
 
 // セッション用の追加型定義
 export interface SessionAction {
@@ -102,15 +102,43 @@ export const useTRPGSession = () => {
       experienceAwarded: 0,
       status: "inProgress",
       currentState: {
-        day: 1,
-        weather: "clear",
-        locationId: currentLocation?.id || "",
-        partyStatus: "active",
+        currentDay: 1,
+        currentTimeOfDay: "morning",
+        actionCount: 0,
+        maxActionsPerDay: 6,
+        currentLocation: currentLocation || "",
+        currentLocationId: getCurrentBase()?.id || "",
+        activeCharacter: "",
+        partyLocation: {
+          groupLocation: currentLocation || "",
+          memberLocations: {},
+          movementHistory: [],
+        },
+        partyStatus: "exploring",
+        activeEvents: [],
+        completedEvents: [],
+        triggeredEvents: [],
       },
       spatialTracking: {
-        partyLocation: currentLocation?.id || "",
-        visitedLocations: [],
-        travelHistory: [],
+        currentPositions: {
+          players: {},
+          npcs: {},
+          enemies: {},
+        },
+        collisionDetection: {
+          enableSpatialCollision: true,
+          enableTemporalCollision: true,
+          collisionRadius: 10,
+          timeWindow: 30,
+          automaticEncounters: true,
+          encounterProbability: {
+            npc: 0.3,
+            enemy: 0.2,
+            event: 0.1,
+          },
+        },
+        definedAreas: [],
+        encounterRules: [],
       },
       encounterHistory: [],
     };
@@ -487,7 +515,27 @@ export const useTRPGSession = () => {
       playerCharacters,
       npcs,
       enemies,
-      events: currentCampaign.timeline || [],
+      events: (currentCampaign.timeline || []).map(sessionEvent => {
+        const mapEventType = (sessionEventType: string): TimelineEvent['eventType'] => {
+          switch (sessionEventType) {
+            case 'combat': return 'battle';
+            case 'roleplay': return 'dialogue';
+            case 'exploration': return 'journey';
+            case 'puzzle': return 'mystery';
+            case 'social': return 'dialogue';
+            case 'discovery': return 'discovery';
+            case 'rest': return 'rest';
+            default: return 'other';
+          }
+        };
+        
+        return {
+          ...sessionEvent,
+          date: new Date().toISOString(),
+          dayNumber: sessionEvent.sessionDay,
+          eventType: mapEventType(sessionEvent.eventType),
+        } as TimelineEvent;
+      }),
     };
 
     const { encounters, immediateAction } = trpgEncounterDetection.detectEncounters(encounterContext);
@@ -584,17 +632,32 @@ export const useTRPGSession = () => {
       npcs: npcs.filter(n => pendingEncounters.some(enc => 
         enc.participants.some(p => 'id' in p && p.id === n.id)
       )),
-      currentEvent: undefined,
+      events: [],
+    };
+
+    // AITacticalEngine用のcontext
+    const aiContext: AIEncounterContext = {
+      location: getCurrentBase() || bases[0],
+      timeOfDay: actionCount < 2 ? 'morning' : 
+                 actionCount < 3 ? 'afternoon' : 
+                 actionCount < 4 ? 'evening' : 'night',
+      playerCharacters,
+      enemies: enemies.filter(e => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === e.id)
+      )),
+      npcs: npcs.filter(n => pendingEncounters.some(enc => 
+        enc.participants.some(p => 'id' in p && p.id === n.id)
+      )),
       partyStatus,
     };
 
     // 戦術エンジンで最適なダイスチェックを選択
-    const optimalCheck = aiTacticalEngine.selectOptimalDiceCheck(context, request.tacticalDecision);
+    const optimalCheck = aiTacticalEngine.selectOptimalDiceCheck(aiContext, request.tacticalDecision);
     
     // 難易度クラスを計算
     const dc = aiTacticalEngine.calculateDifficultyClass(
       request.difficulty || optimalCheck.difficulty,
-      context
+      aiContext
     );
 
     // ダイスロールをリクエスト
@@ -622,14 +685,12 @@ export const useTRPGSession = () => {
   const processDiceResult = useCallback((result: DiceRollResult, request: AIControlledDiceRequest) => {
     if (!request.tacticalDecision || !request.difficulty) return;
 
-    const context: EncounterContext = {
+    // AITacticalEngine用のcontext
+    const aiContext: AIEncounterContext = {
       location: getCurrentBase() || bases[0],
-      time: {
-        day: currentDay,
-        timeOfDay: actionCount < 2 ? 'morning' : 
-                   actionCount < 3 ? 'afternoon' : 
-                   actionCount < 4 ? 'evening' : 'night'
-      },
+      timeOfDay: actionCount < 2 ? 'morning' : 
+                 actionCount < 3 ? 'afternoon' : 
+                 actionCount < 4 ? 'evening' : 'night',
       playerCharacters,
       enemies: enemies.filter(e => pendingEncounters.some(enc => 
         enc.participants.some(p => 'id' in p && p.id === e.id)
@@ -637,7 +698,6 @@ export const useTRPGSession = () => {
       npcs: npcs.filter(n => pendingEncounters.some(enc => 
         enc.participants.some(p => 'id' in p && p.id === n.id)
       )),
-      currentEvent: undefined,
       partyStatus,
     };
 

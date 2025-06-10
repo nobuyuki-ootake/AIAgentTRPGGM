@@ -199,7 +199,7 @@ const HomePage: React.FC = () => {
                   // データを整形してTRPGCampaignとして保存
                   const processedTestData: TRPGCampaign = {
                     ...testData,
-                    bases: testData.worldBuilding?.bases || [],
+                    bases: testData.bases || [],
                     createdAt: new Date(testData.createdAt || Date.now()),
                     updatedAt: new Date(testData.updatedAt || Date.now())
                   };
@@ -248,7 +248,7 @@ const HomePage: React.FC = () => {
                     // データを整形してTRPGCampaignとして保存
                     const processedTestData: TRPGCampaign = {
                       ...testData,
-                      bases: testData.worldBuilding?.bases || [],
+                      bases: testData.bases || [],
                       createdAt: new Date(testData.createdAt || Date.now()),
                       updatedAt: new Date(testData.updatedAt || Date.now())
                     };
@@ -263,7 +263,7 @@ const HomePage: React.FC = () => {
                       title: processedTestData.title,
                       charactersCount: processedTestData.characters?.length,
                       npcsCount: processedTestData.npcs?.length,
-                      questsCount: processedTestData.quests?.length
+                      questsCount: processedTestData.plot?.length
                     });
                   }}
                 >

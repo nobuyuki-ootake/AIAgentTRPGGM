@@ -35,28 +35,58 @@ const convertToTRPGCharacter = (character: TRPGCharacter): TRPGCharacter => {
   // relationshipsもそのまま
   const relationships = (character as any).relationships || [];
   
-  // 基本ステータスの初期化
-  const defaultStats: CharacterStats = {
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
-    hitPoints: { current: 10, max: 10, temp: 0 },
-    manaPoints: { current: 0, max: 0 },
-    armorClass: 10,
-    speed: 30,
-    level: 1,
-    experience: 0,
-    proficiencyBonus: 2,
+  // Stormbringer属性の初期化
+  const defaultAttributes = {
+    STR: 10,
+    CON: 10,
+    SIZ: 10,
+    INT: 10,
+    POW: 10,
+    DEX: 10,
+    CHA: 10,
+  };
+
+  // デフォルトの派生値
+  const defaultDerived = {
+    HP: 10,
+    MP: 0,
+    SW: 10,
+    RES: 10,
+  };
+
+  // デフォルトの武器
+  const defaultWeapons: TRPGCharacter['weapons'] = [];
+
+  // デフォルトの装甲
+  const defaultArmor = {
+    head: 0,
+    body: 0,
+    leftArm: 0,
+    rightArm: 0,
+    leftLeg: 0,
+    rightLeg: 0,
+  };
+
+  // デフォルトのスキル
+  const defaultSkills = {
+    AgilitySkills: [],
+    CommunicationSkills: [],
+    KnowledgeSkills: [],
+    ManipulationSkills: [],
+    PerceptionSkills: [],
+    StealthSkills: [],
+    MagicSkills: [],
+    WeaponSkills: [],
   };
   
   return {
     ...character,
     characterType: character.characterType || "NPC",
-    attributes: character.attributes || defaultStats,
-    skills: character.skills || [],
+    attributes: character.attributes || defaultAttributes,
+    derived: character.derived || defaultDerived,
+    weapons: character.weapons || defaultWeapons,
+    armor: character.armor || defaultArmor,
+    skills: character.skills || defaultSkills,
     // equipment: (character as any).equipment || [],
     // traits,
     // relationships,
@@ -695,8 +725,24 @@ export function useCharacters() {
             // appearance: item.appearance || item.description || "",
             // personality: item.personality || "",
             // motivation: item.motivation || "",
-            attributes: item.attributes || initialCharacterState.attributes!,
-            skills: item.skills || [],
+            attributes: item.attributes || {
+              STR: 10, CON: 10, SIZ: 10, INT: 10,
+              POW: 10, DEX: 10, CHA: 10
+            },
+            derived: item.derived || {
+              HP: 10, MP: 0, SW: 10, RES: 10
+            },
+            weapons: item.weapons || [],
+            armor: item.armor || {
+              head: 0, body: 0, leftArm: 0, rightArm: 0,
+              leftLeg: 0, rightLeg: 0
+            },
+            skills: item.skills || {
+              AgilitySkills: [], CommunicationSkills: [],
+              KnowledgeSkills: [], ManipulationSkills: [],
+              PerceptionSkills: [], StealthSkills: [],
+              MagicSkills: [], WeaponSkills: []
+            },
             // equipment: item.equipment || [],
             // progression: item.progression || [],
             // traits: item.traits || [],

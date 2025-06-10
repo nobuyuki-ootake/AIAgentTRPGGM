@@ -15,8 +15,8 @@ export function usePlot() {
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editItemTitle, setEditItemTitle] = useState("");
   const [editItemDescription, setEditItemDescription] = useState("");
-  const [editItemStatus, setEditItemStatus] = useState<"決定" | "検討中">(
-    "検討中"
+  const [editItemStatus, setEditItemStatus] = useState<"未開始" | "進行中" | "完了" | "失敗" | "保留">(
+    "未開始"
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -39,7 +39,7 @@ export function usePlot() {
       title: newItemTitle.trim(),
       description: newItemDescription.trim(),
       order: plotItems.length,
-      status: "検討中",
+      status: "未開始",
     };
 
     setPlotItems([...plotItems, newItem]);
@@ -125,9 +125,9 @@ export function usePlot() {
   // ステータス変更
   const handleStatusChange = (
     id: string,
-    event: SelectChangeEvent<"決定" | "検討中">
+    event: SelectChangeEvent<"未開始" | "進行中" | "完了" | "失敗" | "保留">
   ) => {
-    const status = event.target.value as "決定" | "検討中";
+    const status = event.target.value as "未開始" | "進行中" | "完了" | "失敗" | "保留";
     const updatedItems = plotItems.map((item) => {
       if (item.id === id) {
         return { ...item, status };

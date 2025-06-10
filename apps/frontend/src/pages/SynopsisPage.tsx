@@ -78,7 +78,6 @@ const SynopsisPage: React.FC = () => {
               onCancel={handleCancel}
               onSave={handleSave}
               onChange={handleSynopsisChange}
-              placeholder="例: あなたはファンタジー世界のゲームマスターです。プレイヤーの選択を尊重し、公平で楽しいゲーム体験を提供してください。戦闘はD&D5版のルールに従い、ロールプレイを重視します。"
             />
           </Box>
         </TabPanel>

@@ -43,55 +43,64 @@ import { currentCampaignState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { EnemyCharacter, CharacterStats } from "@trpg-ai-gm/types";
+import { EnemyCharacter } from "@trpg-ai-gm/types";
 
 const EnemyPage: React.FC = () => {
-  const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
-  const [enemies, setEnemies] = useState<EnemyCharacter[]>(currentCampaign?.enemies || []);
+  const [currentCampaign, setCurrentCampaign] =
+    useRecoilState(currentCampaignState);
+  const [enemies, setEnemies] = useState<EnemyCharacter[]>(
+    currentCampaign?.enemies || []
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEnemy, setEditingEnemy] = useState<EnemyCharacter | null>(null);
   const [formData, setFormData] = useState<EnemyCharacter>({
     id: "",
     name: "",
-    characterType: "Enemy",
-    enemyType: "mob",
-    challengeRating: 1,
-    race: "",
-    class: "",
-    background: "",
-    alignment: "",
-    gender: "",
-    age: "",
-    appearance: "",
-    personality: "",
-    motivation: "",
-    stats: {
+    rank: "モブ",
+    type: "",
+    description: "",
+    level: 1,
+    attributes: {
       strength: 10,
       dexterity: 10,
       constitution: 10,
       intelligence: 10,
       wisdom: 10,
-      charisma: 10,
-      hitPoints: { current: 10, max: 10, temp: 0 },
-      armorClass: 10,
-      speed: 30,
-      level: 1,
-      experience: 0,
-      proficiencyBonus: 2,
     },
-    skills: [],
-    equipment: [],
-    progression: [],
-    traits: [],
-    relationships: [],
+    derivedStats: {
+      hp: 10,
+      mp: 0,
+      attack: 10,
+      defense: 10,
+      magicAttack: 10,
+      magicDefense: 10,
+      accuracy: 10,
+      evasion: 10,
+      criticalRate: 5,
+      initiative: 10,
+    },
+    skills: {
+      basicAttack: "",
+      specialSkills: [],
+      passives: [],
+    },
+    behavior: {
+      aiPattern: "",
+      targeting: "",
+    },
+    drops: {
+      exp: 0,
+      gold: 0,
+      items: [],
+      rareDrops: [],
+    },
+    status: {
+      currentHp: 10,
+      currentMp: 0,
+      statusEffects: [],
+      location: "",
+    },
     imageUrl: "",
-    customFields: [],
-    statuses: [],
-    notes: "",
-    tactics: "",
-    loot: [],
-    spawnLocations: [],
-    behaviorPattern: "",
   });
 
   const { openAIAssist } = useAIChatIntegration();
@@ -106,45 +115,51 @@ const EnemyPage: React.FC = () => {
       setFormData({
         id: uuidv4(),
         name: "",
-        characterType: "Enemy",
-        enemyType: "mob",
-        challengeRating: 1,
-        race: "",
-        class: "",
-        background: "",
-        alignment: "",
-        gender: "",
-        age: "",
-        appearance: "",
-        personality: "",
-        motivation: "",
-        stats: {
+        rank: "モブ",
+        type: "",
+        description: "",
+        level: 1,
+        attributes: {
           strength: 10,
           dexterity: 10,
           constitution: 10,
           intelligence: 10,
           wisdom: 10,
-          charisma: 10,
-          hitPoints: { current: 10, max: 10, temp: 0 },
-          armorClass: 10,
-          speed: 30,
-          level: 1,
-          experience: 0,
-          proficiencyBonus: 2,
         },
-        skills: [],
-        equipment: [],
-        progression: [],
-        traits: [],
-        relationships: [],
+        derivedStats: {
+          hp: 10,
+          mp: 0,
+          attack: 10,
+          defense: 10,
+          magicAttack: 10,
+          magicDefense: 10,
+          accuracy: 10,
+          evasion: 10,
+          criticalRate: 5,
+          initiative: 10,
+        },
+        skills: {
+          basicAttack: "",
+          specialSkills: [],
+          passives: [],
+        },
+        behavior: {
+          aiPattern: "",
+          targeting: "",
+        },
+        drops: {
+          exp: 0,
+          gold: 0,
+          items: [],
+          rareDrops: [],
+        },
+        status: {
+          currentHp: 10,
+          currentMp: 0,
+          statusEffects: [],
+          location: "",
+        },
         imageUrl: "",
-        customFields: [],
-        statuses: [],
-        notes: "",
-        tactics: "",
-        loot: [],
-        spawnLocations: [],
-        behaviorPattern: "",
       });
     }
     setDialogOpen(true);
@@ -168,9 +183,9 @@ const EnemyPage: React.FC = () => {
     } else {
       newEnemies = [...enemies, formData];
     }
-    
+
     setEnemies(newEnemies);
-    
+
     // キャンペーンデータも更新
     if (currentCampaign) {
       setCurrentCampaign({
@@ -179,7 +194,7 @@ const EnemyPage: React.FC = () => {
         updatedAt: new Date(),
       });
     }
-    
+
     handleCloseDialog();
   };
 
@@ -188,7 +203,7 @@ const EnemyPage: React.FC = () => {
     if (window.confirm("このエネミーを削除してもよろしいですか？")) {
       const newEnemies = enemies.filter((e) => e.id !== id);
       setEnemies(newEnemies);
-      
+
       if (currentCampaign) {
         setCurrentCampaign({
           ...currentCampaign,
@@ -205,38 +220,37 @@ const EnemyPage: React.FC = () => {
   };
 
   // ステータス変更
-  const handleStatChange = (stat: keyof CharacterStats, value: number) => {
+  const handleStatChange = (stat: string, value: number) => {
     setFormData({
       ...formData,
-      stats: {
-        ...formData.stats,
+      attributes: {
+        ...formData.attributes,
         [stat]: value,
       },
     });
   };
 
   // HP変更
-  const handleHPChange = (field: "current" | "max" | "temp", value: number) => {
+  const handleHPChange = (value: number) => {
     setFormData({
       ...formData,
-      stats: {
-        ...formData.stats,
-        hitPoints: {
-          ...formData.stats.hitPoints,
-          [field]: value,
-        },
+      derivedStats: {
+        ...formData.derivedStats,
+        hp: value,
       },
     });
   };
 
   // AIアシスト機能
-  const handleOpenAIAssist = () => {
+  const handleOpenAIAssist = async () => {
     openAIAssist(
-      "enemy",
+      "characters",
       {
         title: "エネミー生成アシスタント",
-        description: "キャンペーン設定やクエストに基づいて、適切なエネミーを生成します。",
-        defaultMessage: "現在のキャンペーンとクエストに基づいて、プレイヤーが遭遇するエネミーを提案してください。モブ、エリート、ボスなど、バリエーションのあるエネミーを含めてください。",
+        description:
+          "キャンペーン設定やクエストに基づいて、適切なエネミーを生成します。",
+        defaultMessage:
+          "現在のキャンペーンとクエストに基づいて、プレイヤーが遭遇するエネミーを提案してください。モブ、エリート、ボスなど、バリエーションのあるエネミーを含めてください。",
         supportsBatchGeneration: true,
         onComplete: (result) => {
           if (result.content && typeof result.content === "string") {
@@ -247,37 +261,27 @@ const EnemyPage: React.FC = () => {
                   const newEnemy: EnemyCharacter = {
                     id: uuidv4(),
                     name: enemy.name || "名無しのエネミー",
-                    characterType: "Enemy",
-                    enemyType: enemy.enemyType || "mob",
-                    challengeRating: enemy.challengeRating || 1,
-                    race: enemy.race || "",
-                    class: enemy.class || "",
-                    background: enemy.background || "",
-                    alignment: enemy.alignment || "",
-                    gender: enemy.gender || "",
-                    age: enemy.age || "",
-                    appearance: enemy.appearance || "",
-                    personality: enemy.personality || "",
-                    motivation: enemy.motivation || "",
-                    stats: enemy.stats || formData.stats,
-                    skills: enemy.skills || [],
-                    equipment: enemy.equipment || [],
-                    progression: [],
-                    traits: enemy.traits || [],
-                    relationships: [],
-                    imageUrl: "",
-                    customFields: [],
-                    statuses: [],
-                    notes: enemy.notes || "",
-                    tactics: enemy.tactics || "",
-                    loot: enemy.loot || [],
-                    spawnLocations: enemy.spawnLocations || [],
-                    behaviorPattern: enemy.behaviorPattern || "",
+                    rank: enemy.rank || "モブ",
+                    type: enemy.type || "",
+                    description: enemy.description || "",
+                    level: enemy.level || 1,
+                    attributes: enemy.attributes || formData.attributes,
+                    derivedStats: enemy.derivedStats || formData.derivedStats,
+                    skills: enemy.skills || formData.skills,
+                    behavior: enemy.behavior || formData.behavior,
+                    drops: enemy.drops || formData.drops,
+                    status: enemy.status || {
+                      currentHp: 10,
+                      currentMp: 0,
+                      statusEffects: [],
+                      location: "",
+                    },
+                    imageUrl: enemy.imageUrl || "",
                   };
-                  
+
                   const updatedEnemies = [...enemies, newEnemy];
                   setEnemies(updatedEnemies);
-                  
+
                   if (currentCampaign) {
                     setCurrentCampaign({
                       ...currentCampaign,
@@ -295,34 +299,6 @@ const EnemyPage: React.FC = () => {
       },
       currentCampaign
     );
-  };
-
-  // エネミータイプの表示名
-  const getEnemyTypeName = (type: string) => {
-    switch (type) {
-      case "mob":
-        return "モブ";
-      case "elite":
-        return "エリート";
-      case "boss":
-        return "ボス";
-      default:
-        return "不明";
-    }
-  };
-
-  // エネミータイプの色
-  const getEnemyTypeColor = (type: string) => {
-    switch (type) {
-      case "mob":
-        return "default";
-      case "elite":
-        return "warning";
-      case "boss":
-        return "error";
-      default:
-        return "default";
-    }
   };
 
   return (
@@ -359,7 +335,14 @@ const EnemyPage: React.FC = () => {
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={enemy.id}>
             <Card>
               <CardContent>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 2,
+                  }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Avatar sx={{ bgcolor: "error.main" }}>
                       <Dangerous />
@@ -367,14 +350,10 @@ const EnemyPage: React.FC = () => {
                     <Box>
                       <Typography variant="h6">{enemy.name}</Typography>
                       <Stack direction="row" spacing={1}>
-                        <Chip
-                          label={getEnemyTypeName(enemy.enemyType)}
-                          size="small"
-                          color={getEnemyTypeColor(enemy.enemyType) as any}
-                        />
+                        <Chip label={enemy.rank} size="small" color="primary" />
                         <Chip
                           icon={<Star />}
-                          label={`CR ${enemy.challengeRating}`}
+                          label={`Lv ${enemy.level}`}
                           size="small"
                           variant="outlined"
                         />
@@ -382,10 +361,17 @@ const EnemyPage: React.FC = () => {
                     </Box>
                   </Box>
                   <Box>
-                    <IconButton size="small" onClick={() => handleOpenDialog(enemy)}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleOpenDialog(enemy)}
+                    >
                       <EditIcon />
                     </IconButton>
-                    <IconButton size="small" onClick={() => handleDeleteEnemy(enemy.id)} color="error">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDeleteEnemy(enemy.id)}
+                      color="error"
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Box>
@@ -396,43 +382,51 @@ const EnemyPage: React.FC = () => {
                 {/* ステータス表示 */}
                 <Grid container spacing={1}>
                   <Grid size={{ xs: 6 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
                       <Favorite fontSize="small" color="error" />
                       <Typography variant="body2">
-                        HP: {enemy.stats.hitPoints.max}
+                        HP: {enemy.derivedStats.hp}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
                       <Shield fontSize="small" color="primary" />
                       <Typography variant="body2">
-                        AC: {enemy.stats.armorClass}
+                        防御: {enemy.derivedStats.defense}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
                       <Speed fontSize="small" color="action" />
                       <Typography variant="body2">
-                        速度: {enemy.stats.speed}
+                        イニシアチブ: {enemy.derivedStats.initiative}
                       </Typography>
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 6 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
                       <Bolt fontSize="small" color="warning" />
                       <Typography variant="body2">
-                        レベル: {enemy.stats.level}
+                        レベル: {enemy.level}
                       </Typography>
                     </Box>
                   </Grid>
                 </Grid>
 
-                {enemy.tactics && (
+                {enemy.behavior.aiPattern && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="body2" color="text.secondary">
-                      戦術: {enemy.tactics}
+                      AI行動: {enemy.behavior.aiPattern}
                     </Typography>
                   </Box>
                 )}
@@ -451,7 +445,12 @@ const EnemyPage: React.FC = () => {
       )}
 
       {/* エネミー編集ダイアログ */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           {editingEnemy ? "エネミーを編集" : "新規エネミーを作成"}
         </DialogTitle>
@@ -472,22 +471,25 @@ const EnemyPage: React.FC = () => {
                 <FormControl fullWidth>
                   <InputLabel>タイプ</InputLabel>
                   <Select
-                    value={formData.enemyType}
-                    label="タイプ"
-                    onChange={(e) => handleFormChange("enemyType", e.target.value)}
+                    value={formData.rank}
+                    label="ランク"
+                    onChange={(e) => handleFormChange("rank", e.target.value)}
                   >
-                    <MenuItem value="mob">モブ</MenuItem>
-                    <MenuItem value="elite">エリート</MenuItem>
-                    <MenuItem value="boss">ボス</MenuItem>
+                    <MenuItem value="モブ">モブ</MenuItem>
+                    <MenuItem value="中ボス">中ボス</MenuItem>
+                    <MenuItem value="ボス">ボス</MenuItem>
+                    <MenuItem value="EXボス">EXボス</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
-                  label="CR (脅威度)"
+                  label="レベル"
                   type="number"
-                  value={formData.challengeRating}
-                  onChange={(e) => handleFormChange("challengeRating", parseFloat(e.target.value) || 1)}
+                  value={formData.level}
+                  onChange={(e) =>
+                    handleFormChange("level", parseInt(e.target.value) || 1)
+                  }
                   fullWidth
                   inputProps={{ min: 0, max: 30, step: 0.25 }}
                 />
@@ -495,28 +497,25 @@ const EnemyPage: React.FC = () => {
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="種族"
-                  value={formData.race}
-                  onChange={(e) => handleFormChange("race", e.target.value)}
+                  label="タイプ"
+                  value={formData.type}
+                  onChange={(e) => handleFormChange("type", e.target.value)}
                   fullWidth
+                  placeholder="例：アンデッド、魔獣、機械"
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="クラス"
-                  value={formData.class}
-                  onChange={(e) => handleFormChange("class", e.target.value)}
+                  label="説明"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleFormChange("description", e.target.value)
+                  }
                   fullWidth
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
-                  label="属性"
-                  value={formData.alignment}
-                  onChange={(e) => handleFormChange("alignment", e.target.value)}
-                  fullWidth
+                  multiline
+                  rows={2}
                 />
               </Grid>
             </Grid>
@@ -531,8 +530,13 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="筋力"
                     type="number"
-                    value={formData.stats.strength}
-                    onChange={(e) => handleStatChange("strength", parseInt(e.target.value) || 10)}
+                    value={formData.attributes.strength}
+                    onChange={(e) =>
+                      handleStatChange(
+                        "strength",
+                        parseInt(e.target.value) || 10
+                      )
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 30 }}
                   />
@@ -541,8 +545,13 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="敏捷力"
                     type="number"
-                    value={formData.stats.dexterity}
-                    onChange={(e) => handleStatChange("dexterity", parseInt(e.target.value) || 10)}
+                    value={formData.attributes.dexterity}
+                    onChange={(e) =>
+                      handleStatChange(
+                        "dexterity",
+                        parseInt(e.target.value) || 10
+                      )
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 30 }}
                   />
@@ -551,8 +560,13 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="耐久力"
                     type="number"
-                    value={formData.stats.constitution}
-                    onChange={(e) => handleStatChange("constitution", parseInt(e.target.value) || 10)}
+                    value={formData.attributes.constitution}
+                    onChange={(e) =>
+                      handleStatChange(
+                        "constitution",
+                        parseInt(e.target.value) || 10
+                      )
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 30 }}
                   />
@@ -561,8 +575,13 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="知力"
                     type="number"
-                    value={formData.stats.intelligence}
-                    onChange={(e) => handleStatChange("intelligence", parseInt(e.target.value) || 10)}
+                    value={formData.attributes.intelligence}
+                    onChange={(e) =>
+                      handleStatChange(
+                        "intelligence",
+                        parseInt(e.target.value) || 10
+                      )
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 30 }}
                   />
@@ -571,18 +590,10 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="判断力"
                     type="number"
-                    value={formData.stats.wisdom}
-                    onChange={(e) => handleStatChange("wisdom", parseInt(e.target.value) || 10)}
-                    fullWidth
-                    inputProps={{ min: 1, max: 30 }}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <TextField
-                    label="魅力"
-                    type="number"
-                    value={formData.stats.charisma}
-                    onChange={(e) => handleStatChange("charisma", parseInt(e.target.value) || 10)}
+                    value={formData.attributes.wisdom}
+                    onChange={(e) =>
+                      handleStatChange("wisdom", parseInt(e.target.value) || 10)
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 30 }}
                   />
@@ -600,28 +611,46 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="最大HP"
                     type="number"
-                    value={formData.stats.hitPoints.max}
-                    onChange={(e) => handleHPChange("max", parseInt(e.target.value) || 10)}
+                    value={formData.derivedStats.hp}
+                    onChange={(e) =>
+                      handleHPChange(parseInt(e.target.value) || 10)
+                    }
                     fullWidth
                     inputProps={{ min: 1 }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
-                    label="AC"
+                    label="防御力"
                     type="number"
-                    value={formData.stats.armorClass}
-                    onChange={(e) => handleStatChange("armorClass", parseInt(e.target.value) || 10)}
+                    value={formData.derivedStats.defense}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        derivedStats: {
+                          ...formData.derivedStats,
+                          defense: parseInt(e.target.value) || 10,
+                        },
+                      })
+                    }
                     fullWidth
                     inputProps={{ min: 0 }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                   <TextField
-                    label="移動速度"
+                    label="イニシアチブ"
                     type="number"
-                    value={formData.stats.speed}
-                    onChange={(e) => handleStatChange("speed", parseInt(e.target.value) || 30)}
+                    value={formData.derivedStats.initiative}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        derivedStats: {
+                          ...formData.derivedStats,
+                          initiative: parseInt(e.target.value) || 10,
+                        },
+                      })
+                    }
                     fullWidth
                     inputProps={{ min: 0 }}
                   />
@@ -630,8 +659,10 @@ const EnemyPage: React.FC = () => {
                   <TextField
                     label="レベル"
                     type="number"
-                    value={formData.stats.level}
-                    onChange={(e) => handleStatChange("level", parseInt(e.target.value) || 1)}
+                    value={formData.level}
+                    onChange={(e) =>
+                      handleFormChange("level", parseInt(e.target.value) || 1)
+                    }
                     fullWidth
                     inputProps={{ min: 1, max: 20 }}
                   />
@@ -641,9 +672,17 @@ const EnemyPage: React.FC = () => {
 
             {/* 特殊情報 */}
             <TextField
-              label="戦術"
-              value={formData.tactics}
-              onChange={(e) => handleFormChange("tactics", e.target.value)}
+              label="AI行動パターン"
+              value={formData.behavior.aiPattern}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  behavior: {
+                    ...formData.behavior,
+                    aiPattern: e.target.value,
+                  },
+                })
+              }
               multiline
               rows={2}
               fullWidth
@@ -651,37 +690,47 @@ const EnemyPage: React.FC = () => {
             />
 
             <TextField
-              label="行動パターン"
-              value={formData.behaviorPattern}
-              onChange={(e) => handleFormChange("behaviorPattern", e.target.value)}
+              label="ターゲット指定"
+              value={formData.behavior.targeting}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  behavior: {
+                    ...formData.behavior,
+                    targeting: e.target.value,
+                  },
+                })
+              }
               multiline
               rows={2}
               fullWidth
-              placeholder="非戦闘時の行動パターンや習性"
+              placeholder="誰を優先的にターゲットするか"
             />
 
             <TextField
-              label="外見"
-              value={formData.appearance}
-              onChange={(e) => handleFormChange("appearance", e.target.value)}
-              multiline
-              rows={2}
+              label="基本攻撃"
+              value={formData.skills.basicAttack}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  skills: {
+                    ...formData.skills,
+                    basicAttack: e.target.value,
+                  },
+                })
+              }
               fullWidth
-            />
-
-            <TextField
-              label="備考"
-              value={formData.notes}
-              onChange={(e) => handleFormChange("notes", e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
+              placeholder="基本攻撃の説明"
             />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>キャンセル</Button>
-          <Button onClick={handleSaveEnemy} variant="contained" disabled={!formData.name.trim()}>
+          <Button
+            onClick={handleSaveEnemy}
+            variant="contained"
+            disabled={!formData.name.trim()}
+          >
             保存
           </Button>
         </DialogActions>

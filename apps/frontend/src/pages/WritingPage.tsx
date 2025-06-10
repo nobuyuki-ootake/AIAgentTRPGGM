@@ -149,7 +149,7 @@ const WritingPageContent: React.FC = () => {
 
   // イベントが既に章に割り当てられているかチェックする関数
   const isEventAlreadyInChapter = (eventId: string) => {
-    return currentChapter?.relatedEvents?.includes(eventId) ?? false;
+    return currentChapter?.events?.some(event => event.id === eventId) ?? false;
   };
 
   // AI章生成機能（ローカル実装）
@@ -163,12 +163,11 @@ const WritingPageContent: React.FC = () => {
       setError(null); // エラーをクリア
 
       // 関連イベントの詳細を取得
-      const relatedEventDetails =
-        currentChapter.relatedEvents
-          ?.map((eventId) =>
-            timelineEvents?.find((event) => event.id === eventId)
-          )
-          .filter((event): event is TimelineEvent => !!event) || [];
+      const relatedEventDetails = currentChapter.events?.map(sessionEvent => ({
+        ...sessionEvent,
+        date: new Date().toISOString(),
+        dayNumber: sessionEvent.sessionDay,
+      } as TimelineEvent)) || [];
 
       // 関連キャラクターの詳細を取得
       const characterIdsInEvents = new Set<string>();
@@ -186,7 +185,7 @@ const WritingPageContent: React.FC = () => {
                 id: char.id,
                 name: char.name,
                 description: char.description,
-                role: (char as any).role || ("supporting" as const),
+                profession: char.profession || "",
               }
             : null;
         })
@@ -266,20 +265,14 @@ const WritingPageContent: React.FC = () => {
     if (!currentChapter || !currentProject) return;
 
     // 関連イベントの詳細を取得
-    const relatedEventDetails =
-      currentChapter.relatedEvents
-        ?.map((eventId) =>
-          timelineEvents?.find((event) => event.id === eventId)
-        )
-        .filter((event): event is TimelineEvent => !!event)
-        .map((event) => `- ${event.title}: ${event.description}`)
-        .join("\n") || "関連イベントなし";
+    const relatedEventDetails = currentChapter.events?.map(sessionEvent => 
+      `- ${sessionEvent.title}: ${sessionEvent.description}`
+    ).join("\n") || "関連イベントなし";
 
     // 関連キャラクターの詳細を取得
     const characterIdsInEvents = new Set<string>();
-    currentChapter.relatedEvents?.forEach((eventId) => {
-      const event = timelineEvents?.find((e) => e.id === eventId);
-      event?.relatedCharacters?.forEach((charId) =>
+    currentChapter.events?.forEach((event) => {
+      event.relatedCharacters.forEach((charId: string) =>
         characterIdsInEvents.add(charId)
       );
     });
@@ -295,12 +288,11 @@ const WritingPageContent: React.FC = () => {
 
     // 関連場所の詳細を取得
     const locationIdsInEvents = new Set<string>();
-    currentChapter.relatedEvents?.forEach((eventId) => {
-      const event = timelineEvents?.find((e) => e.id === eventId);
-      event?.relatedPlaces?.forEach((placeId) =>
+    currentChapter.events?.forEach((event) => {
+      event.relatedPlaces?.forEach((placeId: string) =>
         locationIdsInEvents.add(placeId)
       );
-      if (event?.placeId) locationIdsInEvents.add(event.placeId);
+      if (event.placeId) locationIdsInEvents.add(event.placeId);
     });
 
     const locationsInfo =
@@ -525,8 +517,22 @@ ${
           {currentChapter && (
             <Box sx={{ mt: 2, flexGrow: 1, overflowY: "auto" }}>
               <RelatedEventsList
-                events={timelineEvents || []}
-                relatedEventIds={currentChapter.relatedEvents || []}
+                events={(timelineEvents || []).map(event => ({
+                  ...event,
+                  date: event.sessionDay ? new Date(Date.now() + event.sessionDay * 24 * 60 * 60 * 1000).toISOString() : new Date().toISOString(),
+                  eventType: (() => {
+                    switch (event.eventType) {
+                      case 'combat': return 'battle';
+                      case 'roleplay': return 'dialogue';
+                      case 'exploration': return 'journey';
+                      case 'puzzle': return 'mystery';
+                      case 'discovery': return 'discovery';
+                      case 'rest': return 'rest';
+                      default: return 'other';
+                    }
+                  })() as any,
+                }))}
+                relatedEventIds={currentChapter.events?.map(e => e.id) || []}
                 onViewEvent={handleOpenEventDetailDialog}
                 onAssignEvents={handleOpenAssignEventsDialog}
               />
@@ -619,7 +625,21 @@ ${
 
       <AssignEventsDialog
         open={assignEventsDialogOpen}
-        events={timelineEvents || []}
+        events={(timelineEvents || []).map(event => ({
+          ...event,
+          date: event.sessionDay ? new Date(Date.now() + event.sessionDay * 24 * 60 * 60 * 1000).toISOString() : new Date().toISOString(),
+          eventType: (() => {
+            switch (event.eventType) {
+              case 'combat': return 'battle';
+              case 'roleplay': return 'dialogue';
+              case 'exploration': return 'journey';
+              case 'puzzle': return 'mystery';
+              case 'discovery': return 'discovery';
+              case 'rest': return 'rest';
+              default: return 'other';
+            }
+          })() as any,
+        }))}
         selectedEvents={selectedEvents}
         characters={(currentProject as TRPGCampaign).characters || []}
         places={(currentProject as TRPGCampaign).worldBuilding?.places || []}
@@ -628,14 +648,47 @@ ${
         onToggle={handleToggleEvent}
         onSave={handleAssignEvents}
         onViewEventDetails={handleOpenEventDetailDialog}
-        onAddNewEvent={handleAddNewEvent}
+        onAddNewEvent={(timelineEvent) => {
+          // TimelineEvent を SessionEvent に変換
+          const sessionEvent = {
+            ...timelineEvent,
+            sessionDay: 1, // デフォルト値
+            sessionTime: "00:00", // デフォルト値
+            eventType: (() => {
+              switch (timelineEvent.eventType) {
+                case 'battle': return 'combat';
+                case 'dialogue': return 'roleplay';
+                case 'journey': return 'exploration';
+                case 'mystery': return 'puzzle';
+                case 'discovery': return 'discovery';
+                case 'rest': return 'rest';
+                default: return 'social';
+              }
+            })() as any,
+          };
+          handleAddNewEvent(sessionEvent);
+        }}
         getCharacterName={getCharacterName}
         getPlaceName={getPlaceName}
       />
 
       <EventDetailDialog
         open={eventDetailDialogOpen}
-        event={selectedEvent}
+        event={selectedEvent ? {
+          ...selectedEvent,
+          date: selectedEvent.sessionDay ? new Date(Date.now() + selectedEvent.sessionDay * 24 * 60 * 60 * 1000).toISOString() : new Date().toISOString(),
+          eventType: (() => {
+            switch (selectedEvent.eventType) {
+              case 'combat': return 'battle';
+              case 'roleplay': return 'dialogue';
+              case 'exploration': return 'journey';
+              case 'puzzle': return 'mystery';
+              case 'discovery': return 'discovery';
+              case 'rest': return 'rest';
+              default: return 'other';
+            }
+          })() as any,
+        } : null}
         onClose={handleCloseEventDetailDialog}
         onAddToChapter={
           selectedEvent && !isEventAlreadyInChapter(selectedEvent.id)

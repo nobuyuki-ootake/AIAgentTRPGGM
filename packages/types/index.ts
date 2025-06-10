@@ -575,14 +575,14 @@ export interface EncounterRule {
 export interface EncounterCondition {
   type: "location" | "time" | "character" | "event" | "probability";
   operator: "equals" | "contains" | "greater_than" | "less_than" | "in_range";
-  value: any;
+  value: string | number | boolean | string[];
   characterId?: string;
 }
 
 // 遭遇アクション
 export interface EncounterAction {
   type: "spawn_enemy" | "trigger_event" | "spawn_npc" | "force_dialogue" | "require_dice_roll";
-  parameters: Record<string, any>;
+  parameters: Record<string, string | number | boolean | string[]>;
   description: string;
 }
 
@@ -611,7 +611,7 @@ export interface EncounterRecord {
     damageReceived?: number;
     itemsGained?: string[];
     experienceGained?: number;
-    questProgress?: Record<string, any>;
+    questProgress?: Record<string, string | number | boolean>;
   };
   
   // AI判定データ
@@ -679,7 +679,7 @@ export interface EventResult {
   itemQuantity?: number; // アイテムの数量
   flagKey?: string; // type が "flag_set" または "flag_unset" の場合
   flagValue?: string | number | boolean; // フラグの値
-  metadata?: Record<string, any>; // その他の情報
+  metadata?: Record<string, string | number | boolean>; // その他の情報
 }
 
 // イベント発生条件の型定義
@@ -975,6 +975,7 @@ export interface TimelineSettings {
   startDate: Date;
   endDate: Date;
   zoomLevel: number;
+  maxDays: number; // 最大日数
 }
 
 /**

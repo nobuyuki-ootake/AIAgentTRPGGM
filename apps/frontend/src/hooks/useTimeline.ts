@@ -73,11 +73,9 @@ export function useTimeline() {
   };
 
   // タイムライン設定
-  const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>({
-    startDate: new Date(),
-    endDate: new Date(),
-    zoomLevel: 1,
-  });
+  const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>(() => ({
+    maxDays: 30,
+  }));
 
   // 設定ダイアログの状態
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -119,7 +117,18 @@ export function useTimeline() {
         relatedCharacters: sessionEvent.relatedCharacters,
         relatedPlaces: sessionEvent.relatedPlaces,
         order: sessionEvent.order,
-        eventType: sessionEvent.eventType,
+        eventType: (() => {
+          switch (sessionEvent.eventType) {
+            case 'combat': return 'battle';
+            case 'roleplay': return 'dialogue';
+            case 'exploration': return 'journey';
+            case 'puzzle': return 'mystery';
+            case 'social': return 'dialogue';
+            case 'discovery': return 'discovery';
+            case 'rest': return 'rest';
+            default: return 'other';
+          }
+        })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
         relatedPlotIds: sessionEvent.relatedQuestIds || [], // relatedQuestIdsをrelatedPlotIdsにマップ
         placeId: sessionEvent.placeId,
@@ -182,7 +191,13 @@ export function useTimeline() {
         processedValue = moment(value).toISOString();
       } else if (name === "dayNumber" && value) {
         // 日数フィールドの場合、数値に変換
-        processedValue = parseInt(value, 10);
+        const numValue = parseInt(value, 10);
+        setNewEvent((prev) => ({
+          ...prev,
+          dayNumber: numValue,
+        }));
+        setHasUnsavedChanges(true);
+        return;
       }
 
       setNewEvent((prev) => ({
@@ -247,14 +262,19 @@ export function useTimeline() {
       const value = target.value;
 
       // maxDaysフィールドの場合、数値に変換
-      let processedValue = value;
       if (name === "maxDays" && value) {
-        processedValue = parseInt(value, 10);
+        const numValue = parseInt(value, 10);
+        setTimelineSettings((prev) => ({
+          ...prev,
+          maxDays: numValue,
+        }));
+        setHasUnsavedChanges(true);
+        return;
       }
 
       setTimelineSettings((prev) => ({
         ...prev,
-        [name]: processedValue,
+        [name]: value,
       }));
       setHasUnsavedChanges(true);
     },
@@ -417,7 +437,18 @@ export function useTimeline() {
         relatedCharacters: sessionEvent.relatedCharacters,
         relatedPlaces: sessionEvent.relatedPlaces,
         order: sessionEvent.order,
-        eventType: sessionEvent.eventType,
+        eventType: (() => {
+          switch (sessionEvent.eventType) {
+            case 'combat': return 'battle';
+            case 'roleplay': return 'dialogue';
+            case 'exploration': return 'journey';
+            case 'puzzle': return 'mystery';
+            case 'social': return 'dialogue';
+            case 'discovery': return 'discovery';
+            case 'rest': return 'rest';
+            default: return 'other';
+          }
+        })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
         relatedPlotIds: sessionEvent.relatedQuestIds || [],
         placeId: sessionEvent.placeId,
@@ -434,9 +465,7 @@ export function useTimeline() {
       // 設定を読み込み
       if (campaignDataToUse.worldBuilding?.timelineSettings?.startDate) {
         setTimelineSettings({
-          startDate: new Date(campaignDataToUse.worldBuilding.timelineSettings.startDate),
-          endDate: new Date(),
-          zoomLevel: 1,
+          maxDays: 30,
         });
       }
     } else {
@@ -637,7 +666,7 @@ export function useTimeline() {
         worldBuilding: {
           ...currentCampaign.worldBuilding,
           timelineSettings: {
-            startDate: timelineSettings.startDate.toISOString(),
+            startDate: new Date().toISOString(),
           },
           places: places,
         },

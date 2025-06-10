@@ -54,49 +54,56 @@ const NPCPage: React.FC = () => {
   const [formData, setFormData] = useState<NPCCharacter>({
     id: "",
     name: "",
-    characterType: "NPC",
-    npcType: "merchant",
-    role: "",
-    race: "",
-    class: "",
-    background: "",
-    alignment: "",
+    characterType: "NPC" as const,
+    profession: "",
     gender: "",
-    age: "",
-    appearance: "",
-    personality: "",
-    motivation: "",
-    stats: {
-      strength: 10,
-      dexterity: 10,
-      constitution: 10,
-      intelligence: 10,
-      wisdom: 10,
-      charisma: 10,
-      hitPoints: { current: 10, max: 10, temp: 0 },
-      armorClass: 10,
-      speed: 30,
-      level: 1,
-      experience: 0,
-      proficiencyBonus: 2,
+    nation: "",
+    religion: "",
+    player: "",
+    age: 25,
+    description: "",
+    attributes: {
+      STR: 10,
+      CON: 10,
+      SIZ: 10,
+      INT: 10,
+      POW: 10,
+      DEX: 10,
+      CHA: 10,
     },
-    skills: [],
-    equipment: [],
-    progression: [],
-    traits: [],
-    relationships: [],
+    derived: {
+      HP: 10,
+      MP: 10,
+      SW: 10,
+      RES: 10,
+    },
+    weapons: [],
+    armor: {
+      head: 0,
+      body: 0,
+      leftArm: 0,
+      rightArm: 0,
+      leftLeg: 0,
+      rightLeg: 0,
+    },
+    skills: {
+      AgilitySkills: [],
+      CommunicationSkills: [],
+      KnowledgeSkills: [],
+      ManipulationSkills: [],
+      PerceptionSkills: [],
+      StealthSkills: [],
+      MagicSkills: [],
+      WeaponSkills: [],
+    },
     imageUrl: "",
-    customFields: [],
-    statuses: [],
-    notes: "",
+    attitude: "neutral" as const,
     location: "",
+    occupation: "",
+    knowledge: [],
     services: [],
-    secrets: [],
-    questGiver: false,
-    disposition: 50,
-    faction: "",
-    voiceDescription: "",
-    mannerisms: "",
+    questIds: [],
+    dialoguePatterns: [],
   });
 
   const [filterLocation, setFilterLocation] = useState<string>("all");
@@ -105,24 +112,21 @@ const NPCPage: React.FC = () => {
   const { openAIAssist } = useAIChatIntegration();
 
   // 拠点リストを取得（世界観構築から）
-  const locations = currentCampaign?.worldBuilding?.bases?.map(b => b.name) || [];
+  const locations = currentCampaign?.bases?.map((b: any) => b.name) || [];
   const uniqueLocations = ["all", ...new Set(locations)];
 
-  // NPCタイプのリスト
+  // NPC態度のリスト
   const npcTypes = [
-    { value: "merchant", label: "商人", icon: <Store /> },
-    { value: "guard", label: "衛兵", icon: <Security /> },
-    { value: "noble", label: "貴族", icon: <Work /> },
-    { value: "scholar", label: "学者", icon: <School /> },
-    { value: "commoner", label: "市民", icon: <Groups /> },
-    { value: "quest", label: "クエスト", icon: <AutoFixHigh /> },
-    { value: "other", label: "その他", icon: <PersonOutline /> },
+    { value: "friendly", label: "友好的", icon: <PersonOutline /> },
+    { value: "neutral", label: "中立", icon: <Groups /> },
+    { value: "hostile", label: "敵対的", icon: <Security /> },
+    { value: "unknown", label: "不明", icon: <Work /> },
   ];
 
   // フィルタリングされたNPCリスト
   const filteredNpcs = npcs.filter(npc => {
     const locationMatch = filterLocation === "all" || npc.location === filterLocation;
-    const typeMatch = filterNpcType === "all" || npc.npcType === filterNpcType;
+    const typeMatch = filterNpcType === "all" || npc.attitude === filterNpcType;
     return locationMatch && typeMatch;
   });
 
@@ -136,49 +140,56 @@ const NPCPage: React.FC = () => {
       setFormData({
         id: uuidv4(),
         name: "",
-        characterType: "NPC",
-        npcType: "merchant",
-        role: "",
-        race: "",
-        class: "",
-        background: "",
-        alignment: "",
+        characterType: "NPC" as const,
+        profession: "",
+        nation: "",
+        religion: "",
+        player: "",
         gender: "",
-        age: "",
-        appearance: "",
-        personality: "",
-        motivation: "",
-        stats: {
-          strength: 10,
-          dexterity: 10,
-          constitution: 10,
-          intelligence: 10,
-          wisdom: 10,
-          charisma: 10,
-          hitPoints: { current: 10, max: 10, temp: 0 },
-          armorClass: 10,
-          speed: 30,
-          level: 1,
-          experience: 0,
-          proficiencyBonus: 2,
+        age: 25,
+        description: "",
+        attributes: {
+          STR: 10,
+          CON: 10,
+          SIZ: 10,
+          INT: 10,
+          POW: 10,
+          DEX: 10,
+          CHA: 10,
         },
-        skills: [],
-        equipment: [],
-        progression: [],
-        traits: [],
-        relationships: [],
+        derived: {
+          HP: 10,
+          MP: 10,
+          SW: 10,
+          RES: 10,
+        },
+        weapons: [],
+        armor: {
+          head: 0,
+          body: 0,
+          leftArm: 0,
+          rightArm: 0,
+          leftLeg: 0,
+          rightLeg: 0,
+        },
+        skills: {
+          AgilitySkills: [],
+          CommunicationSkills: [],
+          KnowledgeSkills: [],
+          ManipulationSkills: [],
+          PerceptionSkills: [],
+          StealthSkills: [],
+          MagicSkills: [],
+          WeaponSkills: [],
+        },
         imageUrl: "",
-        customFields: [],
-        statuses: [],
-        notes: "",
+        attitude: "neutral" as const,
         location: locations[0] || "",
+        occupation: "",
+        knowledge: [],
         services: [],
-        secrets: [],
-        questGiver: false,
-        disposition: 50,
-        faction: "",
-        voiceDescription: "",
-        mannerisms: "",
+        questIds: [],
+        dialoguePatterns: [],
       });
     }
     setDialogOpen(true);
@@ -239,16 +250,16 @@ const NPCPage: React.FC = () => {
   };
 
   // AIアシスト機能
-  const handleOpenAIAssist = () => {
+  const handleOpenAIAssist = async () => {
     openAIAssist(
-      "npc",
+      "characters",
       {
         title: "NPC生成アシスタント",
         description: "拠点や物語に基づいて、適切なNPCを生成します。",
         defaultMessage: `現在のキャンペーンの拠点と世界観に基づいて、プレイヤーが出会うNPCを提案してください。
 
 拠点情報:
-${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}`).join('\n') || '拠点が設定されていません'}
+${currentCampaign?.bases?.map((b: any) => `- ${b.name}: ${b.description}`).join('\n') || '拠点が設定されていません'}
 
 以下のタイプのNPCを含めてください：
 - 商人（アイテムやサービスを提供）
@@ -265,36 +276,27 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   const newNpc: NPCCharacter = {
                     id: uuidv4(),
                     name: npc.name || "名無しのNPC",
-                    characterType: "NPC",
-                    npcType: npc.npcType || "merchant",
-                    role: npc.role || "",
-                    race: npc.race || "",
-                    class: npc.class || "",
-                    background: npc.background || "",
-                    alignment: npc.alignment || "",
+                    characterType: "NPC" as const,
+                    profession: npc.profession || "",
                     gender: npc.gender || "",
-                    age: npc.age || "",
-                    appearance: npc.appearance || "",
-                    personality: npc.personality || "",
-                    motivation: npc.motivation || "",
-                    stats: npc.stats || formData.stats,
-                    skills: npc.skills || [],
-                    equipment: npc.equipment || [],
-                    progression: [],
-                    traits: npc.traits || [],
-                    relationships: npc.relationships || [],
-                    imageUrl: "",
-                    customFields: [],
-                    statuses: [],
-                    notes: npc.notes || "",
+                    age: npc.age || 25,
+                    nation: npc.nation || "",
+                    religion: npc.religion || "",
+                    player: "",
+                    description: npc.description || "",
+                    attributes: npc.attributes || formData.attributes,
+                    derived: npc.derived || formData.derived,
+                    weapons: npc.weapons || [],
+                    armor: npc.armor || formData.armor,
+                    skills: npc.skills || formData.skills,
+                    imageUrl: npc.imageUrl || "",
+                    attitude: npc.attitude || "neutral" as const,
                     location: npc.location || locations[0] || "",
+                    occupation: npc.occupation || "",
+                    knowledge: npc.knowledge || [],
                     services: npc.services || [],
-                    secrets: npc.secrets || [],
-                    questGiver: npc.questGiver || false,
-                    disposition: npc.disposition || 50,
-                    faction: npc.faction || "",
-                    voiceDescription: npc.voiceDescription || "",
-                    mannerisms: npc.mannerisms || "",
+                    questIds: npc.questIds || [],
+                    dialoguePatterns: npc.dialoguePatterns || [],
                   };
                   
                   const updatedNpcs = [...npcs, newNpc];
@@ -419,15 +421,15 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Avatar sx={{ bgcolor: "primary.main" }}>
-                      {getNpcTypeIcon(npc.npcType)}
+                      {getNpcTypeIcon(npc.attitude)}
                     </Avatar>
                     <Box>
                       <Typography variant="h6">{npc.name}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {npc.role || getNpcTypeName(npc.npcType)}
+                        {npc.occupation || "職業不明"}
                       </Typography>
                       <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-                        {npc.questGiver && (
+                        {npc.questIds && npc.questIds.length > 0 && (
                           <Chip
                             icon={<AutoFixHigh />}
                             label="クエスト"
@@ -455,22 +457,22 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
 
                 <Divider sx={{ my: 1 }} />
 
-                {/* 友好度 */}
+                {/* 態度 */}
                 <Box sx={{ mb: 1 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Favorite fontSize="small" color={getDispositionColor(npc.disposition)} />
+                    <Favorite fontSize="small" color={npc.attitude === "friendly" ? "success" : npc.attitude === "hostile" ? "error" : "action"} />
                     <Typography variant="body2">
-                      友好度: {npc.disposition}/100
+                      態度: {npc.attitude === "friendly" ? "友好的" : npc.attitude === "neutral" ? "中立" : npc.attitude === "hostile" ? "敵対的" : "不明"}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* 性格 */}
-                {npc.personality && (
+                {/* 説明 */}
+                {npc.description && (
                   <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5, mb: 1 }}>
                     <Psychology fontSize="small" color="action" />
                     <Typography variant="body2" sx={{ flex: 1 }}>
-                      {npc.personality}
+                      {npc.description}
                     </Typography>
                   </Box>
                 )}
@@ -529,11 +531,11 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
               </Grid>
               <Grid size={{ xs: 12, sm: 3 }}>
                 <FormControl fullWidth>
-                  <InputLabel>タイプ</InputLabel>
+                  <InputLabel>態度</InputLabel>
                   <Select
-                    value={formData.npcType}
-                    label="タイプ"
-                    onChange={(e) => handleFormChange("npcType", e.target.value)}
+                    value={formData.attitude}
+                    label="態度"
+                    onChange={(e) => handleFormChange("attitude", e.target.value as NPCCharacter["attitude"])}
                   >
                     {npcTypes.map((type) => (
                       <MenuItem key={type.value} value={type.value}>
@@ -567,46 +569,34 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="役割"
-                  value={formData.role}
-                  onChange={(e) => handleFormChange("role", e.target.value)}
+                  label="職業"
+                  value={formData.profession}
+                  onChange={(e) => handleFormChange("profession", e.target.value)}
                   fullWidth
                   placeholder="宿屋の主人、衛兵隊長など"
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="友好度"
-                  type="number"
-                  value={formData.disposition}
-                  onChange={(e) => handleFormChange("disposition", parseInt(e.target.value) || 50)}
+                  label="役割"
+                  value={formData.occupation}
+                  onChange={(e) => handleFormChange("occupation", e.target.value)}
                   fullWidth
-                  inputProps={{ min: 0, max: 100 }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.questGiver}
-                      onChange={(e) => handleFormChange("questGiver", e.target.checked)}
-                    />
-                  }
-                  label="クエスト提供者"
+                  placeholder="商人、情報屋、クエスト提供者など"
                 />
               </Grid>
             </Grid>
 
             <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 3 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
-                  label="種族"
-                  value={formData.race}
-                  onChange={(e) => handleFormChange("race", e.target.value)}
+                  label="国籍"
+                  value={formData.nation}
+                  onChange={(e) => handleFormChange("nation", e.target.value)}
                   fullWidth
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="性別"
                   value={formData.gender}
@@ -614,19 +604,12 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
                   fullWidth
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="年齢"
+                  type="number"
                   value={formData.age}
-                  onChange={(e) => handleFormChange("age", e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <TextField
-                  label="所属勢力"
-                  value={formData.faction}
-                  onChange={(e) => handleFormChange("faction", e.target.value)}
+                  onChange={(e) => handleFormChange("age", parseInt(e.target.value) || 25)}
                   fullWidth
                 />
               </Grid>
@@ -634,54 +617,25 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
 
             {/* 詳細情報 */}
             <TextField
-              label="外見"
-              value={formData.appearance}
-              onChange={(e) => handleFormChange("appearance", e.target.value)}
+              label="説明・外見"
+              value={formData.description}
+              onChange={(e) => handleFormChange("description", e.target.value)}
               multiline
-              rows={2}
+              rows={4}
               fullWidth
+              placeholder="NPCの外見、性格、背景、動機などを記述"
             />
 
             <TextField
-              label="性格"
-              value={formData.personality}
-              onChange={(e) => handleFormChange("personality", e.target.value)}
-              multiline
-              rows={2}
+              label="宗教・信仰"
+              value={formData.religion}
+              onChange={(e) => handleFormChange("religion", e.target.value)}
               fullWidth
+              placeholder="信仰する神や宗教、または無宗教など"
             />
 
             <TextField
-              label="動機・目的"
-              value={formData.motivation}
-              onChange={(e) => handleFormChange("motivation", e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-            />
-
-            <TextField
-              label="口調・話し方"
-              value={formData.voiceDescription}
-              onChange={(e) => handleFormChange("voiceDescription", e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-              placeholder="例：訛りがある、早口、丁寧語を使うなど"
-            />
-
-            <TextField
-              label="癖・仕草"
-              value={formData.mannerisms}
-              onChange={(e) => handleFormChange("mannerisms", e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-              placeholder="例：髭を撫でる、指を鳴らす、目を合わせないなど"
-            />
-
-            <TextField
-              label="サービス（カンマ区切り）"
+              label="提供サービス（カンマ区切り）"
               value={formData.services?.join(", ") || ""}
               onChange={(e) => handleFormChange("services", e.target.value.split(",").map(s => s.trim()).filter(s => s))}
               multiline
@@ -691,22 +645,23 @@ ${currentCampaign?.worldBuilding?.bases?.map(b => `- ${b.name}: ${b.description}
             />
 
             <TextField
-              label="秘密（カンマ区切り）"
-              value={formData.secrets?.join(", ") || ""}
-              onChange={(e) => handleFormChange("secrets", e.target.value.split(",").map(s => s.trim()).filter(s => s))}
+              label="知識・情報（カンマ区切り）"
+              value={formData.knowledge?.join(", ") || ""}
+              onChange={(e) => handleFormChange("knowledge", e.target.value.split(",").map(s => s.trim()).filter(s => s))}
               multiline
               rows={2}
               fullWidth
-              placeholder="実は元貴族, 盗賊ギルドと繋がりがある"
+              placeholder="古代遺跡の場所, 盗賊団の動向, 王国の歴史"
             />
 
             <TextField
-              label="備考"
-              value={formData.notes}
-              onChange={(e) => handleFormChange("notes", e.target.value)}
+              label="会話パターン（カンマ区切り）"
+              value={formData.dialoguePatterns?.join(", ") || ""}
+              onChange={(e) => handleFormChange("dialoguePatterns", e.target.value.split(",").map(s => s.trim()).filter(s => s))}
               multiline
               rows={2}
               fullWidth
+              placeholder="～じゃ（老人口調）, ～でござる（侍口調）, 早口で話す"
             />
           </Stack>
         </DialogContent>

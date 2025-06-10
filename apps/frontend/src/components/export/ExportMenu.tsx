@@ -34,7 +34,7 @@ import {
 } from '../../utils/characterSheetExport';
 
 interface ExportMenuProps {
-  campaign: TRPGCampaign;
+  campaign: TRPGCampaign | undefined;
   characters: TRPGCharacter[];
   selectedCharacter?: TRPGCharacter;
   disabled?: boolean;
@@ -96,6 +96,9 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
           break;
 
         case 'campaign-json':
+          if (!campaign) {
+            throw new Error('エクスポートするキャンペーンがありません');
+          }
           exportCampaignJSON(campaign);
           break;
 
@@ -103,7 +106,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
           if (characters.length === 0) {
             throw new Error('エクスポートするキャラクターがありません');
           }
-          exportCharactersCSV(characters, campaign.title);
+          exportCharactersCSV(characters, campaign?.title || 'キャンペーン');
           break;
 
         case 'print-character':
@@ -334,7 +337,7 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
 
           {selectedExportType === 'campaign-json' && (
             <Box sx={{ mt: 2 }}>
-              <p>キャンペーン「{campaign.title}」の全データをJSONファイルとしてエクスポートします。</p>
+              <p>キャンペーン「{campaign?.title || 'キャンペーン'}」の全データをJSONファイルとしてエクスポートします。</p>
             </Box>
           )}
 
