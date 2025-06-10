@@ -1,6 +1,39 @@
 # フロントエンド用Cloud Build設定
 steps:
-  # Dockerイメージをビルド
+  # 依存関係のインストール
+  - name: 'node:18'
+    entrypoint: 'npm'
+    args: ['install', '-g', 'pnpm@10.10.0']
+    id: 'install-pnpm'
+
+  # プロジェクト依存関係インストール
+  - name: 'node:18'
+    entrypoint: 'pnpm'
+    args: ['install', '--frozen-lockfile']
+    id: 'install-deps'
+    waitFor: ['install-pnpm']
+
+  # TypeScriptチェック（完全版）
+  - name: 'node:18'
+    entrypoint: 'pnpm'
+    args: ['run', 'typecheck']
+    id: 'typecheck'
+    waitFor: ['install-deps']
+
+  # ESLintチェック（完全版）
+  - name: 'node:18'
+    entrypoint: 'pnpm'
+    args: ['run', 'lint']
+    id: 'lint'
+    waitFor: ['install-deps']
+
+  # ビルドテスト
+  - name: 'node:18'
+    entrypoint: 'pnpm'
+    args: ['run', 'build']
+    id: 'build-test'
+    waitFor: ['typecheck', 'lint']
+  # Dockerイメージをビルド（チェック完了後）
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -12,6 +45,7 @@ steps:
       - 'apps/frontend/Dockerfile'
       - '.'
     id: 'build-image'
+    waitFor: ['build-test']
 
   # Container Registryにpush
   - name: 'gcr.io/cloud-builders/docker'
