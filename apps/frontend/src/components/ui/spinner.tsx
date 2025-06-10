@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "../../utils/cn";
 
-interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SpinnerProps = React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * ローディングスピナーコンポーネント

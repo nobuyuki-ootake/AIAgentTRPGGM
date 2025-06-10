@@ -359,12 +359,13 @@ export class WorldContextBuilder {
       case 'conversation':
         return this.buildConversationContext(additionalInfo?.npcName);
         
-      case 'exploration':
+      case 'exploration': {
         let explorationContext = this.buildFullContext();
         explorationContext += `\n## 🔍 探索モード\n\n`;
         explorationContext += `プレイヤーたちは現在${this.currentLocation?.name || '不明な場所'}を探索中です。\n`;
         explorationContext += `時間帯は${this.timeOfDay}で、周囲の状況に注意を払ってください。\n`;
         return explorationContext;
+      }
         
       case 'general':
       default:

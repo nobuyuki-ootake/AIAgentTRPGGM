@@ -476,13 +476,23 @@ export const DataPersistenceProvider: React.FC<DataPersistenceProviderProps> = (
     checkMigration();
   }, [isInitialized, managers, enableAutoMigration]);
 
-  // Context value
+  // Early return if managers are not initialized
+  if (!isInitialized || !managers) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
+        <LinearProgress sx={{ width: '50%', mb: 2 }} />
+        <Typography variant="h6">データシステムを初期化中...</Typography>
+      </Box>
+    );
+  }
+
+  // Context value - managers are guaranteed to be non-null here
   const contextValue: PersistenceContextValue = {
-    persistenceManager: managers?.persistenceManager!,
-    sessionManager: managers?.sessionManager!,
-    indexedDBManager: managers?.indexedDBManager!,
-    syncManager: managers?.syncManager!,
-    migrationManager: managers?.migrationManager!,
+    persistenceManager: managers.persistenceManager,
+    sessionManager: managers.sessionManager,
+    indexedDBManager: managers.indexedDBManager,
+    syncManager: managers.syncManager,
+    migrationManager: managers.migrationManager,
     isInitialized,
     healthStatus,
     syncStatus,
@@ -497,15 +507,6 @@ export const DataPersistenceProvider: React.FC<DataPersistenceProviderProps> = (
     updateConfig,
     exportDiagnostics,
   };
-
-  if (!isInitialized) {
-    return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
-        <LinearProgress sx={{ width: '50%', mb: 2 }} />
-        <Typography variant="h6">データシステムを初期化中...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <PersistenceContext.Provider value={contextValue}>

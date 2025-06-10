@@ -373,10 +373,11 @@ export class GameSystemManager {
    */
   getNextLevelXp(currentLevel: number): number {
     switch (this.systemId) {
-      case 'dnd5e':
+      case 'dnd5e': {
         // D&D 5e XP表
         const dnd5eXpTable = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000];
         return dnd5eXpTable[currentLevel] || currentLevel * 10000;
+      }
       case 'pathfinder':
         // Pathfinder (medium progression)
         return currentLevel * 1000;

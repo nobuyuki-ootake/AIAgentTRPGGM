@@ -510,11 +510,12 @@ class SyncManager {
             resolvedData = conflict.remoteData;
             break;
 
-          case 'timestamp':
+          case 'timestamp': {
             const localTime = new Date(conflict.localTimestamp).getTime();
             const remoteTime = new Date(conflict.remoteTimestamp).getTime();
             resolvedData = localTime > remoteTime ? conflict.localData : conflict.remoteData;
             break;
+          }
         }
 
         // Apply resolved data

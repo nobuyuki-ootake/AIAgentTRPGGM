@@ -613,13 +613,14 @@ export class SpellPowerManager {
         }
         return magicSystem;
 
-      case 'point':
+      case 'point': {
         // ポイント系は時間経過で回復
         const restoredPools = magicSystem.powerPools?.map(pool => ({
           ...pool,
           current: pool.maximum,
         })) || [];
         return { ...magicSystem, powerPools: restoredPools };
+      }
 
       default:
         return magicSystem;

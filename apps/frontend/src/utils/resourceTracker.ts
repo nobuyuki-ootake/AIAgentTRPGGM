@@ -171,16 +171,16 @@ class ResourceTracker {
     const originalXHROpen = XMLHttpRequest.prototype.open;
     const originalXHRSend = XMLHttpRequest.prototype.send;
     
-    XMLHttpRequest.prototype.open = function(method: string, url: string | URL) {
+    XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...args: any[]) {
       (this as any)._resourceTracker = {
         method,
         url: url.toString(),
         startTime: Date.now()
       };
-      return originalXHROpen.apply(this, arguments as any);
+      return originalXHROpen.apply(this, [method, url, ...args]);
     };
 
-    XMLHttpRequest.prototype.send = function(body?: Document | BodyInit | null) {
+    XMLHttpRequest.prototype.send = function(body?: Document | BodyInit | null, ...args: any[]) {
       const tracker = (this as any)._resourceTracker;
       if (tracker) {
         this.addEventListener('loadend', () => {
@@ -196,7 +196,7 @@ class ResourceTracker {
           });
         });
       }
-      return originalXHRSend.apply(this, arguments as any);
+      return originalXHRSend.apply(this, [body, ...args]);
     };
 
     // Intercept fetch
@@ -388,7 +388,7 @@ class ResourceTracker {
     const getStorageSize = (storage: Storage): number => {
       let total = 0;
       for (let key in storage) {
-        if (storage.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(storage, key)) {
           total += storage[key].length + key.length;
         }
       }

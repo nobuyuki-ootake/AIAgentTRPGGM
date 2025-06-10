@@ -238,7 +238,7 @@ export class DiceRollEngine {
     const rules = GAME_SYSTEM_RULES[gameSystem];
     const results: number[][] = [];
     let total = 0;
-    let individual: number[] = [];
+    const individual: number[] = [];
 
     // 各ダイスコンポーネントをロール
     for (const dice of diceRoll.dice) {
@@ -275,17 +275,19 @@ export class DiceRollEngine {
     const results: number[] = [];
 
     switch (dice.type) {
-      case 'advantage':
+      case 'advantage': {
         // アドバンテージ：2回振って高い方
         const advRolls = [this.rollSingle(dice.sides), this.rollSingle(dice.sides)];
         results.push(Math.max(...advRolls));
         break;
+      }
         
-      case 'disadvantage':
+      case 'disadvantage': {
         // ディスアドバンテージ：2回振って低い方
         const disRolls = [this.rollSingle(dice.sides), this.rollSingle(dice.sides)];
         results.push(Math.min(...disRolls));
         break;
+      }
         
       case 'exploding':
         // 爆発ダイス：最大値が出たら追加でロール

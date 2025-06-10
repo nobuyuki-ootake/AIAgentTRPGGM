@@ -105,7 +105,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
           }, selectedTarget);
           break;
 
-        case "persuade":
+        case "persuade": {
           // 説得判定を含む会話
           const persuadeRoll = await rollDice("1d20", "説得判定");
           addMessage("システム", "system", `説得判定: ${persuadeRoll.total}`);
@@ -116,6 +116,7 @@ const InteractionPanel: React.FC<InteractionPanelProps> = ({
             description: `${selectedTarget.name}を説得する: ${interactionMessage}`,
           }, selectedTarget);
           break;
+        }
 
         case "trade":
           await executeAction({

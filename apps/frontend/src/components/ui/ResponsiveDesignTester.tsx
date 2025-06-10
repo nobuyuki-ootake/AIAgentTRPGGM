@@ -383,7 +383,7 @@ const ResponsiveDesignTester: React.FC = () => {
         }
         break;
 
-      case "performance":
+      case "performance": {
         const performanceMetrics: PerformanceMetrics = {
           loadTime: device.category === "mobile" ? 2500 + Math.random() * 1000 : 1500 + Math.random() * 500,
           renderTime: device.category === "mobile" ? 150 + Math.random() * 100 : 80 + Math.random() * 50,
@@ -401,6 +401,7 @@ const ResponsiveDesignTester: React.FC = () => {
           score -= 20;
         }
         break;
+      }
 
       case "accessibility":
         if (device.touchEnabled && test.id === "touch-gestures") {

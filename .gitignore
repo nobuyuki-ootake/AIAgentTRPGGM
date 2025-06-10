@@ -33,3 +33,8 @@ node_modules/
 # Task files
 tasks.json
 tasks/ token.txt
+
+# Build output directories
+dist/
+build/
+.turbo/

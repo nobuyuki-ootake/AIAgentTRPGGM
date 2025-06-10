@@ -178,7 +178,7 @@ const PersistenceStatusIndicator: React.FC<PersistenceStatusIndicatorProps> = ({
         case 'backup':
           await createBackup('Manual backup from status indicator');
           break;
-        case 'export-diagnostics':
+        case 'export-diagnostics': {
           const diagnostics = await exportDiagnostics();
           const blob = new Blob([JSON.stringify(diagnostics, null, 2)], {
             type: 'application/json',
@@ -192,6 +192,7 @@ const PersistenceStatusIndicator: React.FC<PersistenceStatusIndicatorProps> = ({
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
           break;
+        }
       }
     } catch (error) {
       console.error('Action failed:', error);

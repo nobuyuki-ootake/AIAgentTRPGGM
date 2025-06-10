@@ -292,15 +292,17 @@ export class LocationBasedAI {
 
     // 状況別の調整
     switch (situation) {
-      case 'encounter':
+      case 'encounter': {
         const encounterStyle = this.getLocationEncounterStyle(location, timeOfDay);
         enhancedPrompt += `**遭遇スタイル**: ${encounterStyle}\n\n`;
         break;
+      }
 
-      case 'conversation':
+      case 'conversation': {
         const conversationTone = this.getLocationConversationTone(location);
         enhancedPrompt += `**会話トーン**: ${conversationTone}\n\n`;
         break;
+      }
 
       case 'exploration':
         enhancedPrompt += `**探索重点**: ${location.type}特有の発見要素を重視。`;

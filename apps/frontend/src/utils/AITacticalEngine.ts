@@ -84,7 +84,7 @@ export class AITacticalEngine {
     const party = context.playerCharacters;
     
     switch (decision.action) {
-      case 'ambush':
+      case 'ambush': {
         // 知覚判定 - パーティーの平均知恵修正値を考慮
         const avgWisdom = this.calculateAverageAttribute(party, 'wisdom');
         return {
@@ -93,8 +93,9 @@ export class AITacticalEngine {
           skillName: '知覚',
           reason: '待ち伏せに気づくための判定'
         };
+      }
 
-      case 'trap':
+      case 'trap': {
         // 反射判定 - パーティーの平均敏捷修正値を考慮
         const avgDexterity = this.calculateAverageAttribute(party, 'dexterity');
         return {
@@ -103,8 +104,9 @@ export class AITacticalEngine {
           skillName: '反射神経',
           reason: '罠を回避するための判定'
         };
+      }
 
-      case 'negotiate':
+      case 'negotiate': {
         // 交渉判定 - パーティーの最高魅力修正値を考慮
         const maxCharisma = this.calculateMaxAttribute(party, 'charisma');
         return {
@@ -113,8 +115,9 @@ export class AITacticalEngine {
           skillName: '交渉',
           reason: '敵との交渉を試みる判定'
         };
+      }
 
-      default:
+      default: {
         // イニシアチブ判定
         const avgInit = this.calculateAverageAttribute(party, 'initiative');
         return {
@@ -123,6 +126,7 @@ export class AITacticalEngine {
           skillName: 'イニシアチブ',
           reason: '戦闘開始時の行動順判定'
         };
+      }
     }
   }
 

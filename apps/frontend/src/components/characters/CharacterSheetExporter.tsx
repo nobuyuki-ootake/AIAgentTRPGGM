@@ -197,20 +197,23 @@ export const CharacterSheetExporterComponent: React.FC<CharacterSheetExporterPro
     const filename = `${character.name.replace(/[^a-zA-Z0-9]/g, '_')}_sheet`;
     
     switch (options.format) {
-      case 'pdf':
+      case 'pdf': {
         const pdfBlob = await exporter.exportToPDF(character, currentCampaign!, options);
         downloadFile(pdfBlob, `${filename}.pdf`, 'application/pdf');
         break;
+      }
         
-      case 'json':
+      case 'json': {
         const jsonData = exporter.exportToJSON([character], currentCampaign!, options);
         downloadFile(jsonData, `${filename}.json`, 'application/json');
         break;
+      }
         
-      case 'print':
+      case 'print': {
         const htmlData = exporter.generatePrintHTML(character, currentCampaign!, options);
         openPrintWindow(htmlData, character.name);
         break;
+      }
     }
   };
 

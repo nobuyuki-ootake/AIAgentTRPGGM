@@ -72,7 +72,7 @@ export class SocketService {
   private maxRetries = 5;
 
   // Event callbacks
-  private eventHandlers: { [event: string]: Function[] } = {};
+  private eventHandlers: { [event: string]: ((...args: any[]) => void)[] } = {};
 
   constructor() {
     this.initializeSocket();
@@ -172,7 +172,7 @@ export class SocketService {
   /**
    * 👂 イベントリスナー登録
    */
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: any[]) => void): void {
     if (!this.eventHandlers[event]) {
       this.eventHandlers[event] = [];
     }
@@ -182,7 +182,7 @@ export class SocketService {
   /**
    * 🚫 イベントリスナー解除
    */
-  off(event: string, callback?: Function): void {
+  off(event: string, callback?: (...args: any[]) => void): void {
     if (!this.eventHandlers[event]) return;
     
     if (callback) {
