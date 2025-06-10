@@ -1,23 +1,14 @@
-# TypeScriptチェック、Lint、ビルドテストを実行
-pnpm run typecheck
-if [ $? -ne 0 ]; then
-  echo "❌ TypeScriptエラーがあります。修正してからコミットしてください。"
-  exit 1
-fi
+# 軽量版pre-commit: 変更ファイルのみを高速チェック
+# 完全チェック(TypeScript/Lint/Build)はCI/CDで実行
 
-pnpm run lint
-if [ $? -ne 0 ]; then
-  echo "❌ Lintエラーがあります。修正してからコミットしてください。"
-  exit 1
-fi
-
-pnpm run build
-if [ $? -ne 0 ]; then
-  echo "❌ ビルドエラーがあります。修正してからコミットしてください。"
-  exit 1
-fi
+echo "🚀 変更ファイルの基本チェックを実行中..."
 
 # Lint-stagedで変更ファイルのみをチェック
 npx lint-staged
 
-echo "✅ すべてのチェックが成功しました。コミットを続行します。"
+if [ $? -ne 0 ]; then
+  echo "❌ 変更ファイルのチェックに失敗しました。修正してからコミットしてください。"
+  exit 1
+fi
+
+echo "✅ 基本チェック完了！詳細チェック(TypeScript/Build)はCI/CDで実行されます。"
