@@ -216,7 +216,6 @@ export const ProjectList = ({ onProjectSelect }: ProjectListProps) => {
             history: "",
           },
           timeline: managerProject.timeline || [],
-          chapters: managerProject.chapters || [],
           plot: [],
           feedback: [],
         };

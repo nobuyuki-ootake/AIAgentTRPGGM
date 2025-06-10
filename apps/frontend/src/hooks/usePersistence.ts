@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DataPersistenceManager, { PersistenceConfig, BackupData, SyncQueueItem } from '../utils/persistence/DataPersistenceManager';
-import { TRPGCampaign, TRPGCharacter, TRPGSession, TimelineEvent } from '@trpg-ai-gm/types';
+import { TRPGCampaign, TRPGCharacter, TimelineEvent } from '@trpg-ai-gm/types';
 
 export interface PersistenceHookOptions {
   entityType: 'campaign' | 'character' | 'session' | 'timeline_event' | 'ai_cache' | 'form_draft';

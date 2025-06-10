@@ -38,7 +38,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         // 絵文字の場合
         const emoji = decodeURIComponent(character.imageUrl.split(",")[1]);
         const iconConfig =
-          characterIcons[character.role as keyof typeof characterIcons] ||
+          characterIcons[character.profession as keyof typeof characterIcons] ||
           characterIcons.default;
         return (
           <Avatar
@@ -105,11 +105,14 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         </Typography>
         <Chip
           label={
-            {
-              protagonist: "主人公",
-              antagonist: "敵役",
-              supporting: "脇役",
-            }[(character as any).role] || character.profession
+            (() => {
+              const roleMap = {
+                protagonist: "主人公",
+                antagonist: "敵役", 
+                supporting: "脇役",
+              };
+              return roleMap[(character as any).role as keyof typeof roleMap] || character.profession;
+            })()
           }
           size="small"
           color={

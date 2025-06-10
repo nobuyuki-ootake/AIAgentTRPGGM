@@ -27,18 +27,17 @@ export const createEmptyCampaign = (name: string = "新しいキャンペーン"
       magicTechnology: [],
       stateDefinition: [],
       freeFields: [],
-      geography: {
-        environment: "",
-        climate: "",
-        terrain: [],
-        naturalResources: []
-      },
-      history: {
-        timeline: [],
-        legends: [],
-        importantEvents: []
-      },
-      magicTechnology: []
+      // geography: {
+      //   environment: "",
+      //   climate: "",
+      //   terrain: [],
+      //   naturalResources: []
+      // },
+      // history: {
+      //   timeline: [],
+      //   legends: [],
+      //   importantEvents: []
+      // },
     },
     
     // ストーリー関連
@@ -104,14 +103,21 @@ export const createDefaultBase = (name: string = "開始地点"): BaseLocation =
     },
     threats: {
       dangerLevel: "低" as const,
+      monsterAttackRate: 0.1,
+      playerReputation: 0,
+      currentEvents: [],
       controllingFaction: ""
     },
     economy: {
       currency: "ゴールド",
-      priceModifier: 1.0
+      priceModifier: 1.0,
+      localGoods: [],
+      tradeGoods: []
     },
     meta: {
-      unlocked: true
+      locationId: "default-location",
+      unlocked: true,
+      lastUpdated: new Date().toISOString()
     }
   };
 };

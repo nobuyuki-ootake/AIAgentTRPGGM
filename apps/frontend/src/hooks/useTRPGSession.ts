@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { currentCampaignState, sessionStateAtom } from "../store/atoms";
-import { TRPGCharacter, TRPGEnemy, TRPGNpc, BaseLocation, GameSession } from "@trpg-ai-gm/types";
+import { TRPGCharacter, NPCCharacter, BaseLocation, GameSession, EnemyCharacter } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 import { trpgEncounterDetection, EncounterInfo, EncounterContext } from "../utils/TRPGEncounterDetection";
 import { aiTacticalEngine, TacticalDecision } from "../utils/AITacticalEngine";
@@ -87,6 +87,7 @@ export const useTRPGSession = () => {
 
     const newSession: GameSession = {
       id: uuidv4(),
+      campaignId: currentCampaign.id,
       sessionNumber: (currentCampaign.sessions?.length || 0) + 1,
       title: `セッション ${(currentCampaign.sessions?.length || 0) + 1}`,
       date: new Date(),
@@ -100,6 +101,18 @@ export const useTRPGSession = () => {
       questsCompleted: [],
       experienceAwarded: 0,
       status: "inProgress",
+      currentState: {
+        day: 1,
+        weather: "clear",
+        locationId: currentLocation?.id || "",
+        partyStatus: "active",
+      },
+      spatialTracking: {
+        partyLocation: currentLocation?.id || "",
+        visitedLocations: [],
+        travelHistory: [],
+      },
+      encounterHistory: [],
     };
 
     setSessionState(newSession);
@@ -558,10 +571,12 @@ export const useTRPGSession = () => {
 
     const context: EncounterContext = {
       location: getCurrentBase() || bases[0],
-      timeOfDay: actionCount < 2 ? 'morning' : 
-                 actionCount < 3 ? 'afternoon' : 
-                 actionCount < 4 ? 'evening' : 'night',
-      weather: undefined, // 天候システムは後で実装
+      time: {
+        day: currentDay,
+        timeOfDay: actionCount < 2 ? 'morning' : 
+                   actionCount < 3 ? 'afternoon' : 
+                   actionCount < 4 ? 'evening' : 'night'
+      },
       playerCharacters,
       enemies: enemies.filter(e => pendingEncounters.some(enc => 
         enc.participants.some(p => 'id' in p && p.id === e.id)
@@ -609,10 +624,12 @@ export const useTRPGSession = () => {
 
     const context: EncounterContext = {
       location: getCurrentBase() || bases[0],
-      timeOfDay: actionCount < 2 ? 'morning' : 
-                 actionCount < 3 ? 'afternoon' : 
-                 actionCount < 4 ? 'evening' : 'night',
-      weather: undefined,
+      time: {
+        day: currentDay,
+        timeOfDay: actionCount < 2 ? 'morning' : 
+                   actionCount < 3 ? 'afternoon' : 
+                   actionCount < 4 ? 'evening' : 'night'
+      },
       playerCharacters,
       enemies: enemies.filter(e => pendingEncounters.some(enc => 
         enc.participants.some(p => 'id' in p && p.id === e.id)

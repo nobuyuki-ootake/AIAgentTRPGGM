@@ -128,7 +128,7 @@ export const useEnemy = () => {
 
   // 敵キャラクターのHP/MP更新（戦闘中）
   const updateEnemyStatus = useCallback(async (enemyId: string, statusUpdates: Partial<EnemyCharacter["status"]>) => {
-    return updateEnemy(enemyId, { status: { ...getEnemyById(enemyId)?.status, ...statusUpdates } });
+    return updateEnemy(enemyId, { status: { ...getEnemyById(enemyId)?.status, ...statusUpdates } as EnemyCharacter["status"] });
   }, [updateEnemy, getEnemyById]);
 
   // 敵キャラクターの基本テンプレート生成

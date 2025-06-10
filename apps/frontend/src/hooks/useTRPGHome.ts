@@ -80,7 +80,8 @@ export function useTRPGHome() {
       npcs: [],
       enemies: [],
       worldBuilding: {
-        bases: [],
+        id: uuidv4(),
+        // bases: [],
         setting: [],
         rules: [],
         places: [],
@@ -89,6 +90,8 @@ export function useTRPGHome() {
         historyLegend: [],
         magicTechnology: [],
         freeFields: [],
+        worldmaps: [],
+        stateDefinition: [],
         worldMapImageUrl: "",
       },
       sessions: [],

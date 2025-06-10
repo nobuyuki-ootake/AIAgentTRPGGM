@@ -195,7 +195,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             height: 120,
             fontSize: "4rem",
             bgcolor:
-              characterIcons[formData.role]?.color ||
+              characterIcons[(formData as any).role || formData.profession]?.color ||
               characterIcons.default.color,
           }}
         >
@@ -205,7 +205,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     } else {
       // デフォルトアイコン
       const iconConfig =
-        characterIcons[formData.role] || characterIcons.default;
+        characterIcons[(formData as any).role || formData.profession] || characterIcons.default;
       return (
         <Avatar
           sx={{
@@ -246,7 +246,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               <Select
                 labelId="role-label"
                 name="role"
-                value={formData.role}
+                value={(formData as any).role || formData.profession || ""}
                 onChange={handleSelectChange}
                 label="役割"
                 required
@@ -271,7 +271,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               fullWidth
               label="生年月日"
               name="birthDate"
-              value={formData.birthDate || ""}
+              value={(formData as any).birthDate || ""}
               onChange={handleInputChange}
               margin="normal"
               placeholder="YYYY-MM-DD または自由形式"
@@ -296,7 +296,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               fullWidth
               label="背景"
               name="background"
-              value={formData.background}
+              value={(formData as any).background || formData.description || ""}
               onChange={handleInputChange}
               margin="normal"
               multiline
@@ -306,7 +306,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               fullWidth
               label="動機"
               name="motivation"
-              value={formData.motivation}
+              value={(formData as any).motivation || ""}
               onChange={handleInputChange}
               margin="normal"
               multiline
@@ -380,7 +380,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                           cursor: "pointer",
                           bgcolor:
                             selectedEmoji === emoji
-                              ? characterIcons[formData.role]?.color ||
+                              ? characterIcons[(formData as any).role || formData.profession]?.color ||
                                 characterIcons.default.color
                               : "transparent",
                           border:
@@ -425,7 +425,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               </Button>
             </Box>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-              {formData.traits!.map((trait: CharacterTrait, index: number) => (
+              {(formData.traits || []).map((trait: CharacterTrait, index: number) => (
                 <Chip
                   key={trait.id}
                   label={trait.name}
@@ -433,7 +433,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   sx={{ mr: 1, mb: 1 }}
                 />
               ))}
-              {formData.traits!.length === 0 && (
+              {(formData.traits || []).length === 0 && (
                 <Typography variant="body2" color="text.secondary">
                   特性がありません
                 </Typography>

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { TRPGCampaign, TRPGCharacter, TRPGSession } from '@trpg-ai-gm/types';
+import { TRPGCampaign, TRPGCharacter } from '@trpg-ai-gm/types';
 import DataPersistenceManager from '../utils/persistence/DataPersistenceManager';
 import DataMigrationManager, { ValidationResult } from '../utils/persistence/DataMigrationManager';
 
@@ -27,7 +27,7 @@ export interface IntegrityCheckResult {
 }
 
 export interface DataHealthStatus {
-  overall: 'healthy' | 'warning' | 'critical' | 'unknown';
+  overall: 'healthy' | 'warning' | 'critical' | 'unknown' | 'error';
   lastCheck: string | null;
   nextScheduledCheck: string | null;
   storageHealth: {
@@ -152,10 +152,14 @@ export const useDataIntegrity = (options: Partial<UseDataIntegrityOptions> = {})
    * Check storage availability and health
    */
   const checkStorageHealth = useCallback(async (): Promise<DataHealthStatus['storageHealth']> => {
-    const health = {
-      localStorage: 'healthy' as const,
-      sessionStorage: 'healthy' as const,
-      indexedDB: 'healthy' as const,
+    const health: {
+      localStorage: 'healthy' | 'warning' | 'error';
+      sessionStorage: 'healthy' | 'warning' | 'error';
+      indexedDB: 'healthy' | 'warning' | 'error';
+    } = {
+      localStorage: 'healthy',
+      sessionStorage: 'healthy',
+      indexedDB: 'healthy',
     };
 
     // Test localStorage
@@ -251,8 +255,8 @@ export const useDataIntegrity = (options: Partial<UseDataIntegrityOptions> = {})
    * Validate individual entity structure and data
    */
   const validateEntity = useCallback(async (entityType: string, entityId: string, data: any): Promise<boolean> => {
+    const startTime = performance.now();
     try {
-      const startTime = performance.now();
       
       // Basic validation
       if (!data || typeof data !== 'object') {
@@ -419,8 +423,8 @@ export const useDataIntegrity = (options: Partial<UseDataIntegrityOptions> = {})
           }
 
           // Validate campaign characters
-          if (campaign.characters) {
-            for (const character of campaign.characters) {
+          if ((campaign as any).characters) {
+            for (const character of (campaign as any).characters) {
               result.entitiesChecked++;
               const characterValid = await validateEntity('character', character.id, character);
               if (!characterValid) {
@@ -650,11 +654,11 @@ export const useDataIntegrity = (options: Partial<UseDataIntegrityOptions> = {})
     if (!data) return;
 
     // Add missing fields with sensible defaults
-    if (!data.createdAt) {
-      data.createdAt = new Date().toISOString();
+    if (!(data as any).createdAt) {
+      (data as any).createdAt = new Date().toISOString();
     }
-    if (!data.updatedAt) {
-      data.updatedAt = new Date().toISOString();
+    if (!(data as any).updatedAt) {
+      (data as any).updatedAt = new Date().toISOString();
     }
 
     await persistenceManager.save(issue.entityType, issue.entityId, data);

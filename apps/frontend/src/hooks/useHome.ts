@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { currentCampaignState } from "../store/atoms";
-import { TRPGCampaign } from "@trpg-ai-gm/types";
+import { TRPGCampaign, CampaignStatus } from "@trpg-ai-gm/types";
 // import { LocalStorageManager } from "../utils/localStorage"; // 未使用のためコメントアウト
 
 export function useHome() {
@@ -46,6 +46,19 @@ export function useHome() {
     const newCampaign: TRPGCampaign = {
       id: uuidv4(),
       title: newCampaignTitle.trim(),
+      gameSystem: "Stormbringer",
+      gamemaster: "",
+      players: [],
+      sessions: [],
+      bases: [],
+      enemies: [],
+      npcs: [],
+      items: [],
+      itemLocations: [],
+      // quests: [],
+      // events: [],
+      rules: [],
+      handouts: [],
       createdAt: new Date(),
       updatedAt: new Date(),
       synopsis: "",
@@ -65,8 +78,19 @@ export function useHome() {
         worldmaps: [],
       },
       timeline: [],
-      chapters: [],
+      // chapters: [],
       feedback: [],
+      definedCharacterStatuses: [],
+      metadata: {
+        version: "1.0.0",
+        status: "planning" as CampaignStatus,
+        genre: [],
+        tags: [],
+        difficulty: "intermediate",
+        targetPlayers: { min: 3, max: 5 },
+        lastBackupDate: undefined,
+      },
+      notes: [],
     };
 
     const updatedCampaigns = [...campaigns, newCampaign];

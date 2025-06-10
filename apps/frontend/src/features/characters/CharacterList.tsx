@@ -138,17 +138,20 @@ const CharacterList: React.FC<CharacterListProps> = ({
                       <Typography variant="h6">{character.name}</Typography>
                       <Chip
                         label={
-                          {
-                            protagonist: "主人公",
-                            antagonist: "敵役",
-                            supporting: "脇役",
-                          }[character.role]
+                          (() => {
+                            const roleMap = {
+                              protagonist: "主人公",
+                              antagonist: "敵役",
+                              supporting: "脇役",
+                            };
+                            return roleMap[(character as any).role as keyof typeof roleMap] || character.profession;
+                          })()
                         }
                         size="small"
                         color={
-                          character.role === "protagonist"
+                          (character as any).role === "protagonist"
                             ? "primary"
-                            : character.role === "antagonist"
+                            : (character as any).role === "antagonist"
                             ? "error"
                             : "default"
                         }
@@ -159,9 +162,9 @@ const CharacterList: React.FC<CharacterListProps> = ({
                     <React.Fragment>
                       <Typography variant="body2" component="span">
                         {character.gender && `性別: ${character.gender}`}
-                        {character.gender && character.birthDate && " | "}
-                        {character.birthDate &&
-                          `生年月日: ${character.birthDate}`}
+                        {character.gender && (character as any).birthDate && " | "}
+                        {(character as any).birthDate &&
+                          `生年月日: ${(character as any).birthDate}`}
                       </Typography>
                       <Typography
                         variant="body2"

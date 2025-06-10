@@ -294,6 +294,10 @@ const useAutoSave = <T>(
       saveCount: 0,
       errorCount: 0,
       lastError: null,
+      isOnline: navigator.onLine,
+      isOfflineMode: false,
+      pendingSyncCount: 0,
+      currentVersion: 1,
     });
     setHasUnsavedChanges(false);
   }, []);

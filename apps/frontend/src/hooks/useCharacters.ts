@@ -31,9 +31,9 @@ const dataUrlToEmoji = (dataUrl: string): string | null => {
 // TRPGキャラクター型を変換する関数
 const convertToTRPGCharacter = (character: TRPGCharacter): TRPGCharacter => {
   // traitsはそのまま
-  const traits = character.traits || [];
+  const traits = (character as any).traits || [];
   // relationshipsもそのまま
-  const relationships = character.relationships || [];
+  const relationships = (character as any).relationships || [];
   
   // 基本ステータスの初期化
   const defaultStats: CharacterStats = {
@@ -55,12 +55,11 @@ const convertToTRPGCharacter = (character: TRPGCharacter): TRPGCharacter => {
   return {
     ...character,
     characterType: character.characterType || "NPC",
-    stats: character.stats || defaultStats,
+    attributes: character.attributes || defaultStats,
     skills: character.skills || [],
-    equipment: character.equipment || [],
-    progression: character.progression || [],
-    traits,
-    relationships,
+    // equipment: (character as any).equipment || [],
+    // traits,
+    // relationships,
   };
 };
 
@@ -94,39 +93,42 @@ export function useCharacters() {
     id: "",
     name: "",
     characterType: "NPC",
-    race: "",
-    class: "",
-    background: "",
-    alignment: "",
+    // race: "",
+    // class: "",
+    // background: "",
+    // alignment: "",
     gender: "",
-    age: "",
-    appearance: "",
-    personality: "",
-    motivation: "",
-    stats: {
-      strength: 10,
-      dexterity: 10,
-      constitution: 10,
-      intelligence: 10,
-      wisdom: 10,
-      charisma: 10,
-      hitPoints: { current: 10, max: 10, temp: 0 },
-      manaPoints: { current: 0, max: 0 },
-      armorClass: 10,
-      speed: 30,
-      level: 1,
-      experience: 0,
-      proficiencyBonus: 2,
+    age: 0,
+    // appearance: "",
+    // personality: "",
+    // motivation: "",
+    attributes: {
+      STR: 10,
+      CON: 10,
+      SIZ: 10,
+      INT: 10,
+      POW: 10,
+      DEX: 10,
+      CHA: 10,
     },
-    skills: [],
-    equipment: [],
-    progression: [],
-    traits: [],
-    relationships: [],
+    skills: {
+      AgilitySkills: [],
+      CommunicationSkills: [],
+      KnowledgeSkills: [],
+      ManipulationSkills: [],
+      PerceptionSkills: [],
+      StealthSkills: [],
+      MagicSkills: [],
+      WeaponSkills: [],
+    },
+    // equipment: [],
+    // progression: [],
+    // traits: [],
+    // relationships: [],
     imageUrl: "",
-    customFields: [],
-    statuses: [],
-    notes: "",
+    // customFields: [],
+    // statuses: [],
+    // notes: "",
   };
 
   // フォーム入力用の状態
@@ -167,17 +169,17 @@ export function useCharacters() {
       const ensuredCharacter = {
         ...initialCharacterState,
         ...character,
-        appearance: character.appearance || "",
-        background: character.background || "",
-        motivation: character.motivation || "",
-        relationships: character.relationships || [],
-        traits: character.traits || [],
-        customFields: character.customFields || [],
-        statuses: character.statuses || [],
-        stats: character.stats || initialCharacterState.stats,
+        appearance: (character as any).appearance || character.description || "",
+        background: (character as any).background || character.description || "",
+        motivation: (character as any).motivation || "",
+        relationships: (character as any).relationships || [],
+        traits: (character as any).traits || [],
+        customFields: (character as any).customFields || [],
+        // statuses: character.statuses || [],
+        attributes: character.attributes || initialCharacterState.attributes,
         skills: character.skills || [],
-        equipment: character.equipment || [],
-        progression: character.progression || [],
+        // equipment: (character as any).equipment || [],
+        // progression: character.progression || [],
       };
 
       setFormData(ensuredCharacter);
@@ -215,7 +217,7 @@ export function useCharacters() {
     setFormData({
       ...(initialCharacterState as TRPGCharacter),
       id: uuidv4(),
-      statuses: [],
+      // statuses: [],
     });
     setTempImageUrl("");
     setSelectedEmoji("");
@@ -306,14 +308,14 @@ export function useCharacters() {
   // 特性の追加
   const handleAddTrait = useCallback(() => {
     if (!newTrait.trim()) return;
-    const traits = formData.traits || [];
+    const traits = (formData as any).traits || [];
     const newCharacterTrait: CharacterTrait = {
       id: uuidv4(),
       name: newTrait.trim(),
       value: "",
     };
     const updatedTraits = [...traits, newCharacterTrait];
-    setFormData({ ...formData, traits: updatedTraits });
+    setFormData({ ...formData, traits: updatedTraits } as any);
     setNewTrait("");
     setHasUnsavedChanges(true);
   }, [newTrait, formData]);
@@ -321,9 +323,9 @@ export function useCharacters() {
   // 特性の削除
   const handleRemoveTrait = useCallback(
     (index: number) => {
-      const traits = formData.traits || [];
-      const updatedTraits = traits.filter((_, i) => i !== index);
-      setFormData({ ...formData, traits: updatedTraits });
+      const traits = (formData as any).traits || [];
+      const updatedTraits = traits.filter((_: any, i: number) => i !== index);
+      setFormData({ ...formData, traits: updatedTraits } as any);
       setHasUnsavedChanges(true);
     },
     [formData]
@@ -342,13 +344,13 @@ export function useCharacters() {
   const handleAddCustomField = useCallback(() => {
     if (!newCustomField.name.trim()) return;
 
-    const customFields = formData.customFields || [];
+    const customFields = (formData as any).customFields || [];
     const updatedCustomFields = [
       ...customFields,
       { ...newCustomField, id: uuidv4() },
     ];
 
-    setFormData({ ...formData, customFields: updatedCustomFields });
+    setFormData({ ...formData, customFields: updatedCustomFields } as any);
     setNewCustomField({ id: "", name: "", value: "" });
     setHasUnsavedChanges(true);
   }, [formData, newCustomField]);
@@ -356,11 +358,11 @@ export function useCharacters() {
   // カスタムフィールドの削除
   const handleRemoveCustomField = useCallback(
     (id: string) => {
-      const customFields = formData.customFields || [];
+      const customFields = (formData as any).customFields || [];
       const updatedCustomFields = customFields.filter(
-        (field) => field.id !== id
+        (field: any) => field.id !== id
       );
-      setFormData({ ...formData, customFields: updatedCustomFields });
+      setFormData({ ...formData, customFields: updatedCustomFields } as any);
       setHasUnsavedChanges(true);
     },
     [formData]
@@ -382,7 +384,7 @@ export function useCharacters() {
       // Recoilの状態も更新
       if (currentProject) {
         // TRPGCampaignの型に合わせてキャラクターを変換
-        const indexCharacters = updatedCharacters.map(convertToIndexCharacter);
+        const indexCharacters = updatedCharacters.map(convertToTRPGCharacter);
 
         // 明示的にunknownを介して型変換
         const updatedProject = {
@@ -424,7 +426,7 @@ export function useCharacters() {
 
     const characterToSave: TRPGCharacter = {
       ...formData,
-      statuses: formData.statuses || [],
+      // statuses: formData.statuses || [],
     };
 
     const updatedCharacters = editMode
@@ -512,16 +514,16 @@ export function useCharacters() {
     (statusToSave: CharacterStatus) => {
       // 1. formData の statuses を更新
       setFormData((prev) => {
-        const existingStatusIndex = (prev.statuses || []).findIndex(
-          (s) => s.id === statusToSave.id
+        const existingStatusIndex = ((prev as any).statuses || []).findIndex(
+          (s: any) => s.id === statusToSave.id
         );
-        const newStatuses = [...(prev.statuses || [])];
+        const newStatuses = [...((prev as any).statuses || [])];
         if (existingStatusIndex > -1) {
           newStatuses[existingStatusIndex] = statusToSave;
         } else {
           newStatuses.push(statusToSave);
         }
-        return { ...prev, statuses: newStatuses };
+        return { ...prev, statuses: newStatuses } as any;
       });
 
       // 2. currentProject の definedCharacterStatuses を更新
@@ -562,8 +564,8 @@ export function useCharacters() {
     // formData から削除
     setFormData((prev) => ({
       ...prev,
-      statuses: (prev.statuses || []).filter((s) => s.id !== statusId),
-    }));
+      statuses: ((prev as any).statuses || []).filter((s: any) => s.id !== statusId),
+    } as any));
 
     // TODO: definedCharacterStatuses からの削除ロジック (今回はスキップ)
     // 必要なら、他のキャラクターやタイムラインイベントで使用されていないかチェックしてから削除する
@@ -676,25 +678,32 @@ export function useCharacters() {
             id: item.id || uuidv4(),
             name: item.name || "未設定",
             characterType: item.characterType || "NPC",
-            race: item.race || "",
-            class: item.class || "",
-            background: item.background || "",
-            alignment: item.alignment || "",
+            // race: item.race || "",
+            // class: item.class || "",
+            // background: item.background || "",
+            // alignment: item.alignment || "",
             gender: item.gender || "",
-            age: item.age || "",
-            appearance: item.appearance || item.description || "",
-            personality: item.personality || "",
-            motivation: item.motivation || "",
-            stats: item.stats || initialCharacterState.stats!,
+            age: parseInt(item.age) || 0,
+            description: item.description || "",
+            profession: item.profession || "一般人",
+            nation: item.nation || "",
+            religion: item.religion || "",
+            player: item.player || "",
+            // status: item.status || "alive",
+            // location: item.location || "",
+            // statuses: item.statuses || [],
+            // appearance: item.appearance || item.description || "",
+            // personality: item.personality || "",
+            // motivation: item.motivation || "",
+            attributes: item.attributes || initialCharacterState.attributes!,
             skills: item.skills || [],
-            equipment: item.equipment || [],
-            progression: item.progression || [],
-            traits: item.traits || [],
-            relationships: item.relationships || [],
+            // equipment: item.equipment || [],
+            // progression: item.progression || [],
+            // traits: item.traits || [],
+            // relationships: item.relationships || [],
             imageUrl: item.imageUrl || "",
-            customFields: item.customFields || [],
-            statuses: item.statuses || [],
-            notes: item.notes || "",
+            // customFields: item.customFields || [],
+            // notes: item.notes || "",
           }));
         }
       }
@@ -722,21 +731,21 @@ export function useCharacters() {
         } else if (currentCharacter) {
           // キャラクター情報の解析
           if (line.includes('種族:')) {
-            currentCharacter.race = line.split(':')[1]?.trim();
+            // currentCharacter.race = line.split(':')[1]?.trim();
           } else if (line.includes('クラス:') || line.includes('職業:')) {
-            currentCharacter.class = line.split(':')[1]?.trim();
+            // currentCharacter.class = line.split(':')[1]?.trim();
           } else if (line.includes('性別:')) {
             currentCharacter.gender = line.split(':')[1]?.trim();
           } else if (line.includes('年齢:')) {
-            currentCharacter.age = line.split(':')[1]?.trim();
+            currentCharacter.age = parseInt(line.split(':')[1]?.trim() || "0");
           } else if (line.includes('外見:') || line.includes('容姿:')) {
-            currentCharacter.appearance = line.split(':')[1]?.trim();
+            // currentCharacter.appearance = line.split(':')[1]?.trim();
           } else if (line.includes('性格:')) {
-            currentCharacter.personality = line.split(':')[1]?.trim();
+            // currentCharacter.personality = line.split(':')[1]?.trim();
           } else if (line.includes('動機:') || line.includes('目標:')) {
-            currentCharacter.motivation = line.split(':')[1]?.trim();
+            // currentCharacter.motivation = line.split(':')[1]?.trim();
           } else if (line.includes('背景:') || line.includes('経歴:')) {
-            currentCharacter.background = line.split(':')[1]?.trim();
+            // currentCharacter.background = line.split(':')[1]?.trim();
           }
         }
       }
@@ -767,7 +776,7 @@ export function useCharacters() {
   }, [characters]);
 
   const getEnemies = useCallback(() => {
-    return characters.filter(c => c.characterType === 'Enemy');
+    return characters.filter(c => (c as any).characterType === 'Enemy');
   }, [characters]);
 
   return {

@@ -232,7 +232,7 @@ export const useNPC = () => {
         leftLeg: 0,
         rightLeg: 0,
       },
-      skills: baseSkills,
+      skills: baseSkills as NPCCharacter["skills"],
       location: "",
       occupation: occupation || "一般人",
       attitude: "neutral",

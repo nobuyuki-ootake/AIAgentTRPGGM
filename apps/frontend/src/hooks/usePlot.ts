@@ -93,7 +93,7 @@ export function usePlot() {
       return item;
     });
 
-    setPlotItems(updatedItems);
+    setPlotItems(updatedItems as QuestElement[]);
     setIsDialogOpen(false);
     setEditItemId(null);
     setHasUnsavedChanges(true);
@@ -135,14 +135,14 @@ export function usePlot() {
       return item;
     });
 
-    setPlotItems(updatedItems);
+    setPlotItems(updatedItems as QuestElement[]);
     setHasUnsavedChanges(true);
   };
 
   // プロジェクトに保存
   const handleSave = () => {
     if (currentCampaign) {
-      setCurrentProject({
+      setCurrentCampaign({
         ...currentCampaign,
         plot: plotItems,
         updatedAt: new Date(),

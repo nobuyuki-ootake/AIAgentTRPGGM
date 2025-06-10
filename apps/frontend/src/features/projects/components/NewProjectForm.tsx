@@ -48,8 +48,6 @@ export const NewProjectForm = ({ onSuccess }: NewProjectFormProps) => {
       description: description.trim(),
       genre,
       tags,
-      gameSystem: gameSystem.trim(),
-      playerCount: parseInt(playerCount) || 4,
     });
 
     if (newProject) {

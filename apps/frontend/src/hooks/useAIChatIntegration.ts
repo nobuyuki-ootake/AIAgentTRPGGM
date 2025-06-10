@@ -121,7 +121,7 @@ export const useAIChatIntegration = () => {
       setContext({
         mode: "assist",
         pageContext,
-        projectData: projectData || null,
+        campaignData: projectData || null,
         selectedElements: selectedElements || [],
         assistConfig,
       });
