@@ -48,7 +48,7 @@
       "prettier --write"
     ],
     "packages/types/**/*.ts": [
-      "cd packages/types && prettier --write"
+      "bash -c 'cd packages/types && prettier --write \"$@\"' --"
     ]
   }
 }
