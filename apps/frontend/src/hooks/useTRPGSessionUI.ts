@@ -65,6 +65,7 @@ interface TRPGSessionUIState {
   skillCheckDialog: boolean;
   powerCheckDialog: boolean;
   aiDiceDialog: boolean;
+  startingLocationDialog: boolean;
 
   // タブ状態
   tabValue: number;
@@ -134,16 +135,47 @@ export const useTRPGSessionUI = () => {
     processDiceResult,
   } = sessionHookData;
 
+  // 初期案内メッセージを生成
+  const createInitialWelcomeMessages = useCallback((): ChatMessage[] => {
+    return [
+      {
+        id: `welcome-${Date.now()}-1`,
+        sender: "システム",
+        senderType: "system",
+        message:
+          "🎲 **TRPGセッション画面へようこそ！**\n\nこちらではAI Game Masterと一緒にTRPGセッションを楽しむことができます。",
+        timestamp: new Date(),
+      },
+      {
+        id: `welcome-${Date.now()}-2`,
+        sender: "システム",
+        senderType: "system",
+        message:
+          "**📋 セッション開始の手順:**\n\n1️⃣ 左側のキャラクター一覧から操作したいキャラクターをクリック\n2️⃣ 「AIにセッションを始めてもらう」ボタンをクリック\n3️⃣ AI Game Masterの案内に従ってゲームを進行\n\n💡 セッション中は右下のチャットエリアで行動を入力したり、探索タブのボタンで行動を選択できます。",
+        timestamp: new Date(),
+      },
+      {
+        id: `welcome-${Date.now()}-3`,
+        sender: "システム",
+        senderType: "system",
+        message:
+          "🌟 **ここにセッションの進行情報が表示されます**\n\nセッションが開始されると:\n• AI Game Masterからのメッセージ\n• キャラクターの行動結果\n• ターン進行の情報\n• システムからの案内\n\nなどがこのエリアに表示されます。まずはキャラクターを選択してセッションを開始してみましょう！",
+        timestamp: new Date(),
+      },
+    ];
+  }, []);
+
   // UI状態の初期化
   const [uiState, setUIState] = useState<TRPGSessionUIState>({
     diceDialog: false,
     skillCheckDialog: false,
     powerCheckDialog: false,
     aiDiceDialog: false,
+    startingLocationDialog: false,
     tabValue: 0,
     rightPanelTab: 0,
     chatInput: "",
-    chatMessages: [],
+    chatMessages: createInitialWelcomeMessages(),
     lastDiceResult: null,
     selectedEnemies: [],
     isSessionStarted: false,
@@ -174,7 +206,7 @@ export const useTRPGSessionUI = () => {
     // キャンペーンデータが存在しない場合、テストデータを自動読み込み
     if (!currentCampaign || !currentCampaign.id) {
       console.log(
-        "[TRPGSession] キャンペーンデータなし - テストデータを読み込みます"
+        "[TRPGSession] キャンペーンデータなし - テストデータを読み込みます",
       );
       try {
         applyTestDataToLocalStorage();
@@ -244,6 +276,196 @@ export const useTRPGSessionUI = () => {
     currentCampaign?.imageUrl ||
     "/default-location.jpg";
 
+  // 職業別の行動選択肢を取得するヘルパー関数
+  const getProfessionSpecificActions = useCallback(
+    (profession: string): string[] => {
+      switch (profession?.toLowerCase()) {
+        case "戦士":
+        case "warrior":
+        case "fighter":
+          return ["武器の手入れ", "戦術を考える"];
+        case "魔法使い":
+        case "mage":
+        case "wizard":
+          return ["魔法の研究", "呪文の準備"];
+        case "盗賊":
+        case "thief":
+        case "rogue":
+          return ["隠密行動", "罠の確認"];
+        case "僧侶":
+        case "priest":
+        case "cleric":
+          return ["祈りを捧げる", "癒しの準備"];
+        case "狩人":
+        case "ranger":
+        case "hunter":
+          return ["周囲の偵察", "狩猟の準備"];
+        default:
+          return ["技能の確認", "装備の点検"];
+      }
+    },
+    [],
+  );
+
+  // 入力された行動内容が有効かどうかをチェックするヘルパー関数
+  const validateActionInput = useCallback(
+    (
+      actionText: string,
+    ): { isValid: boolean; normalizedAction: string; reason?: string } => {
+      const trimmedInput = actionText.trim();
+
+      // 空の入力をチェック
+      if (!trimmedInput) {
+        return {
+          isValid: false,
+          normalizedAction: "",
+          reason: "行動内容を入力してください",
+        };
+      }
+
+      // 最小文字数チェック
+      if (trimmedInput.length < 2) {
+        return {
+          isValid: false,
+          normalizedAction: trimmedInput,
+          reason: "行動は2文字以上で入力してください",
+        };
+      }
+
+      // 基本的な行動キーワードをチェック
+      const validActionKeywords = [
+        "移動",
+        "会話",
+        "攻撃",
+        "調べる",
+        "探索",
+        "休息",
+        "準備",
+        "情報収集",
+        "警戒",
+        "様子",
+        "購入",
+        "買い物",
+        "装備",
+        "宿屋",
+        "神殿",
+        "ギルド",
+        "訓練",
+        "鍛錬",
+        "魔法",
+        "呪文",
+        "研究",
+        "隠密",
+        "罠",
+        "祈り",
+        "偵察",
+        "狩猟",
+        "武器",
+        "戦術",
+      ];
+
+      // 現在の拠点の行動もチェック
+      const currentBase = getCurrentBase();
+      const locationActionNames =
+        currentBase?.availableActions?.map((action) => action.name) || [];
+
+      const allValidActions = [...validActionKeywords, ...locationActionNames];
+
+      // 入力内容が有効な行動を含んでいるかチェック
+      const containsValidAction = allValidActions.some(
+        (keyword) =>
+          trimmedInput.includes(keyword) || keyword.includes(trimmedInput),
+      );
+
+      if (containsValidAction) {
+        return { isValid: true, normalizedAction: trimmedInput };
+      } else {
+        return {
+          isValid: true, // 自由記述も許可
+          normalizedAction: trimmedInput,
+          reason: "自由行動として処理されます",
+        };
+      }
+    },
+    [getCurrentBase],
+  );
+
+  // 場所と行動に基づいた簡単な結果説明を生成するヘルパー関数
+  const getLocationBasedResult = useCallback(
+    (location: string, actions: CharacterAction[]): string => {
+      if (!actions || actions.length === 0) {
+        return `${location}で静かに時間が過ぎていきます。`;
+      }
+
+      // 行動の種類を分析
+      const actionTypes = actions.map((action) =>
+        action.actionText.toLowerCase(),
+      );
+      const hasExploration = actionTypes.some(
+        (action) =>
+          action.includes("調べる") ||
+          action.includes("探索") ||
+          action.includes("情報"),
+      );
+      const hasInteraction = actionTypes.some(
+        (action) => action.includes("会話") || action.includes("交流"),
+      );
+      const hasPreparation = actionTypes.some(
+        (action) =>
+          action.includes("準備") ||
+          action.includes("装備") ||
+          action.includes("休息"),
+      );
+      const hasTraining = actionTypes.some(
+        (action) =>
+          action.includes("訓練") ||
+          action.includes("鍛錬") ||
+          action.includes("研究"),
+      );
+
+      // 場所に基づいた結果
+      const locationResults: Record<string, string[]> = {
+        リバーベント街: [
+          "賑やかな商業街で活動が展開されました。",
+          "街の人々が興味深そうに皆の行動を見守っています。",
+          "石畳の街道に冒険者たちの足音が響きます。",
+        ],
+        冒険者ギルド: [
+          "ギルドホールで多くの冒険者が活動しています。",
+          "依頼掲示板の前で活発な議論が交わされています。",
+        ],
+        森: [
+          "深い森の中で自然の音が響いています。",
+          "木々の間から差し込む光が美しい影を作っています。",
+        ],
+      };
+
+      let baseResult = locationResults[location]
+        ? locationResults[location][
+            Math.floor(Math.random() * locationResults[location].length)
+          ]
+        : `${location}で冒険者たちが活動しました。`;
+
+      // 行動タイプに基づいた追加説明
+      if (hasExploration) {
+        baseResult += " 周囲の調査により、新たな発見があるかもしれません。";
+      }
+      if (hasInteraction) {
+        baseResult += " キャラクター同士の交流が深まりました。";
+      }
+      if (hasPreparation) {
+        baseResult +=
+          " しっかりとした準備により、次の行動への準備が整いました。";
+      }
+      if (hasTraining) {
+        baseResult += " 訓練により、技能の向上が期待できます。";
+      }
+
+      return baseResult;
+    },
+    [],
+  );
+
   // テストデータ初期化フラグ
   const hasInitializedRef = useRef(false);
 
@@ -251,7 +473,7 @@ export const useTRPGSessionUI = () => {
   useEffect(() => {
     if (!currentCampaign && !hasInitializedRef.current) {
       console.log(
-        "🔄 TRPGSessionPage: キャンペーンデータがありません。空のキャンペーンを作成中..."
+        "🔄 TRPGSessionPage: キャンペーンデータがありません。空のキャンペーンを作成中...",
       );
       hasInitializedRef.current = true;
 
@@ -287,6 +509,64 @@ export const useTRPGSessionUI = () => {
 
   // セッション自動開始は削除 - ユーザーが明示的に「AIにセッションを始めてもらう」ボタンを押した時のみ開始
 
+  // ===== 開始場所設定機能 =====
+
+  // 有効な開始場所があるかチェック
+  const hasValidStartingLocation = useCallback(() => {
+    const startingLocation = currentCampaign?.startingLocation;
+    if (!startingLocation || !startingLocation.isActive) {
+      return false;
+    }
+
+    // 設定された開始場所が実際に存在し、利用可能かチェック
+    const matchingBase = bases.find((base) => base.id === startingLocation.id);
+    if (!matchingBase) {
+      return false;
+    }
+
+    // プレイヤー拠点として利用可能で、アンロック済みかチェック
+    return (
+      matchingBase.features.playerBase &&
+      matchingBase.meta.unlocked &&
+      matchingBase.importance !== "隠し拠点"
+    );
+  }, [currentCampaign?.startingLocation, bases]);
+
+  // 開始場所設定ダイアログを開く
+  const handleOpenStartingLocationDialog = useCallback(() => {
+    setUIState((prev) => ({ ...prev, startingLocationDialog: true }));
+  }, []);
+
+  // 開始場所を設定する
+  const handleSetStartingLocation = useCallback(
+    (locationInfo: any) => {
+      if (!currentCampaign) return;
+
+      const updatedCampaign = {
+        ...currentCampaign,
+        startingLocation: locationInfo,
+        updatedAt: new Date(),
+      };
+
+      setCurrentCampaign(updatedCampaign);
+
+      // ローカルストレージにも保存
+      try {
+        localStorage.setItem(
+          "currentCampaign",
+          JSON.stringify(updatedCampaign),
+        );
+        handleAddSystemMessage(
+          `📍 開始場所を「${locationInfo.name}」に設定しました`,
+        );
+      } catch (error) {
+        console.error("開始場所の保存に失敗しました:", error);
+        handleAddSystemMessage("⚠️ 開始場所の保存に失敗しました");
+      }
+    },
+    [currentCampaign, setCurrentCampaign],
+  );
+
   // ===== UI アクションハンドラー =====
 
   // ダイアログ管理
@@ -295,23 +575,27 @@ export const useTRPGSessionUI = () => {
       dialogType: keyof Pick<
         TRPGSessionUIState,
         "diceDialog" | "skillCheckDialog" | "powerCheckDialog"
-      >
+      >,
     ) => {
       setUIState((prev) => ({ ...prev, [dialogType]: true }));
     },
-    []
+    [],
   );
 
   const handleCloseDialog = useCallback(
     (
       dialogType: keyof Pick<
         TRPGSessionUIState,
-        "diceDialog" | "skillCheckDialog" | "powerCheckDialog" | "aiDiceDialog"
-      >
+        | "diceDialog"
+        | "skillCheckDialog"
+        | "powerCheckDialog"
+        | "aiDiceDialog"
+        | "startingLocationDialog"
+      >,
     ) => {
       setUIState((prev) => ({ ...prev, [dialogType]: false }));
     },
-    []
+    [],
   );
 
   // タブ変更
@@ -319,7 +603,7 @@ export const useTRPGSessionUI = () => {
     (tabType: "tabValue" | "rightPanelTab", value: number) => {
       setUIState((prev) => ({ ...prev, [tabType]: value }));
     },
-    []
+    [],
   );
 
   // チャット関連
@@ -408,7 +692,7 @@ export const useTRPGSessionUI = () => {
       // デフォルトアイコン
       return React.createElement(Explore);
     },
-    []
+    [],
   );
 
   // 基本アクションの初期化（現在の拠点から行動選択肢を取得）
@@ -416,9 +700,12 @@ export const useTRPGSessionUI = () => {
     if (!uiState.isSessionStarted && uiState.availableActions.length === 0) {
       // 現在の拠点から行動選択肢を取得
       const currentBase = getCurrentBase();
-      if (currentBase?.availableActions && currentBase.availableActions.length > 0) {
-        const convertedActions: ActionChoice[] = currentBase.availableActions.map(
-          (action, index) => ({
+      if (
+        currentBase?.availableActions &&
+        currentBase.availableActions.length > 0
+      ) {
+        const convertedActions: ActionChoice[] =
+          currentBase.availableActions.map((action, index) => ({
             id: action.id || `base-action-${Date.now()}-${index}`,
             type: "custom",
             label: action.name,
@@ -426,15 +713,18 @@ export const useTRPGSessionUI = () => {
             icon: getActionIcon(action.name),
             requiresTarget: false,
             targetType: undefined,
-          })
-        );
+          }));
 
         setUIState((prev) => ({
           ...prev,
           availableActions: convertedActions,
         }));
-        
-        console.log(`[Debug] 拠点 ${currentLocation} から行動選択肢を読み込み:`, convertedActions.length, "個");
+
+        console.log(
+          `[Debug] 拠点 ${currentLocation} から行動選択肢を読み込み:`,
+          convertedActions.length,
+          "個",
+        );
       } else {
         // フォールバック: 拠点に行動選択肢がない場合は基本アクション
         const baseActions = getAvailableActions();
@@ -448,15 +738,19 @@ export const useTRPGSessionUI = () => {
               icon: getActionIcon(action.label),
               requiresTarget: action.requiresTarget,
               targetType: action.targetType,
-            })
+            }),
           );
 
           setUIState((prev) => ({
             ...prev,
             availableActions: convertedActions,
           }));
-          
-          console.log(`[Debug] フォールバック行動選択肢を読み込み:`, convertedActions.length, "個");
+
+          console.log(
+            `[Debug] フォールバック行動選択肢を読み込み:`,
+            convertedActions.length,
+            "個",
+          );
         }
       }
     }
@@ -478,7 +772,7 @@ export const useTRPGSessionUI = () => {
 
       // 【利用可能なアクション】または【次の行動選択肢】または【キャラクター名の行動選択肢】セクションを探す
       const actionSectionMatch = response.match(
-        /【(利用可能なアクション|次の行動選択肢|.*の行動選択肢)】([\s\S]*?)(?=【|$)/
+        /【(利用可能なアクション|次の行動選択肢|.*の行動選択肢)】([\s\S]*?)(?=【|$)/,
       );
 
       if (actionSectionMatch) {
@@ -487,7 +781,7 @@ export const useTRPGSessionUI = () => {
 
         // ダッシュで始まる行動項目を抽出（絵文字文字化け対応）
         const actionMatches = actionSection.match(
-          /.*行動\d+\s*-\s*(.+?)(?=説明:|[\n\r])/g
+          /.*行動\d+\s*-\s*(.+?)(?=説明:|[\n\r])/g,
         );
 
         if (actionMatches) {
@@ -495,7 +789,7 @@ export const useTRPGSessionUI = () => {
           actionMatches.forEach((match) => {
             // "行動N - " の後の部分を抽出
             const actionMatch = match.match(
-              /行動\d+\s*-\s*(.+?)(?=\s*説明:|$)/
+              /行動\d+\s*-\s*(.+?)(?=\s*説明:|$)/,
             );
             if (actionMatch) {
               const cleanAction = actionMatch[1].trim();
@@ -524,13 +818,13 @@ export const useTRPGSessionUI = () => {
 
         // フォールバック: 全体から行動パターンを探す
         const directMatches = response.match(
-          /行動\d+\s*-\s*(.+?)(?=説明:|[\n\r])/g
+          /行動\d+\s*-\s*(.+?)(?=説明:|[\n\r])/g,
         );
         if (directMatches) {
           console.log("🔄 直接マッチ:", directMatches);
           directMatches.forEach((match) => {
             const actionMatch = match.match(
-              /行動\d+\s*-\s*(.+?)(?=\s*説明:|$)/
+              /行動\d+\s*-\s*(.+?)(?=\s*説明:|$)/,
             );
             if (actionMatch) {
               const cleanAction = actionMatch[1].trim();
@@ -545,7 +839,7 @@ export const useTRPGSessionUI = () => {
       console.log("📊 抽出されたアクション:", actions);
       return actions;
     },
-    []
+    [],
   );
 
   // アクション管理機能
@@ -562,7 +856,7 @@ export const useTRPGSessionUI = () => {
     const characterIds = playerCharacters.map((c) => c.id);
 
     console.log(
-      `ターン ${uiState.turnState.currentTurn} 初期化: ${playerCharacters.length}人のプレイヤーキャラクター`
+      `ターン ${uiState.turnState.currentTurn} 初期化: ${playerCharacters.length}人のプレイヤーキャラクター`,
     );
 
     setUIState((prev) => ({
@@ -594,20 +888,20 @@ export const useTRPGSessionUI = () => {
           ...prev.turnState,
           actionsThisTurn: [...prev.turnState.actionsThisTurn, action],
           awaitingCharacters: prev.turnState.awaitingCharacters.filter(
-            (id) => id !== selectedCharacter.id
+            (id) => id !== selectedCharacter.id,
           ),
         },
       }));
 
       // システムメッセージでプレイヤーアクションを記録
       handleAddSystemMessage(
-        `🎯 ${selectedCharacter.name}の行動: ${actionText}`
+        `🎯 ${selectedCharacter.name}の行動: ${actionText}`,
       );
 
       // 他のプレイヤーキャラクターの自動行動を処理
       setTimeout(() => processOtherPlayerCharacters(), 1000);
     },
-    [selectedCharacter]
+    [selectedCharacter],
   );
 
   const processOtherPlayerCharacters = useCallback(async () => {
@@ -615,7 +909,7 @@ export const useTRPGSessionUI = () => {
     const otherPlayerCharacters = playerCharacters.filter(
       (pc) =>
         pc.id !== selectedCharacter?.id &&
-        uiState.turnState.awaitingCharacters.includes(pc.id)
+        uiState.turnState.awaitingCharacters.includes(pc.id),
     );
 
     if (otherPlayerCharacters.length === 0) {
@@ -624,10 +918,10 @@ export const useTRPGSessionUI = () => {
     }
 
     console.log(
-      `${otherPlayerCharacters.length}人の他プレイヤーキャラクターの行動を処理中...`
+      `${otherPlayerCharacters.length}人の他プレイヤーキャラクターの行動を処理中...`,
     );
     handleAddSystemMessage(
-      `🤖 AI操作キャラクター（${otherPlayerCharacters.length}人）の行動を処理中...`
+      `🤖 AI操作キャラクター（${otherPlayerCharacters.length}人）の行動を処理中...`,
     );
 
     setUIState((prev) => ({
@@ -662,147 +956,103 @@ export const useTRPGSessionUI = () => {
 
   const generateCharacterSpecificActions = useCallback(
     async (character: any): Promise<string[]> => {
-      try {
-        const prompt = `TRPG行動選択肢を簡潔に生成してください。
+      // AI APIを使わず、固定の行動選択肢を返す
+      const baseActions = [
+        "様子を見る",
+        "情報収集を行う",
+        "周囲を警戒する",
+        "準備を整える",
+      ];
 
-キャラクター: ${character.name} (${character.profession || "冒険者"})
-場所: ${currentLocation || "リバーベント街"}
+      // 現在の拠点に基づく追加行動
+      const currentBase = getCurrentBase();
+      const locationActions =
+        currentBase?.availableActions?.map((action) => action.name) || [];
 
-以下の形式で多様な行動を5つ生成：
+      // 職業に基づく行動
+      const professionActions = getProfessionSpecificActions(
+        character.profession,
+      );
 
-🏛️ 市役所へ向かう
-🛒 装備品を購入する
-👥 住民と会話する
-🔍 情報収集を行う
-⚔️ 訓練をする
+      // 全ての行動をまとめて返す
+      const allActions = [
+        ...baseActions,
+        ...locationActions.slice(0, 2),
+        ...professionActions,
+      ];
 
-各行動は3-5語で簡潔に。説明は不要。`;
-
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent/chat`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              prompt,
-              context: {
-                character,
-                location: currentLocation,
-                turn: uiState.turnState.currentTurn,
-              },
-              provider:
-                localStorage.getItem("selected-ai-provider") || "gemini",
-            }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          const aiResponse = data.response || "";
-          console.log(`🤖 ${character.name}のAI応答:`, aiResponse);
-
-          const extractedActions = extractActionsFromAIResponse(aiResponse);
-          console.log(
-            `🎯 ${character.name}の抽出されたアクション:`,
-            extractedActions
-          );
-
-          if (extractedActions.length > 0) {
-            return extractedActions;
-          } else {
-            // AIレスポンスが来ているが抽出できない場合の基本アクション
-            console.warn(
-              `⚠️ ${character.name}: AIレスポンスからアクション抽出失敗`
-            );
-            return ["AIレスポンスからアクション抽出失敗"];
-          }
-        } else {
-          console.error(
-            `❌ ${character.name}: API応答エラー ${response.status}`
-          );
-          return ["API応答エラー: " + response.status];
-        }
-      } catch (error) {
-        console.error(
-          `キャラクター行動選択肢生成エラー (${character.name}):`,
-          error
-        );
-        return ["様子を見る", "情報収集", "準備", "待機", "周囲確認"];
-      }
+      console.log(`🎯 ${character.name}の固定行動選択肢:`, allActions);
+      return allActions.slice(0, 5); // 最大5つまで
     },
-    [
-      currentLocation,
-      uiState.turnState.currentTurn,
-      extractActionsFromAIResponse,
-    ]
+    [currentLocation, getCurrentBase],
   );
 
   const processIndividualPlayerCharacterAction = useCallback(
     async (character: any) => {
       try {
-        // まず、このキャラクター向けの行動選択肢を生成
-        const availableActions = await generateCharacterSpecificActions(
-          character
-        );
+        // キャラクター向けの行動選択肢を固定値で生成
+        const availableActions =
+          await generateCharacterSpecificActions(character);
 
-        // AI agentがこれらの選択肢から1つを選択
-        const prompt = `あなたは${
-          character.name
-        }というプレイヤーキャラクターをAI agentとして操作しています。
-
-キャラクター情報:
-- 名前: ${character.name}
-- 種族: ${character.nation || "人間"}
-- 職業: ${character.profession || "冒険者"}
-- 性格: ${character.personality || "標準的"}
-
-現在の状況:
-- 場所: ${currentLocation || "リバーベント街"}
-- ターン: ${uiState.turnState.currentTurn}
-
-以下の行動選択肢から最適な1つを選んでください：
-${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
-
-以下の形式で応答してください：
-選択: [選択した行動]
-理由: [選択理由]`;
-
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent/chat`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              prompt,
-              context: {
-                character,
-                location: currentLocation,
-                turn: uiState.turnState.currentTurn,
-                availableActions,
-              },
-              provider:
-                localStorage.getItem("selected-ai-provider") || "gemini",
-            }),
-          }
-        );
-
+        // 固定ロジックで行動を選択（AI APIを使わない）
         let actionText = "様子を見ている";
 
-        if (response.ok) {
-          const data = await response.json();
-          const aiResponse = data.response || "";
+        if (availableActions.length > 0) {
+          // シンプルなロジックで行動を選択
+          // キャラクターの職業に基づいて優先行動を決める
+          const profession = character.profession?.toLowerCase() || "";
 
-          // "選択: " の後の部分を抽出
-          const actionMatch = aiResponse.match(/選択:\s*(.+)/);
-          if (actionMatch) {
-            actionText = actionMatch[1].trim();
+          if (profession.includes("戦士") || profession.includes("fighter")) {
+            // 戦士は積極的行動を優先
+            const aggressiveActions = availableActions.filter(
+              (action) =>
+                action.includes("攻撃") ||
+                action.includes("戦術") ||
+                action.includes("武器"),
+            );
+            actionText =
+              aggressiveActions[0] ||
+              availableActions[
+                Math.floor(Math.random() * Math.min(2, availableActions.length))
+              ];
+          } else if (
+            profession.includes("魔法使い") ||
+            profession.includes("mage")
+          ) {
+            // 魔法使いは研究・準備系を優先
+            const studyActions = availableActions.filter(
+              (action) =>
+                action.includes("研究") ||
+                action.includes("魔法") ||
+                action.includes("呪文"),
+            );
+            actionText =
+              studyActions[0] ||
+              availableActions[
+                Math.floor(Math.random() * Math.min(2, availableActions.length))
+              ];
+          } else if (
+            profession.includes("盗賊") ||
+            profession.includes("rogue")
+          ) {
+            // 盗賊は情報収集・隠密を優先
+            const stealthActions = availableActions.filter(
+              (action) =>
+                action.includes("情報") ||
+                action.includes("隠密") ||
+                action.includes("罠"),
+            );
+            actionText =
+              stealthActions[0] ||
+              availableActions[
+                Math.floor(Math.random() * Math.min(2, availableActions.length))
+              ];
           } else {
-            // 利用可能な行動から最初のものを使用
-            actionText = availableActions[0] || "待機";
+            // その他の職業はランダムに最初の2つから選択
+            actionText =
+              availableActions[
+                Math.floor(Math.random() * Math.min(2, availableActions.length))
+              ];
           }
         }
 
@@ -820,7 +1070,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
             ...prev.turnState,
             actionsThisTurn: [...prev.turnState.actionsThisTurn, action],
             awaitingCharacters: prev.turnState.awaitingCharacters.filter(
-              (id) => id !== character.id
+              (id) => id !== character.id,
             ),
           },
         }));
@@ -830,7 +1080,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
       } catch (error) {
         console.error(
           `プレイヤーキャラクターアクションエラー (${character.name}):`,
-          error
+          error,
         );
         // エラーの場合はデフォルトアクション
         const defaultAction: CharacterAction = {
@@ -847,7 +1097,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
             ...prev.turnState,
             actionsThisTurn: [...prev.turnState.actionsThisTurn, defaultAction],
             awaitingCharacters: prev.turnState.awaitingCharacters.filter(
-              (id) => id !== character.id
+              (id) => id !== character.id,
             ),
           },
         }));
@@ -855,11 +1105,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
         handleAddSystemMessage(`🤖 ${character.name}の行動: 様子を見ている`);
       }
     },
-    [
-      currentLocation,
-      uiState.turnState.currentTurn,
-      generateCharacterSpecificActions,
-    ]
+    [generateCharacterSpecificActions, handleAddSystemMessage],
   );
 
   const checkTurnCompletion = useCallback(() => {
@@ -877,7 +1123,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
   const processTurnCompletion = useCallback(async () => {
     // ターン完了の処理
     handleAddSystemMessage(
-      `\n🔄 ターン ${uiState.turnState.currentTurn} 完了\n`
+      `\n🔄 ターン ${uiState.turnState.currentTurn} 完了\n`,
     );
 
     // 全アクションの要約をAIに生成させる
@@ -893,95 +1139,97 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
         .map((action) => `${action.characterName}: ${action.actionText}`)
         .join("\n");
 
-      const prompt = `ターン${uiState.turnState.currentTurn}結果を簡潔にまとめてください。
+      // AI APIを使わず、固定のロジックでターン結果を生成
+      const currentTurn = uiState.turnState.currentTurn;
 
-行動: ${actionsText}
+      // 基本的なターン結果メッセージを固定値で生成
+      let summaryMessage = `🎯 ターン${currentTurn}結果\n\n`;
 
-形式:
-🎯 ターン${uiState.turnState.currentTurn}結果
-[1-2行で結果をまとめる]
+      // 各キャラクターの行動を要約
+      summaryMessage += `📋 実行された行動：\n${actionsText}\n\n`;
 
-⚡ 次の行動を選択してください。`;
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent/chat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt,
-            context: {
-              turn: uiState.turnState.currentTurn,
-              actions: uiState.turnState.actionsThisTurn,
-              location: currentLocation,
-            },
-            provider: localStorage.getItem("selected-ai-provider") || "gemini",
-          }),
-        }
+      // 場所に基づく簡単な結果説明
+      const locationDescription = getLocationBasedResult(
+        currentLocation,
+        uiState.turnState.actionsThisTurn,
       );
+      summaryMessage += `🌟 ${locationDescription}\n\n`;
 
-      if (response.ok) {
-        const data = await response.json();
-        const summaryMessage =
-          data.response ||
-          `ターン ${uiState.turnState.currentTurn} の行動が処理されました。`;
+      summaryMessage += `⚡ 次のターンの行動を選択してください。`;
 
-        const gmMessage: ChatMessage = {
-          id: uuidv4(),
-          sender: "AIゲームマスター",
-          senderType: "gm",
-          message: summaryMessage,
-          timestamp: new Date(),
-        };
+      const gmMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "ゲームマスター",
+        senderType: "gm",
+        message: summaryMessage,
+        timestamp: new Date(),
+      };
 
-        setUIState((prev) => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, gmMessage],
-        }));
+      setUIState((prev) => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, gmMessage],
+      }));
 
-        // 現在の拠点から行動選択肢を取得（ターン結果に関係なく拠点固有のアクション）
-        const currentBase = getCurrentBase();
-        if (currentBase?.availableActions && currentBase.availableActions.length > 0) {
-          const actionObjects = currentBase.availableActions.map((action, index) => ({
-            id: action.id || `turn-${uiState.turnState.currentTurn + 1}-location-action-${Date.now()}-${index}`,
+      // 現在の拠点から行動選択肢を取得（ターン結果に関係なく拠点固有のアクション）
+      const currentBase = getCurrentBase();
+      if (
+        currentBase?.availableActions &&
+        currentBase.availableActions.length > 0
+      ) {
+        const actionObjects = currentBase.availableActions.map(
+          (action, index) => ({
+            id:
+              action.id ||
+              `turn-${currentTurn + 1}-location-action-${Date.now()}-${index}`,
             type: "custom" as const,
             label: action.name,
             description: action.description,
             icon: getActionIcon(action.name),
             requiresTarget: false,
-          }));
+          }),
+        );
 
-          setAvailableActions(actionObjects);
-          console.log(`🔄 ターン完了後の行動選択肢: 拠点データベースから ${actionObjects.length} 個を設定`);
-        } else {
-          // フォールバック: ターン結果からアクション抽出
-          const extractedActions = extractActionsFromAIResponse(summaryMessage);
-          if (extractedActions.length > 0) {
-            const actionObjects = extractedActions.map((action, index) => ({
-              id: `turn-${
-                uiState.turnState.currentTurn + 1
-              }-action-${Date.now()}-${index}`,
-              type: "custom" as const,
-              label: action,
-              description: action,
-              icon: getActionIcon(action),
-              requiresTarget: false,
-            }));
+        setAvailableActions(actionObjects);
+        console.log(
+          `🔄 ターン完了後の行動選択肢: 拠点データベースから ${actionObjects.length} 個を設定`,
+        );
+      } else {
+        // フォールバック: 基本的な探索行動
+        const basicActions = [
+          { name: "周囲を調べる", description: "現在地を詳しく調査する" },
+          { name: "情報収集", description: "地域の情報を収集する" },
+          { name: "準備を整える", description: "次の行動に向けて準備する" },
+          { name: "休息する", description: "体力を回復する" },
+        ];
 
-            setAvailableActions(actionObjects);
-            console.log(`🔄 フォールバック: AI抽出アクション ${actionObjects.length} 個を設定`);
-          }
-        }
+        const actionObjects = basicActions.map((action, index) => ({
+          id: `turn-${currentTurn + 1}-basic-action-${Date.now()}-${index}`,
+          type: "custom" as const,
+          label: action.name,
+          description: action.description,
+          icon: getActionIcon(action.name),
+          requiresTarget: false,
+        }));
+
+        setAvailableActions(actionObjects);
+        console.log(
+          `🔄 フォールバック: 基本行動選択肢 ${actionObjects.length} 個を設定`,
+        );
       }
     } catch (error) {
       console.error("ターン要約生成エラー:", error);
       handleAddSystemMessage(
-        `⚠️ ターン ${uiState.turnState.currentTurn} の要約生成に失敗しました`
+        `⚠️ ターン ${uiState.turnState.currentTurn} の要約生成に失敗しました`,
       );
     }
-  }, [uiState.turnState.currentTurn, currentLocation, getCurrentBase, getActionIcon, extractActionsFromAIResponse]);
+  }, [
+    uiState.turnState.currentTurn,
+    uiState.turnState.actionsThisTurn,
+    currentLocation,
+    getCurrentBase,
+    getActionIcon,
+    handleAddSystemMessage,
+  ]);
 
   const startNextTurn = useCallback(() => {
     const nextTurn = uiState.turnState.currentTurn + 1;
@@ -1005,6 +1253,9 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
 
   const handleSendMessage = useCallback(() => {
     if (uiState.chatInput.trim()) {
+      // 入力された行動の有効性をチェック
+      const validationResult = validateActionInput(uiState.chatInput);
+
       const playerMessage: ChatMessage = {
         id: uuidv4(),
         sender: selectedCharacter?.name || "プレイヤー",
@@ -1018,27 +1269,66 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
         ...prev,
         chatMessages: [...prev.chatMessages, playerMessage],
         chatInput: "",
-        // アクション選択状態をリセット
+      }));
+
+      // 有効性チェックの結果に基づいてフィードバックを表示
+      if (!validationResult.isValid) {
+        const validationMessage: ChatMessage = {
+          id: uuidv4(),
+          sender: "システム",
+          senderType: "system",
+          message: `⚠️ ${validationResult.reason}`,
+          timestamp: new Date(),
+        };
+
+        setUIState((prev) => ({
+          ...prev,
+          chatMessages: [...prev.chatMessages, validationMessage],
+        }));
+
+        return; // 無効な行動の場合は処理を終了
+      }
+
+      // 有効な行動の場合、フィードバックメッセージを表示（必要に応じて）
+      if (validationResult.reason) {
+        const feedbackMessage: ChatMessage = {
+          id: uuidv4(),
+          sender: "システム",
+          senderType: "system",
+          message: `💡 ${validationResult.reason}`,
+          timestamp: new Date(),
+        };
+
+        setUIState((prev) => ({
+          ...prev,
+          chatMessages: [...prev.chatMessages, feedbackMessage],
+        }));
+      }
+
+      // アクション選択状態をリセット
+      setUIState((prev) => ({
+        ...prev,
         isAwaitingActionSelection: false,
         actionSelectionPrompt: "",
       }));
 
-      // ターン中の場合はプレイヤーアクションとして処理
+      // ターン中の場合はプレイヤーアクションとして処理（即座にGM応答は生成しない）
       if (
         uiState.turnState.awaitingCharacters.includes(
-          selectedCharacter?.id || ""
+          selectedCharacter?.id || "",
         )
       ) {
-        processPlayerAction(uiState.chatInput);
+        // プレイヤーの行動をターン状態に記録（GM応答は全員の行動が揃ってから）
+        processPlayerAction(validationResult.normalizedAction);
       } else {
-        // 通常のAIゲームマスター応答を生成
+        // セッション外の場合のみ即座にAI GM応答を生成
         generateAIGameMasterResponse(
-          uiState.chatInput,
+          validationResult.normalizedAction,
           selectedCharacter,
           currentLocation,
           currentDay,
           actionCount,
-          maxActionsPerDay
+          maxActionsPerDay,
         );
       }
     }
@@ -1051,6 +1341,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
     actionCount,
     maxActionsPerDay,
     processPlayerAction,
+    validateActionInput,
   ]);
 
   // ダイス結果処理
@@ -1107,7 +1398,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
       }
       setUIState((prev) => ({ ...prev, aiDiceDialog: false }));
     },
-    [processDiceResult, uiState.aiRequiredDice]
+    [processDiceResult, uiState.aiRequiredDice],
   );
 
   // 拠点インタラクション
@@ -1116,35 +1407,48 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
   }, []);
 
   // 場所変更ハンドラー
-  const handleLocationChange = useCallback((locationName: string) => {
-    console.log(`[Debug] 場所変更: ${currentLocation} → ${locationName}`);
-    setCurrentLocation(locationName);
-    
-    // 新しい場所の行動選択肢を読み込み
-    const newBase = bases.find(base => base.name === locationName);
-    if (newBase?.availableActions && newBase.availableActions.length > 0) {
-      const newActions: ActionChoice[] = newBase.availableActions.map(
-        (action, index) => ({
-          id: action.id || `location-change-action-${Date.now()}-${index}`,
-          type: "custom",
-          label: action.name,
-          description: action.description,
-          icon: getActionIcon(action.name),
-          requiresTarget: false,
-        })
-      );
+  const handleLocationChange = useCallback(
+    (locationName: string) => {
+      console.log(`[Debug] 場所変更: ${currentLocation} → ${locationName}`);
+      setCurrentLocation(locationName);
 
-      setUIState((prev) => ({
-        ...prev,
-        availableActions: newActions,
-      }));
-      
-      console.log(`[Debug] 新しい場所 ${locationName} の行動選択肢を読み込み:`, newActions.length, "個");
-    }
+      // 新しい場所の行動選択肢を読み込み
+      const newBase = bases.find((base) => base.name === locationName);
+      if (newBase?.availableActions && newBase.availableActions.length > 0) {
+        const newActions: ActionChoice[] = newBase.availableActions.map(
+          (action, index) => ({
+            id: action.id || `location-change-action-${Date.now()}-${index}`,
+            type: "custom",
+            label: action.name,
+            description: action.description,
+            icon: getActionIcon(action.name),
+            requiresTarget: false,
+          }),
+        );
 
-    // システムメッセージを追加
-    handleAddSystemMessage(`📍 ${locationName} に移動しました`);
-  }, [currentLocation, setCurrentLocation, bases, getActionIcon, handleAddSystemMessage]);
+        setUIState((prev) => ({
+          ...prev,
+          availableActions: newActions,
+        }));
+
+        console.log(
+          `[Debug] 新しい場所 ${locationName} の行動選択肢を読み込み:`,
+          newActions.length,
+          "個",
+        );
+      }
+
+      // システムメッセージを追加
+      handleAddSystemMessage(`📍 ${locationName} に移動しました`);
+    },
+    [
+      currentLocation,
+      setCurrentLocation,
+      bases,
+      getActionIcon,
+      handleAddSystemMessage,
+    ],
+  );
 
   // カスタムアクション実行
   const handleExecuteAction = useCallback(
@@ -1155,7 +1459,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
       if (
         uiState.isSessionStarted &&
         uiState.turnState.awaitingCharacters.includes(
-          selectedCharacter?.id || ""
+          selectedCharacter?.id || "",
         )
       ) {
         processPlayerAction(action.label);
@@ -1178,7 +1482,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
       selectedCharacter,
       processPlayerAction,
       executeAction,
-    ]
+    ],
   );
 
   // Gemini APIを使用したAIゲームマスター応答生成（早期定義）
@@ -1189,7 +1493,7 @@ ${availableActions.map((action, index) => `${index + 1}. ${action}`).join("\n")}
       location: string,
       day: number,
       actions: number,
-      maxActions: number
+      maxActions: number,
     ) => {
       try {
         const provider =
@@ -1223,7 +1527,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
         // AI APIにリクエスト送信
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent/chat`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/ai/assist`,
           {
             method: "POST",
             headers: {
@@ -1240,7 +1544,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
               },
               provider,
             }),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -1266,16 +1570,25 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
         // 現在の拠点から行動選択肢を取得
         const currentBase = getCurrentBase();
-        if (currentBase?.availableActions && currentBase.availableActions.length > 0) {
-          console.log("拠点データベースから行動選択肢を取得:", currentBase.availableActions.length, "個");
-          const actionObjects = currentBase.availableActions.map((action, index) => ({
-            id: action.id || `location-action-${Date.now()}-${index}`,
-            type: "custom" as const,
-            label: action.name,
-            description: action.description,
-            icon: getActionIcon(action.name),
-            requiresTarget: false,
-          }));
+        if (
+          currentBase?.availableActions &&
+          currentBase.availableActions.length > 0
+        ) {
+          console.log(
+            "拠点データベースから行動選択肢を取得:",
+            currentBase.availableActions.length,
+            "個",
+          );
+          const actionObjects = currentBase.availableActions.map(
+            (action, index) => ({
+              id: action.id || `location-action-${Date.now()}-${index}`,
+              type: "custom" as const,
+              label: action.name,
+              description: action.description,
+              icon: getActionIcon(action.name),
+              requiresTarget: false,
+            }),
+          );
 
           setAvailableActions(actionObjects);
 
@@ -1289,9 +1602,12 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         } else {
           // フォールバック: AIレスポンスからアクション選択肢を抽出
           const extractedActions = extractActionsFromAIResponse(aiResponse);
-          
+
           if (extractedActions.length > 0) {
-            console.log("フォールバック: AIから抽出されたアクション:", extractedActions);
+            console.log(
+              "フォールバック: AIから抽出されたアクション:",
+              extractedActions,
+            );
             const actionObjects = extractedActions.map((action, index) => ({
               id: `ai-action-${Date.now()}-${index}`,
               type: "custom" as const,
@@ -1332,30 +1648,24 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         }));
       }
     },
-    [currentCampaign, extractActionsFromAIResponse, getActionIcon, getCurrentBase]
+    [
+      currentCampaign,
+      extractActionsFromAIResponse,
+      getActionIcon,
+      getCurrentBase,
+    ],
   );
 
-  // バッチ処理: 各キャラクター向けの行動アナウンス生成
+  // バッチ処理: 各キャラクター向けの行動アナウンス生成（固定値版）
   const generateBatchCharacterActionAnnouncements = useCallback(async () => {
-    console.log("📊 各キャラクター向けの行動アナウンスをバッチ生成中...");
+    console.log("📊 各キャラクター向けの行動選択肢を準備中...");
     handleAddSystemMessage("📊 各キャラクター向けの行動選択肢を準備中...");
 
     try {
-      // 全プレイヤーキャラクターの行動選択肢を並行生成
-      const characterActionPromises = playerCharacters.map(
-        async (character) => {
-          const actions = await generateCharacterSpecificActions(character);
-          return {
-            character,
-            actions,
-          };
-        }
-      );
+      // 各キャラクターの行動選択肢を固定値で生成
+      for (const character of playerCharacters) {
+        const actions = await generateCharacterSpecificActions(character);
 
-      const characterActionResults = await Promise.all(characterActionPromises);
-
-      // 各キャラクターごとに個別のメッセージを生成
-      for (const { character, actions } of characterActionResults) {
         let characterMessage = `【${character.name}の行動選択肢】\n\n`;
         characterMessage += `職業: ${
           character.profession || "冒険者"
@@ -1368,7 +1678,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         // 各キャラクターのメッセージを個別にチャットに追加
         const characterAnnouncementMessage: ChatMessage = {
           id: uuidv4(),
-          sender: "AIゲームマスター",
+          sender: "ゲームマスター",
           senderType: "gm",
           message: characterMessage,
           timestamp: new Date(),
@@ -1380,18 +1690,21 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         }));
 
         // メッセージ間に少し間隔を開ける
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
 
       console.log(
         "✅ 各キャラクターのアナウンス生成完了:",
-        characterActionResults.length,
-        "キャラクター"
+        playerCharacters.length,
+        "キャラクター",
       );
 
       // 現在の拠点から行動選択肢を取得してアクションボタンとして設定
       const currentBase = getCurrentBase();
-      if (currentBase?.availableActions && currentBase.availableActions.length > 0) {
+      if (
+        currentBase?.availableActions &&
+        currentBase.availableActions.length > 0
+      ) {
         const actionObjects = currentBase.availableActions.map(
           (action, index) => ({
             id: action.id || `location-action-${Date.now()}-${index}`,
@@ -1400,55 +1713,56 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
             description: action.description,
             icon: getActionIcon(action.name),
             requiresTarget: false,
-          })
+          }),
         );
 
         setAvailableActions(actionObjects);
         console.log(
           "🎯 拠点データベースから行動選択肢を設定完了:",
           actionObjects.length,
-          "個"
+          "個",
         );
       } else {
-        // フォールバック: ユーザーキャラクターのAI生成アクション
-        const userCharacterResult = characterActionResults.find(
-          (result) => result.character.id === selectedCharacter?.id
-        );
+        // フォールバック: 基本的な探索行動
+        const basicActions = [
+          { name: "周囲を調べる", description: "現在地を詳しく調査する" },
+          { name: "情報収集", description: "地域の情報を収集する" },
+          { name: "準備を整える", description: "次の行動に向けて準備する" },
+          { name: "休息する", description: "体力を回復する" },
+        ];
 
-        if (userCharacterResult) {
-          const actionObjects = userCharacterResult.actions.map(
-            (action, index) => ({
-              id: `batch-action-${Date.now()}-${index}`,
-              type: "custom" as const,
-              label: action,
-              description: action,
-              icon: getActionIcon(action),
-              requiresTarget: false,
-            })
-          );
+        const actionObjects = basicActions.map((action, index) => ({
+          id: `basic-action-${Date.now()}-${index}`,
+          type: "custom" as const,
+          label: action.name,
+          description: action.description,
+          icon: getActionIcon(action.name),
+          requiresTarget: false,
+        }));
 
-          setAvailableActions(actionObjects);
-          console.log(
-            "🎯 フォールバック: AI生成アクションボタン設定完了:",
-            actionObjects.length,
-            "個"
-          );
-        }
+        setAvailableActions(actionObjects);
+        console.log("🎯 基本行動選択肢を設定完了:", actionObjects.length, "個");
       }
     } catch (error) {
       console.error("❌ バッチアナウンス生成エラー:", error);
       handleAddSystemMessage(
-        "⚠️ キャラクター行動選択肢の生成中にエラーが発生しました。基本的な選択肢を使用します。"
+        "⚠️ キャラクター行動選択肢の生成中にエラーが発生しました。基本的な選択肢を使用します。",
       );
     }
-  }, [playerCharacters, selectedCharacter, generateCharacterSpecificActions, getCurrentBase, getActionIcon]);
+  }, [
+    playerCharacters,
+    generateCharacterSpecificActions,
+    getCurrentBase,
+    getActionIcon,
+    handleAddSystemMessage,
+  ]);
 
   // AIゲームマスターセッション開始
   const handleStartAISession = useCallback(async () => {
     // キャラクター選択チェック
     if (!selectedCharacter) {
       handleAddSystemMessage(
-        "❌ セッションを開始するには、キャラクターを選択してください。"
+        "❌ セッションを開始するには、キャラクターを選択してください。",
       );
       return;
     }
@@ -1458,11 +1772,21 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
       return;
     }
 
-    // 場所を設定
-    const currentLocationName =
-      bases.length > 0 ? bases[0].name : "リバーベント街";
-    if (bases.length > 0) {
-      setCurrentLocation(bases[0].name);
+    // 開始場所チェック
+    if (!hasValidStartingLocation()) {
+      handleAddSystemMessage(
+        "❌ ゲーム開始場所が設定されていません。開始場所設定ダイアログから設定してください。",
+      );
+      // 開始場所設定ダイアログを自動で開く
+      handleOpenStartingLocationDialog();
+      return;
+    }
+
+    // 設定された開始場所を使用
+    const startingLocation = currentCampaign?.startingLocation;
+    const currentLocationName = startingLocation?.name || "リバーベント街";
+    if (startingLocation) {
+      setCurrentLocation(startingLocation.name);
     }
 
     // セッション開始状態を設定
@@ -1481,7 +1805,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     handleAddSystemMessage(
       `🎲 AIセッション開始！\n操作キャラクター: ${
         selectedCharacter.name
-      }\n参加者: ${playerCharacters.map((pc) => pc.name).join(", ")}`
+      }\n参加者: ${playerCharacters.map((pc) => pc.name).join(", ")}`,
     );
 
     console.log("[Debug] セッション開始:", {
@@ -1525,7 +1849,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
             },
             provider,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -1568,7 +1892,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         } catch (error) {
           console.error("バッチアナウンス処理でエラー:", error);
           handleAddSystemMessage(
-            "⚠️ 行動選択肢の準備中にエラーが発生しました。基本的な選択肢を使用します。"
+            "⚠️ 行動選択肢の準備中にエラーが発生しました。基本的な選択肢を使用します。",
           );
         }
       }, 2000); // 2秒待機してからバッチ処理を実行
@@ -1694,7 +2018,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
             // 最初のPCキャラクターを自動選択
             if (newTestData.characters?.length > 0) {
               const firstPC = newTestData.characters.find(
-                (c) => c.characterType === "PC"
+                (c) => c.characterType === "PC",
               );
               console.log("[Debug] 最初のPCキャラクター:", firstPC?.name);
               if (firstPC && setSelectedCharacter) {
@@ -1735,7 +2059,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
           console.error("[Debug] テストデータリロードエラー:", error);
           handleAddSystemMessage(
             "❌ テストデータのリロードに失敗しました: " +
-              (error instanceof Error ? error.message : String(error))
+              (error instanceof Error ? error.message : String(error)),
           );
         }
       },
@@ -1824,7 +2148,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
       playerCharacters,
       npcs,
       combatMode,
-    ]
+    ],
   );
 
   return {
@@ -1858,6 +2182,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     turnState: uiState.turnState,
     initializeTurn,
     processPlayerAction,
+
+    // 開始場所設定機能
+    hasValidStartingLocation,
+    handleOpenStartingLocationDialog,
+    handleSetStartingLocation,
 
     // セッションアクション
     executeAction: handleExecuteAction,

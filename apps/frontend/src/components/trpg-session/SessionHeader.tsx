@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Typography,
@@ -7,16 +7,17 @@ import {
   Grid,
   Chip,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Save,
   BugReport,
   Person,
   Warning,
-} from '@mui/icons-material';
-import { GameMasterIcon } from '../icons/TRPGIcons';
-import { AIAssistButton } from '../ui/AIAssistButton';
-import { TRPGCampaign, TRPGCharacter } from '@trpg-ai-gm/types';
+  LocationOn,
+} from "@mui/icons-material";
+import { GameMasterIcon } from "../icons/TRPGIcons";
+import { AIAssistButton } from "../ui/AIAssistButton";
+import { TRPGCampaign, TRPGCharacter } from "@trpg-ai-gm/types";
 
 interface SessionHeaderProps {
   campaign?: TRPGCampaign;
@@ -29,8 +30,10 @@ interface SessionHeaderProps {
   isSessionStarted?: boolean;
   developerMode?: boolean;
   showDebugPanel?: boolean;
+  hasValidStartingLocation?: () => boolean;
   onSaveSession: () => void;
   onStartAISession: () => void;
+  onOpenStartingLocationDialog?: () => void;
   onToggleDebugPanel?: () => void;
 }
 
@@ -45,37 +48,50 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
   isSessionStarted = false,
   developerMode = false,
   showDebugPanel = false,
+  hasValidStartingLocation,
   onSaveSession,
   onStartAISession,
+  onOpenStartingLocationDialog,
   onToggleDebugPanel,
 }) => {
   // セッション開始可能かチェック
-  const canStartSession = selectedCharacter && playerCharacters.length >= 1;
-  const buttonTooltip = !selectedCharacter 
+  const hasValidLocation = hasValidStartingLocation
+    ? hasValidStartingLocation()
+    : campaign?.startingLocation?.isActive;
+  const canStartSession =
+    selectedCharacter && playerCharacters.length >= 1 && hasValidLocation;
+
+  const buttonTooltip = !selectedCharacter
     ? "セッションを開始するには、キャラクターを選択してください"
-    : playerCharacters.length < 1 
-    ? "最低1人のキャラクターが必要です"
-    : "AIセッションを開始します";
+    : playerCharacters.length < 1
+      ? "最低1人のキャラクターが必要です"
+      : !hasValidLocation
+        ? "ゲーム開始場所を設定してください"
+        : "AIセッションを開始します";
   return (
-    <Paper elevation={3} sx={{ p: 2, mb: 2, bgcolor: 'primary.dark', color: 'white' }}>
+    <Paper
+      elevation={3}
+      sx={{ p: 2, mb: 2, bgcolor: "primary.dark", color: "white" }}
+    >
       <Grid container alignItems="center" spacing={2}>
-        <Grid size={{ xs: 'auto' }}>
+        <Grid size={{ xs: "auto" }}>
           <GameMasterIcon sx={{ fontSize: 40 }} />
         </Grid>
-        <Grid size={{ xs: 'auto' }} sx={{ flexGrow: 1 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+        <Grid size={{ xs: "auto" }} sx={{ flexGrow: 1 }}>
+          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
             {campaign?.title || "TRPGセッション"}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
             <Typography variant="subtitle1">
-              📍 {currentLocation || "場所の情報がありません"} • {currentDay}日目 • 行動回数: {actionCount}/{maxActionsPerDay}
+              📍 {currentLocation || "場所の情報がありません"} • {currentDay}
+              日目 • 行動回数: {actionCount}/{maxActionsPerDay}
             </Typography>
             {selectedCharacter && (
               <Chip
                 icon={<Person />}
                 label={`操作: ${selectedCharacter.name}`}
                 size="small"
-                sx={{ ml: 1, bgcolor: 'success.main', color: 'white' }}
+                sx={{ ml: 1, bgcolor: "success.main", color: "white" }}
               />
             )}
             {!selectedCharacter && playerCharacters.length > 0 && (
@@ -89,7 +105,24 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
             )}
           </Box>
         </Grid>
-        <Grid size={{ xs: 'auto' }}>
+        <Grid size={{ xs: "auto" }}>
+          {onOpenStartingLocationDialog && !isSessionStarted && (
+            <Tooltip
+              title={hasValidLocation ? "開始場所を変更" : "開始場所を設定"}
+            >
+              <Button
+                variant="outlined"
+                color={hasValidLocation ? "secondary" : "warning"}
+                startIcon={<LocationOn />}
+                onClick={onOpenStartingLocationDialog}
+                sx={{ mr: 1 }}
+                size="small"
+                data-testid="starting-location-button"
+              >
+                開始場所設定
+              </Button>
+            </Tooltip>
+          )}
           <Button
             variant="contained"
             color="secondary"
@@ -123,7 +156,9 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({
               startIcon={isSessionStarted ? <Person /> : undefined}
               data-testid="start-ai-session-button"
             >
-              {isSessionStarted ? "セッション進行中" : "AIにセッションを始めてもらう"}
+              {isSessionStarted
+                ? "セッション進行中"
+                : "AIにセッションを始めてもらう"}
             </Button>
           </Tooltip>
         </Grid>
