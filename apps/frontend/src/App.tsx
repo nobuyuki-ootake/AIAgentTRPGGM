@@ -88,11 +88,7 @@ function App() {
                   <TRPGSessionPage />
                 </AppLayout>
               } />
-              <Route path="/trpg-session" element={
-                <AppLayout>
-                  <TRPGSessionPage />
-                </AppLayout>
-              } />
+              <Route path="/trpg-session" element={<TRPGSessionPage />} />
               <Route path="/test-dice" element={<MinimalTRPGSessionTest />} />
             </Routes>
           </WorldBuildingProvider>

@@ -2,9 +2,6 @@ import React from "react";
 import {
   Box,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
   Avatar,
   Chip,
   Stack,
@@ -17,7 +14,6 @@ import {
   CardContent,
   IconButton,
   Fade,
-  Divider,
 } from "@mui/material";
 import {
   PersonOutline,
@@ -32,7 +28,6 @@ import {
   LocalHospital,
   SentimentVeryDissatisfied,
   SentimentSatisfied,
-  SentimentVerySatisfied,
   Whatshot,
   AcUnit,
   WbSunny,
@@ -81,22 +76,6 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   onEditCharacter,
 }) => {
   
-  // 安全にHPの値を取得
-  const getHPValue = (hp: any): number => {
-    if (typeof hp === 'number') return hp;
-    if (typeof hp === 'object' && hp !== null) {
-      return hp.current || hp.value || 0;
-    }
-    return 0;
-  };
-
-  const getMaxHPValue = (maxHp: any): number => {
-    if (typeof maxHp === 'number') return maxHp;
-    if (typeof maxHp === 'object' && maxHp !== null) {
-      return maxHp.max || maxHp.value || 100;
-    }
-    return 100;
-  };
 
   // HPの色を取得
   const getHPColor = (current: number, max: number) => {
@@ -107,12 +86,22 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
     return "error";
   };
 
+  // 安全にHPの値を取得（TRPGCharacter用）
+  const getCharacterHP = (character: TRPGCharacter | NPCCharacter): { current: number; max: number } => {
+    // TRPGCharacterとNPCCharacterの場合はderived.HPを使用
+    if ('derived' in character && character.derived) {
+      const currentHP = (character as any).currentHP ?? character.derived.HP;
+      const maxHP = character.derived.HP;
+      return { current: currentHP, max: maxHP };
+    }
+    
+    // フォールバック
+    return { current: 0, max: 100 };
+  };
+
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter) => {
-    // TRPGCharacterはattributes、NPCCharacterはstatsを使用
-    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
-    const hp = getHPValue(stats?.hitPoints);
-    const maxHp = getMaxHPValue(stats?.maxHitPoints);
+    const { current: hp, max: maxHp } = getCharacterHP(character);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
     
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
@@ -155,10 +144,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   const PartyCharacterCard: React.FC<{ character: TRPGCharacter | NPCCharacter }> = ({ character }) => {
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
-    // TRPGCharacterはattributes、NPCCharacterはstatsを使用
-    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
-    const hp = getHPValue(stats?.hitPoints);
-    const maxHp = getMaxHPValue(stats?.maxHitPoints);
+    const { current: hp, max: maxHp } = getCharacterHP(character);
     
     return (
       <Card 
@@ -233,8 +219,9 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
         </Box>
 
         {/* ステータス表示 */}
-        {stats && typeof stats === 'object' && (
-          <Stack spacing={0.5}>
+        {(() => {
+          return (
+            <Stack spacing={0.5}>
             {/* HP */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Favorite 
@@ -316,7 +303,14 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="アーマークラス">
                 <Chip
                   icon={<Shield />}
-                  label={`AC:${stats?.armorClass || 10}`}
+                  label={`AC:${(() => {
+                    // TRPGCharacterの場合はarmorからACを計算、または固定値10
+                    if ('armor' in character && character.armor) {
+                      // 簡易AC計算（胴体装甲値 + 10）
+                      return character.armor.body + 10;
+                    }
+                    return 10;
+                  })()}`}
                   size="small"
                   variant="outlined"
                 />
@@ -324,7 +318,13 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="移動速度">
                 <Chip
                   icon={<Speed />}
-                  label={`速度:${stats?.speed || 30}`}
+                  label={`速度:${(() => {
+                    // TRPGCharacterの場合
+                    if ('derived' in character && character.derived) {
+                      return character.derived.SW || 30; // Strike Rankを移動速度として使用
+                    }
+                    return 30;
+                  })()}`}
                   size="small"
                   variant="outlined"
                 />
@@ -332,14 +332,15 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Tooltip title="レベル">
                 <Chip
                   icon={<Bolt />}
-                  label={`Lv.${stats?.level || 1}`}
+                  label={`Lv.1`}
                   size="small"
                   variant="outlined"
                 />
               </Tooltip>
             </Stack>
           </Stack>
-        )}
+          );
+        })()}
 
         {/* 状態異常表示 */}
         {"statuses" in character && character.statuses && Array.isArray(character.statuses) && character.statuses.length > 0 && (

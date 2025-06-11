@@ -12,9 +12,18 @@ This is an AI-powered TRPG (Tabletop Role-Playing Game) campaign management and 
 
 ```bash
 # Development
-pnpm dev                    # Run both frontend and proxy in parallel (using Turbo)
-pnpm dev:frontend          # Run only frontend
-pnpm dev:proxy            # Run only proxy server
+# Dockerキャッシュをクリアしてビルド
+docker system prune -af
+docker compose -f docker-compose.dev.yml up --build frontend-dev
+
+# すでにビルド済みの場合（高速起動）
+docker compose -f docker-compose.dev.yml up frontend-dev
+
+# バックグラウンドで実行
+docker compose -f docker-compose.dev.yml up -d frontend-dev
+
+# ログを確認
+ocker compose -f docker-compose.dev.yml logs -f frontend-dev
 
 # Build
 pnpm build                 # Build all packages (using Turbo)

@@ -959,6 +959,17 @@ export const testCampaignData: TRPGCampaign = {
     }
   ],
 
+  // 開始場所をリバーベント街に設定
+  startingLocation: {
+    id: "town-center",
+    name: "リバーベント街",
+    type: "base",
+    description: "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
+    imageUrl: "/images/town-center.jpg",
+    setAt: new Date("2024-01-01T00:00:00.000Z"),
+    isActive: true
+  },
+
   rules: [],
   handouts: [],
   feedback: []

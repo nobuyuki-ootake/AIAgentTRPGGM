@@ -102,29 +102,30 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     return "error";
   };
 
-  // 安全にHPの値を取得
-  const getHPValue = (hp: any): number => {
-    if (typeof hp === 'number') return hp;
-    if (typeof hp === 'object' && hp !== null) {
-      return hp.current || hp.value || 0;
+  // 安全にHPの値を取得（TRPGCharacter用）
+  const getCharacterHP = (character: TRPGCharacter | NPCCharacter | EnemyCharacter): { current: number; max: number } => {
+    // TRPGCharacterの場合はderived.HPを使用
+    if ('derived' in character && character.derived) {
+      const currentHP = (character as any).currentHP ?? character.derived.HP;
+      const maxHP = character.derived.HP;
+      return { current: currentHP, max: maxHP };
     }
-    return 0;
-  };
-
-  const getMaxHPValue = (maxHp: any): number => {
-    if (typeof maxHp === 'number') return maxHp;
-    if (typeof maxHp === 'object' && maxHp !== null) {
-      return maxHp.max || maxHp.value || 100;
+    
+    // EnemyCharacterの場合はderiviedStats.hpとstatus.currentHpを使用
+    if ('derivedStats' in character && character.derivedStats) {
+      const enemy = character as EnemyCharacter;
+      const currentHP = enemy.status?.currentHp ?? enemy.derivedStats.hp;
+      const maxHP = enemy.derivedStats.hp;
+      return { current: currentHP, max: maxHP };
     }
-    return 100;
+    
+    // フォールバック
+    return { current: 0, max: 100 };
   };
 
   // キャラクターの状態を判定
   const getCharacterStatus = (character: TRPGCharacter | NPCCharacter | EnemyCharacter) => {
-    // TRPGCharacterはattributes、その他はstatsを使用
-    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
-    const hp = getHPValue(stats?.hitPoints);
-    const maxHp = getMaxHPValue(stats?.maxHitPoints);
+    const { current: hp, max: maxHp } = getCharacterHP(character);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
     
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
@@ -253,52 +254,51 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
 
         {/* ステータス表示 */}
         {(() => {
-          const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
-          return statsObj && typeof statsObj === 'object';
-        })() && (
-          <Stack spacing={0.5}>
-            {/* HP */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Favorite 
-                fontSize="small" 
-                color={getHPColor(hp, maxHp)}
-                sx={{
-                  animation: status.status === 'critical' ? 'heartbeat 1.5s infinite' : 'none',
-                  '@keyframes heartbeat': {
-                    '0%': { transform: 'scale(1)' },
-                    '50%': { transform: 'scale(1.2)' },
-                    '100%': { transform: 'scale(1)' },
-                  }
-                }}
-              />
-              <Box sx={{ flex: 1 }}>
-                <Typography 
-                  variant="caption"
-                  sx={{ 
-                    fontWeight: status.status === 'critical' ? 'bold' : 'normal',
-                    color: status.status === 'dead' ? 'error.main' : 'text.primary'
-                  }}
-                >
-                  HP: {hp}/{maxHp}
-                  {status.status === 'dead' && ' (死亡)'}
-                  {status.status === 'critical' && ' (危険)'}
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={(hp / maxHp) * 100}
+          const { current: hp, max: maxHp } = getCharacterHP(character);
+          return (
+            <Stack spacing={0.5}>
+              {/* HP */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Favorite 
+                  fontSize="small" 
                   color={getHPColor(hp, maxHp)}
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease-in-out',
-                    '& .MuiLinearProgress-bar': {
-                      transition: 'transform 0.5s ease-in-out',
-                      animation: status.status === 'critical' ? 'pulse 2s infinite' : 'none',
+                  sx={{
+                    animation: status.status === 'critical' ? 'heartbeat 1.5s infinite' : 'none',
+                    '@keyframes heartbeat': {
+                      '0%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.2)' },
+                      '100%': { transform: 'scale(1)' },
                     }
                   }}
                 />
+                <Box sx={{ flex: 1 }}>
+                  <Typography 
+                    variant="caption"
+                    sx={{ 
+                      fontWeight: status.status === 'critical' ? 'bold' : 'normal',
+                      color: status.status === 'dead' ? 'error.main' : 'text.primary'
+                    }}
+                  >
+                    HP: {hp}/{maxHp}
+                    {status.status === 'dead' && ' (死亡)'}
+                    {status.status === 'critical' && ' (危険)'}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={maxHp > 0 ? (hp / maxHp) * 100 : 0}
+                    color={getHPColor(hp, maxHp)}
+                    sx={{ 
+                      height: 6, 
+                      borderRadius: 3,
+                      transition: 'all 0.3s ease-in-out',
+                      '& .MuiLinearProgress-bar': {
+                        transition: 'transform 0.5s ease-in-out',
+                        animation: status.status === 'critical' ? 'pulse 2s infinite' : 'none',
+                      }
+                    }}
+                  />
+                </Box>
               </Box>
-            </Box>
 
             {/* 状態異常表示 */}
             {statusEffects.length > 0 && (
@@ -339,8 +339,16 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Shield />}
                   label={`AC:${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
-                    return statsObj?.armorClass || 10;
+                    // TRPGCharacterの場合はarmorからACを計算、または固定値10
+                    if ('armor' in character && character.armor) {
+                      // 簡易AC計算（胴体装甲値 + 10）
+                      return character.armor.body + 10;
+                    }
+                    // EnemyCharacterの場合
+                    if ('derivedStats' in character && character.derivedStats) {
+                      return character.derivedStats.defense || 10;
+                    }
+                    return 10;
                   })()}`}
                   size="small"
                   variant="outlined"
@@ -350,8 +358,15 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Speed />}
                   label={`速度:${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
-                    return statsObj?.speed || 30;
+                    // TRPGCharacterの場合
+                    if ('derived' in character && character.derived) {
+                      return character.derived.SW || 30; // Strike Rankを移動速度として使用
+                    }
+                    // EnemyCharacterの場合
+                    if ('derivedStats' in character && character.derivedStats) {
+                      return character.derivedStats.initiative || 30;
+                    }
+                    return 30;
                   })()}`}
                   size="small"
                   variant="outlined"
@@ -361,16 +376,20 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
                 <Chip
                   icon={<Bolt />}
                   label={`Lv.${(() => {
-                    const statsObj = 'attributes' in character ? character.attributes : (character as any).stats || null;
-                    return statsObj?.level || 1;
+                    // EnemyCharacterの場合
+                    if ('level' in character) {
+                      return character.level || 1;
+                    }
+                    // TRPGCharacterの場合は固定値1（または計算）
+                    return 1;
                   })()}`}
                   size="small"
                   variant="outlined"
                 />
               </Tooltip>
             </Stack>
-          </Stack>
-        )}
+          );
+        })()
 
         {/* 状態異常表示 */}
         {"statuses" in character && character.statuses && Array.isArray(character.statuses) && character.statuses.length > 0 && (

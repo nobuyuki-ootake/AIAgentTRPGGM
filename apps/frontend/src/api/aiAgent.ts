@@ -13,7 +13,8 @@ import {
 
 // APIのベースURL
 const buildApiBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  // VITE_API_BASE_URL または VITE_API_URL をチェック（後方互換性）
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 
   if (!envUrl) {
     // 開発環境では相対パス
@@ -34,6 +35,7 @@ const API_BASE_URL = buildApiBaseUrl();
 
 // デバッグ用ログ
 console.log("環境変数 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+console.log("環境変数 VITE_API_URL:", import.meta.env.VITE_API_URL);
 console.log("構築されたAPI_BASE_URL:", API_BASE_URL);
 
 // APIエラーハンドリング共通関数

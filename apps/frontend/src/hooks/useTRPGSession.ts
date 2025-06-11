@@ -67,14 +67,25 @@ export const useTRPGSession = () => {
   const enemies = currentCampaign?.enemies || [];
   const bases = currentCampaign?.bases || [];
 
-  // 現在地の初期化（基地データが読み込まれた時）
+  // 現在地の初期化（開始場所またはベースデータが読み込まれた時）
   useEffect(() => {
     if (bases.length > 0 && !currentLocation) {
+      // startingLocationが設定されている場合はそれを優先
+      if (currentCampaign?.startingLocation?.isActive) {
+        const startingBase = bases.find(base => base.id === currentCampaign.startingLocation?.id);
+        if (startingBase) {
+          setCurrentLocation(startingBase.name);
+          console.log('[TRPGSession] 開始場所から現在地を初期化しました:', startingBase.name);
+          return;
+        }
+      }
+      
+      // 開始場所が設定されていない場合は最初のベースを使用
       const firstBase = bases[0];
       setCurrentLocation(firstBase.name);
       console.log('[TRPGSession] 現在地を初期化しました:', firstBase.name);
     }
-  }, [bases, currentLocation]);
+  }, [bases, currentLocation, currentCampaign?.startingLocation]);
 
   // 現在の拠点を取得
   const getCurrentBase = useCallback((): BaseLocation | undefined => {

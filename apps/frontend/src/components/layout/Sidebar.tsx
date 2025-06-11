@@ -19,7 +19,6 @@ import {
   Public as WorldIcon,
   Timeline as TimelineIcon,
   MenuBook as WritingIcon,
-  Feedback as FeedbackIcon,
   ChevronLeft as ChevronLeftIcon,
   ExitToApp as ExitIcon,
   Security as EnemyIcon,
@@ -31,10 +30,9 @@ import {
 import {
   QuestScrollIcon,
   DiceD20Icon,
-  CampaignIcon,
   PartyIcon,
 } from "../icons/TRPGIcons";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import {
   appModeState,
   AppMode,
@@ -55,6 +53,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
 
   const handleModeChange = React.useCallback((mode: AppMode) => {
+    // セッションモードの場合は専用ページに遷移
+    if (mode === "session") {
+      window.location.href = "/trpg-session";
+      return;
+    }
+
     // 同じモードが選択された場合は何もしない
     if (appMode === mode) {
       return;
