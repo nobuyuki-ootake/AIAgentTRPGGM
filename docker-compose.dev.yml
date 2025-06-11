@@ -28,10 +28,41 @@ services:
     stdin_open: true
     tty: true
 
-  # 必要に応じてバックエンドも追加可能
-  # proxy-server-dev:
-  #   # バックエンドの設定
+  # バックエンド開発サーバー
+  proxy-server-dev:
+    build:
+      context: .
+      dockerfile: ./apps/proxy-server/Dockerfile
+      target: base
+    ports:
+      - "4001:4001"
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      # AI API Keys (ローカル環境変数から設定)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - JWT_SECRET=dev-secret-key-only-for-development
+    volumes:
+      # ソースコードのホットリロード
+      - ./apps/proxy-server:/app/apps/proxy-server
+      - ./packages:/app/packages
+      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
+      # pnpm-lock.yamlの競合を避けるため除外
+      # - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
+      # node_modulesはコンテナ内で管理
+      - proxy_node_modules:/app/apps/proxy-server/node_modules
+      - packages_node_modules:/app/packages/types/node_modules
+    working_dir: /app/apps/proxy-server
+    command: ["sh", "-c", "pnpm install && pnpm run dev"]
+    stdin_open: true
+    tty: true
 
 volumes:
   frontend_node_modules:
+  proxy_node_modules:
   packages_node_modules:
