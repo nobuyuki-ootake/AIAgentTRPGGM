@@ -49,6 +49,19 @@ task-master show <id>
 task-master set-status --id=<id> --status=<status>
 ```
 
+# Dockerキャッシュをクリアしてビルド
+  docker system prune -af
+  docker compose -f docker-compose.dev.yml up --build frontend-dev
+
+  # すでにビルド済みの場合（高速起動）
+  docker compose -f docker-compose.dev.yml up frontend-dev
+
+  # バックグラウンドで実行
+  docker compose -f docker-compose.dev.yml up -d frontend-dev
+
+  # ログを確認
+  docker compose -f docker-compose.dev.yml logs -f frontend-dev
+
 #### PRD からタスクを生成
 
 ```bash

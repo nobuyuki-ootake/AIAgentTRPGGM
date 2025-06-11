@@ -51,23 +51,40 @@ interface GameSystemTemplate {
 
 const gameSystemTemplates: GameSystemTemplate[] = [
   {
-    id: "dnd5e",
-    name: "D&D 5e",
-    description: "世界で最も人気のあるファンタジーTRPG。バランスの取れたルールと豊富なオプション。",
+    id: "classic-fantasy",
+    name: "クラシック・ファンタジー",
+    description:
+      "伝統的なファンタジー世界を舞台にした冒険。バランスの取れたルールと豊富な選択肢。",
     features: [
-      "アドバンテージ/ディスアドバンテージシステム",
-      "短休息・長休息による回復",
-      "呪文スロットシステム",
-      "クラス・種族・背景による個性化"
+      "有利・不利判定システム",
+      "段階的な休息と回復",
+      "準備型魔法システム",
+      "職業・種族・背景による個性化",
     ],
     stats: {
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
-      secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟ボーナス"]
+      secondary: [
+        "ヒットポイント",
+        "アーマークラス",
+        "移動速度",
+        "習熟ボーナス",
+      ],
     },
-    skills: ["運動", "軽業", "説得", "威圧", "魔法学", "歴史", "手先の早業", "知覚", "洞察", "隠密"],
+    skills: [
+      "運動",
+      "軽業",
+      "説得",
+      "威圧",
+      "魔法学",
+      "歴史",
+      "手先の早業",
+      "知覚",
+      "洞察",
+      "隠密",
+    ],
     characterTemplate: {
-      id: "template-dnd5e",
-      name: "D&D 5eサンプルキャラクター",
+      id: "template-classic-fantasy",
+      name: "クラシック・ファンタジーサンプルキャラクター",
       characterType: "PC" as const,
       profession: "ファイター",
       gender: "男性",
@@ -92,7 +109,14 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         RES: 10,
       },
       weapons: [],
-      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      armor: {
+        head: 0,
+        body: 0,
+        leftArm: 0,
+        rightArm: 0,
+        leftLeg: 0,
+        rightLeg: 0,
+      },
       skills: {
         AgilitySkills: [{ name: "運動", value: 50 }],
         CommunicationSkills: [],
@@ -101,38 +125,51 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         PerceptionSkills: [{ name: "知覚", value: 60 }],
         StealthSkills: [],
         MagicSkills: [],
-        WeaponSkills: []
-      }
+        WeaponSkills: [],
+      },
     },
     diceSystem: {
       primary: "d20",
       attributes: "3d6または配列 (15,14,13,12,10,8)",
-      skills: "d20 + 能力修正 + 習熟ボーナス"
+      skills: "d20 + 能力修正 + 習熟ボーナス",
     },
     magicSystem: {
       type: "vancian",
-      description: "呪文スロット制。準備した呪文を消費して使用。"
+      description: "呪文スロット制。準備した呪文を消費して使用。",
     },
-    difficultyModifier: 0
+    difficultyModifier: 0,
   },
   {
-    id: "pathfinder2e",
-    name: "Pathfinder 2e",
-    description: "戦術的で複雑なファンタジーTRPG。豊富なカスタマイズオプションと詳細なルール。",
+    id: "tactical-fantasy",
+    name: "タクティカル・ファンタジー",
+    description:
+      "戦術的な戦闘を重視したファンタジー冒険。詳細なルールと豊富なカスタマイズ。",
     features: [
-      "3アクションシステム",
-      "成功度システム（クリティカル成功/失敗）",
+      "複数アクションシステム",
+      "段階的成功判定",
       "詳細なキャラクター作成",
-      "豊富なアーキタイプとフィート"
+      "豊富な成長要素",
     ],
     stats: {
       primary: ["筋力", "敏捷力", "耐久力", "知力", "判断力", "魅力"],
-      secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟度"]
+      secondary: ["ヒットポイント", "アーマークラス", "移動速度", "習熟度"],
     },
-    skills: ["軽業", "運動", "外交", "威圧", "魔法学", "学識", "製作", "盗賊", "知覚", "潜行", "呪文学"],
+    skills: [
+      "軽業",
+      "運動",
+      "外交",
+      "威圧",
+      "魔法学",
+      "学識",
+      "製作",
+      "盗賊",
+      "知覚",
+      "潜行",
+      "呪文学",
+    ],
     characterTemplate: {
-      id: "template-pathfinder2e",
-      name: "Pathfinder 2eサンプルキャラクター",
+      id: "template-tactical-fantasy",
+      name: "タクティカル・ファンタジーサンプルキャラクター",
       characterType: "PC" as const,
       profession: "ファイター",
       gender: "男性",
@@ -157,7 +194,14 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         RES: 10,
       },
       weapons: [],
-      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      armor: {
+        head: 0,
+        body: 0,
+        leftArm: 0,
+        rightArm: 0,
+        leftLeg: 0,
+        rightLeg: 0,
+      },
       skills: {
         AgilitySkills: [{ name: "運動", value: 50 }],
         CommunicationSkills: [],
@@ -166,38 +210,52 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         PerceptionSkills: [{ name: "知覚", value: 60 }],
         StealthSkills: [],
         MagicSkills: [],
-        WeaponSkills: []
-      }
+        WeaponSkills: [],
+      },
     },
     diceSystem: {
       primary: "d20",
       attributes: "10 + 種族/クラスボーナス",
-      skills: "d20 + 能力修正 + 習熟度 + アイテムボーナス"
+      skills: "d20 + 能力修正 + 習熟度 + アイテムボーナス",
     },
     magicSystem: {
       type: "vancian",
-      description: "準備済み呪文システム。フォーカス呪文と儀式呪文も使用可能。"
+      description: "準備済み呪文システム。フォーカス呪文と儀式呪文も使用可能。",
     },
-    difficultyModifier: 2
+    difficultyModifier: 2,
   },
   {
-    id: "coc7e",
-    name: "クトゥルフ神話TRPG 7版",
-    description: "ホラー・ミステリーTRPG。狂気と恐怖の現代オカルト調査。",
+    id: "cosmic-horror",
+    name: "コズミック・ホラー",
+    description:
+      "現代を舞台にした恐怖と謎の探索。正気を保ちながら真実を追求する。",
     features: [
-      "狂気システム",
-      "技能成長ロール",
-      "プッシュロール",
-      "ボーナス・ペナルティダイス"
+      "精神安定度システム",
+      "経験による成長",
+      "リスクとリワードの選択",
+      "状況修正ダイス",
     ],
     stats: {
       primary: ["STR", "CON", "POW", "DEX", "APP", "SIZ", "INT", "EDU"],
-      secondary: ["HP", "MP", "正気度", "幸運"]
+      secondary: ["HP", "MP", "正気度", "幸運"],
     },
-    skills: ["回避", "登攀", "言いくるめ", "説得", "図書館", "オカルト", "機械修理", "電気修理", "目星", "聞き耳", "拳銃", "ライフル"],
+    skills: [
+      "回避",
+      "登攀",
+      "言いくるめ",
+      "説得",
+      "図書館",
+      "オカルト",
+      "機械修理",
+      "電気修理",
+      "目星",
+      "聞き耳",
+      "拳銃",
+      "ライフル",
+    ],
     characterTemplate: {
-      id: "template-coc7e",
-      name: "CoC 7eサンプル探索者",
+      id: "template-cosmic-horror",
+      name: "コズミック・ホラーサンプル探索者",
       characterType: "PC" as const,
       profession: "記者",
       gender: "男性",
@@ -222,43 +280,65 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         RES: 50,
       },
       weapons: [],
-      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      armor: {
+        head: 0,
+        body: 0,
+        leftArm: 0,
+        rightArm: 0,
+        leftLeg: 0,
+        rightLeg: 0,
+      },
       skills: {
         AgilitySkills: [],
         CommunicationSkills: [],
         KnowledgeSkills: [{ name: "図書館", value: 50 }],
         ManipulationSkills: [],
-        PerceptionSkills: [{ name: "目星", value: 60 }, { name: "聞き耳", value: 55 }],
+        PerceptionSkills: [
+          { name: "目星", value: 60 },
+          { name: "聞き耳", value: 55 },
+        ],
         StealthSkills: [],
         MagicSkills: [],
-        WeaponSkills: []
-      }
+        WeaponSkills: [],
+      },
     },
     diceSystem: {
       primary: "d100",
       attributes: "3d6×5または配分制",
-      skills: "d100 ≤ 技能値で成功"
+      skills: "d100 ≤ 技能値で成功",
     },
-    difficultyModifier: -10
+    difficultyModifier: -10,
   },
   {
-    id: "sw25",
-    name: "ソード・ワールド2.5",
-    description: "日本のファンタジーTRPGの代表格。分かりやすいルールと豊富な背景設定。",
+    id: "light-fantasy",
+    name: "ライト・ファンタジー",
+    description:
+      "親しみやすいファンタジー世界での冒険。シンプルなルールと豊かな世界観。",
     features: [
-      "2d6システム",
+      "2d6ダイスシステム",
       "技能レベル制",
-      "魔法技能システム",
-      "種族と出身地による個性"
+      "複数系統の魔法",
+      "種族と出身による個性",
     ],
     stats: {
       primary: ["器用度", "敏捷度", "筋力", "生命力", "知力", "精神力"],
-      secondary: ["HP", "MP", "生命抵抗力", "精神抵抗力"]
+      secondary: ["HP", "MP", "生命抵抗力", "精神抵抗力"],
     },
-    skills: ["バード", "冒険者技能", "セージ", "マギテック", "スカウト", "レンジャー", "ソーサラー", "プリースト", "ファイター", "シューター"],
+    skills: [
+      "バード",
+      "冒険者技能",
+      "セージ",
+      "マギテック",
+      "スカウト",
+      "レンジャー",
+      "ソーサラー",
+      "プリースト",
+      "ファイター",
+      "シューター",
+    ],
     characterTemplate: {
-      id: "template-sw25",
-      name: "SW2.5サンプルキャラクター",
+      id: "template-light-fantasy",
+      name: "ライト・ファンタジーサンプルキャラクター",
       characterType: "PC" as const,
       profession: "ファイター",
       gender: "男性",
@@ -283,7 +363,14 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         RES: 8,
       },
       weapons: [],
-      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      armor: {
+        head: 0,
+        body: 0,
+        leftArm: 0,
+        rightArm: 0,
+        leftLeg: 0,
+        rightLeg: 0,
+      },
       skills: {
         AgilitySkills: [],
         CommunicationSkills: [],
@@ -292,44 +379,61 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         PerceptionSkills: [],
         StealthSkills: [],
         MagicSkills: [],
-        WeaponSkills: [{ name: "ファイター", value: 60 }]
-      }
+        WeaponSkills: [{ name: "ファイター", value: 60 }],
+      },
     },
     diceSystem: {
       primary: "2d6",
       attributes: "2d6+6またはダイス配分",
-      skills: "2d6 + 能力ボーナス + 技能レベル"
+      skills: "2d6 + 能力ボーナス + 技能レベル",
     },
     magicSystem: {
       type: "mana",
-      description: "MP消費型。真語魔法、信仰魔法、魔動機術など複数系統。"
+      description: "MP消費型。真語魔法、信仰魔法、魔動機術など複数系統。",
     },
-    difficultyModifier: 0
+    difficultyModifier: 0,
   },
   {
-    id: "stormbringer",
-    name: "ストームブリンガー",
-    description: "マイケル・ムアコックの「エルリック・サーガ」を原作とする退廃的ファンタジーTRPG。",
+    id: "dark-fantasy",
+    name: "ダーク・ファンタジー",
+    description:
+      "退廃的で暗い雰囲気のファンタジー世界。運命と選択が織りなす物語。",
     features: [
-      "混沌と秩序の対立",
-      "悪魔召喚システム",
-      "ルーン魔法",
-      "運命と宿命のテーマ"
+      "対立する勢力システム",
+      "召喚・契約魔法",
+      "古代の魔法体系",
+      "運命と選択のテーマ",
     ],
     stats: {
       primary: ["STR", "CON", "SIZ", "INT", "POW", "DEX", "CHA"],
-      secondary: ["HP", "魔法力", "移動力", "技能修正"]
+      secondary: ["HP", "魔法力", "移動力", "技能修正"],
     },
-    skills: ["回避", "乗騎", "説得", "芸術", "博学", "言語", "製作", "工芸", "聞き耳", "見つける", "隠密", "召喚", "ルーン魔法", "近接戦闘", "飛び道具"],
+    skills: [
+      "回避",
+      "乗騎",
+      "説得",
+      "芸術",
+      "博学",
+      "言語",
+      "製作",
+      "工芸",
+      "聞き耳",
+      "見つける",
+      "隠密",
+      "召喚",
+      "ルーン魔法",
+      "近接戦闘",
+      "飛び道具",
+    ],
     characterTemplate: {
-      id: "template-stormbringer",
-      name: "ストームブリンガーサンプルキャラクター",
+      id: "template-dark-fantasy",
+      name: "ダーク・ファンタジーサンプルキャラクター",
       characterType: "PC" as const,
       profession: "戦士",
       gender: "男性",
       age: 22,
-      nation: "メルニボネ",
-      religion: "混沌",
+      nation: "古代王国",
+      religion: "古の神々",
       player: "プレイヤー",
       description: "基本的な冒険者キャラクター",
       attributes: {
@@ -348,7 +452,14 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         RES: 10,
       },
       weapons: [],
-      armor: { head: 0, body: 0, leftArm: 0, rightArm: 0, leftLeg: 0, rightLeg: 0 },
+      armor: {
+        head: 0,
+        body: 0,
+        leftArm: 0,
+        rightArm: 0,
+        leftLeg: 0,
+        rightLeg: 0,
+      },
       skills: {
         AgilitySkills: [{ name: "回避", value: 55 }],
         CommunicationSkills: [],
@@ -357,20 +468,20 @@ const gameSystemTemplates: GameSystemTemplate[] = [
         PerceptionSkills: [],
         StealthSkills: [{ name: "隠密", value: 60 }],
         MagicSkills: [],
-        WeaponSkills: [{ name: "近接戦闘", value: 60 }]
-      }
+        WeaponSkills: [{ name: "近接戦闘", value: 60 }],
+      },
     },
     diceSystem: {
       primary: "d100",
       attributes: "3d6またはダイス配分",
-      skills: "d100 ≤ (能力値×5 + 技能値)"
+      skills: "d100 ≤ (能力値×5 + 技能値)",
     },
     magicSystem: {
       type: "skill_based",
-      description: "ルーン魔法と召喚術。魔法力を消費して呪文を行使。"
+      description: "ルーン魔法と召喚術。魔法力を消費して呪文を行使。",
     },
-    difficultyModifier: 0
-  }
+    difficultyModifier: 0,
+  },
 ];
 
 interface GameSystemTemplatesProps {
@@ -382,7 +493,8 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
   onTemplateSelected,
   onCharacterTemplateApplied,
 }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState<GameSystemTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<GameSystemTemplate | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   const handleTemplateSelect = (template: GameSystemTemplate) => {
@@ -400,28 +512,36 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
 
   const getSystemIcon = (systemId: string) => {
     switch (systemId) {
-      case "dnd5e":
-      case "pathfinder2e":
+      case "classic-fantasy":
+      case "tactical-fantasy":
         return <MagicIcon color="primary" />;
-      case "coc7e":
+      case "cosmic-horror":
         return <MindIcon color="secondary" />;
-      case "sw25":
+      case "light-fantasy":
         return <ArmorIcon color="success" />;
-      case "stormbringer":
+      case "dark-fantasy":
         return <DiceIcon color="error" />;
       default:
         return <DiceIcon />;
     }
   };
 
-  const getSystemColor = (systemId: string): "primary" | "secondary" | "warning" | "success" | "error" | "info" => {
+  const getSystemColor = (
+    systemId: string,
+  ): "primary" | "secondary" | "warning" | "success" | "error" | "info" => {
     switch (systemId) {
-      case "dnd5e": return "primary";
-      case "pathfinder2e": return "secondary";
-      case "coc7e": return "warning";
-      case "sw25": return "success";
-      case "stormbringer": return "error";
-      default: return "primary";
+      case "classic-fantasy":
+        return "primary";
+      case "tactical-fantasy":
+        return "secondary";
+      case "cosmic-horror":
+        return "warning";
+      case "light-fantasy":
+        return "success";
+      case "dark-fantasy":
+        return "error";
+      default:
+        return "primary";
     }
   };
 
@@ -430,7 +550,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
       <Typography variant="h5" sx={{ mb: 3 }}>
         ゲームシステムテンプレート
       </Typography>
-      
+
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         キャンペーンで使用するTRPGシステムを選択してください。
         各システムに適したキャラクタービルドやルール設定が自動的に適用されます。
@@ -439,16 +559,16 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
       <Grid container spacing={3}>
         {gameSystemTemplates.map((template) => (
           <Grid size={{ xs: 12, md: 6, lg: 4 }} key={template.id}>
-            <Card 
-              sx={{ 
-                height: "100%", 
-                display: "flex", 
+            <Card
+              sx={{
+                height: "100%",
+                display: "flex",
                 flexDirection: "column",
                 transition: "transform 0.2s, box-shadow 0.2s",
                 "&:hover": {
                   transform: "translateY(-4px)",
                   boxShadow: 4,
-                }
+                },
               }}
             >
               <CardContent sx={{ flex: 1 }}>
@@ -457,14 +577,18 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   <Typography variant="h6" sx={{ ml: 1, flex: 1 }}>
                     {template.name}
                   </Typography>
-                  <Chip 
-                    label={template.diceSystem.primary} 
-                    size="small" 
-                    color={getSystemColor(template.id)} 
+                  <Chip
+                    label={template.diceSystem.primary}
+                    size="small"
+                    color={getSystemColor(template.id)}
                   />
                 </Box>
-                
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
                   {template.description}
                 </Typography>
 
@@ -474,18 +598,18 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   </Typography>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                     {template.features.slice(0, 2).map((feature, index) => (
-                      <Chip 
-                        key={index} 
-                        label={feature} 
-                        size="small" 
-                        variant="outlined" 
+                      <Chip
+                        key={index}
+                        label={feature}
+                        size="small"
+                        variant="outlined"
                       />
                     ))}
                     {template.features.length > 2 && (
-                      <Chip 
-                        label={`+${template.features.length - 2}個`} 
-                        size="small" 
-                        variant="outlined" 
+                      <Chip
+                        label={`+${template.features.length - 2}個`}
+                        size="small"
+                        variant="outlined"
                       />
                     )}
                   </Box>
@@ -494,10 +618,11 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   <strong>ダイスシステム:</strong> {template.diceSystem.primary}
                 </Typography>
-                
+
                 {template.magicSystem && (
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>魔法システム:</strong> {template.magicSystem.description}
+                    <strong>魔法システム:</strong>{" "}
+                    {template.magicSystem.description}
                   </Typography>
                 )}
 
@@ -505,11 +630,11 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   <strong>基本スキル数:</strong> {template.skills.length}個
                 </Typography>
               </CardContent>
-              
+
               <CardActions>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
+                <Button
+                  fullWidth
+                  variant="outlined"
                   onClick={() => handleTemplateSelect(template)}
                 >
                   詳細を見る
@@ -521,10 +646,10 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
       </Grid>
 
       {/* 詳細ダイアログ */}
-      <Dialog 
-        open={detailDialogOpen} 
-        onClose={() => setDetailDialogOpen(false)} 
-        maxWidth="md" 
+      <Dialog
+        open={detailDialogOpen}
+        onClose={() => setDetailDialogOpen(false)}
+        maxWidth="md"
         fullWidth
       >
         {selectedTemplate && (
@@ -537,7 +662,7 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                 </Typography>
               </Box>
             </DialogTitle>
-            
+
             <DialogContent>
               <Typography variant="body1" sx={{ mb: 3 }}>
                 {selectedTemplate.description}
@@ -567,13 +692,16 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                     ダイスシステム
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>メインダイス:</strong> {selectedTemplate.diceSystem.primary}
+                    <strong>メインダイス:</strong>{" "}
+                    {selectedTemplate.diceSystem.primary}
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>能力値生成:</strong> {selectedTemplate.diceSystem.attributes}
+                    <strong>能力値生成:</strong>{" "}
+                    {selectedTemplate.diceSystem.attributes}
                   </Typography>
                   <Typography variant="body2" sx={{ mb: 2 }}>
-                    <strong>技能判定:</strong> {selectedTemplate.diceSystem.skills}
+                    <strong>技能判定:</strong>{" "}
+                    {selectedTemplate.diceSystem.skills}
                   </Typography>
 
                   {selectedTemplate.magicSystem && (
@@ -593,7 +721,9 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                   <Typography variant="h6" sx={{ mb: 2 }}>
                     基本能力値 ({selectedTemplate.stats.primary.length}種類)
                   </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+                  <Box
+                    sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}
+                  >
                     {selectedTemplate.stats.primary.map((stat) => (
                       <Chip key={stat} label={stat} variant="outlined" />
                     ))}
@@ -607,23 +737,23 @@ const GameSystemTemplates: React.FC<GameSystemTemplatesProps> = ({
                       <Chip key={skill} label={skill} size="small" />
                     ))}
                     {selectedTemplate.skills.length > 10 && (
-                      <Chip 
-                        label={`+${selectedTemplate.skills.length - 10}個`} 
-                        size="small" 
-                        variant="outlined" 
+                      <Chip
+                        label={`+${selectedTemplate.skills.length - 10}個`}
+                        size="small"
+                        variant="outlined"
                       />
                     )}
                   </Box>
                 </Grid>
               </Grid>
             </DialogContent>
-            
+
             <DialogActions>
               <Button onClick={() => setDetailDialogOpen(false)}>
                 キャンセル
               </Button>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={handleApplyTemplate}
                 color={getSystemColor(selectedTemplate.id)}
               >
