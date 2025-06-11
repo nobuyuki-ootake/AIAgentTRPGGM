@@ -38,7 +38,6 @@ export interface TRPGCampaign {
   clearConditions?: ClearCondition[]; // キャンペーンクリア条件
 }
 
-
 // プレイヤーの型定義
 export interface Player {
   id: string;
@@ -64,7 +63,6 @@ export interface QuestElement {
   relatedCharacterIds?: string[]; // 関連キャラクター
   relatedPlaceIds?: string[]; // 関連場所
 }
-
 
 // キャラクターの特性（traits）の型定義
 export interface CharacterTrait {
@@ -154,19 +152,19 @@ export interface TRPGCharacter {
   id: string;
   name: string;
   characterType: "PC" | "NPC";
-  
+
   // 基本情報（Stormbringerベース）
-  profession: string;  // 職業
-  gender: string;      // 性別
-  age: number;         // 年齢
-  nation: string;      // 国籍
-  religion: string;    // 宗教
-  player: string;      // プレイヤー名
-  
+  profession: string; // 職業
+  gender: string; // 性別
+  age: number; // 年齢
+  nation: string; // 国籍
+  religion: string; // 宗教
+  player: string; // プレイヤー名
+
   // 身体的特徴と記述
   description: string; // 外見や特徴の記述
-  scars?: string;      // 傷跡などの自由記述
-  
+  scars?: string; // 傷跡などの自由記述
+
   // 能力値（Stormbringer）
   attributes: {
     STR: number; // Strength（筋力）
@@ -177,18 +175,18 @@ export interface TRPGCharacter {
     DEX: number; // Dexterity（器用さ）
     CHA: number; // Charisma（魅力）
   };
-  
+
   // 派生値
   derived: {
-    HP: number;  // ヒットポイント
-    MP: number;  // マジックポイント
-    SW: number;  // Strike Rank（先制値）
+    HP: number; // ヒットポイント
+    MP: number; // マジックポイント
+    SW: number; // Strike Rank（先制値）
     RES: number; // 抵抗値
   };
-  
+
   // 武器
   weapons: StormbringerWeapon[];
-  
+
   // 装甲
   armor: {
     head: number;
@@ -198,19 +196,19 @@ export interface TRPGCharacter {
     leftLeg: number;
     rightLeg: number;
   };
-  
+
   // スキル体系（Stormbringer）
   skills: {
-    AgilitySkills: StormbringerSkill[];      // 敏捷系スキル
+    AgilitySkills: StormbringerSkill[]; // 敏捷系スキル
     CommunicationSkills: StormbringerSkill[]; // コミュニケーション系スキル
-    KnowledgeSkills: StormbringerSkill[];     // 知識系スキル
-    ManipulationSkills: StormbringerSkill[];  // 操作系スキル
-    PerceptionSkills: StormbringerSkill[];    // 知覚系スキル
-    StealthSkills: StormbringerSkill[];       // 隠密系スキル
-    MagicSkills: StormbringerSkill[];         // 魔法系スキル
-    WeaponSkills: StormbringerSkill[];        // 武器系スキル
+    KnowledgeSkills: StormbringerSkill[]; // 知識系スキル
+    ManipulationSkills: StormbringerSkill[]; // 操作系スキル
+    PerceptionSkills: StormbringerSkill[]; // 知覚系スキル
+    StealthSkills: StormbringerSkill[]; // 隠密系スキル
+    MagicSkills: StormbringerSkill[]; // 魔法系スキル
+    WeaponSkills: StormbringerSkill[]; // 武器系スキル
   };
-  
+
   // その他
   imageUrl?: string;
   campaignId?: string;
@@ -237,13 +235,13 @@ export interface StormbringerSkill {
 // PC専用追加情報
 export interface PlayerCharacter extends TRPGCharacter {
   characterType: "PC";
-  backstory: string;     // 背景設定
-  goals: string[];       // 目標
-  bonds: string[];       // 絆
-  flaws: string[];       // 欠点
-  ideals: string[];      // 理想
-  currentHP?: number;    // 現在HP
-  currentMP?: number;    // 現在MP
+  backstory: string; // 背景設定
+  goals: string[]; // 目標
+  bonds: string[]; // 絆
+  flaws: string[]; // 欠点
+  ideals: string[]; // 理想
+  currentHP?: number; // 現在HP
+  currentMP?: number; // 現在MP
 }
 
 // NPC専用情報
@@ -266,7 +264,7 @@ export interface EnemyCharacter {
   type: string; // アンデッド、魔獣、機械など
   description: string;
   level: number;
-  
+
   // 能力値（簡略化）
   attributes: {
     strength: number;
@@ -275,7 +273,7 @@ export interface EnemyCharacter {
     intelligence: number;
     wisdom: number;
   };
-  
+
   // 派生値
   derivedStats: {
     hp: number;
@@ -289,20 +287,20 @@ export interface EnemyCharacter {
     criticalRate: number;
     initiative: number;
   };
-  
+
   // スキル・攻撃手段
   skills: {
     basicAttack: string;
     specialSkills: SpecialSkill[];
     passives: string[];
   };
-  
+
   // AI行動パターン
   behavior: {
     aiPattern: string; // 例：HP50%以下で回復スキル使用
     targeting: string; // 例：最もHPが低いPCを狙う
   };
-  
+
   // ドロップ情報
   drops: {
     exp: number;
@@ -310,7 +308,7 @@ export interface EnemyCharacter {
     items: string[];
     rareDrops: string[];
   };
-  
+
   // 現在状態
   status: {
     currentHp: number;
@@ -318,7 +316,7 @@ export interface EnemyCharacter {
     statusEffects: string[];
     location: string;
   };
-  
+
   // その他
   imageUrl?: string;
   campaignId?: string;
@@ -333,7 +331,6 @@ export interface SpecialSkill {
   cooldown?: number;
   cost?: string;
 }
-
 
 // キャラクターの役割の型エイリアス
 export type CharacterRoleType = "protagonist" | "antagonist" | "supporting";
@@ -391,40 +388,45 @@ export interface GameSession {
   experienceAwarded?: number;
   status?: "planned" | "inProgress" | "completed" | "cancelled";
   notes?: string;
-  
+
   // 🎯 **タイムライン連動遭遇判定用の新規フィールド**
   currentState: SessionCurrentState;
   spatialTracking: SpatialTrackingSystem;
   encounterHistory: EncounterRecord[];
-  
 }
 
 // 🎯 **現在のセッション状態（詳細管理）**
 export interface SessionCurrentState {
   // 時間管理
-  currentDay: number;           // 現在の日付（1から開始）
-  currentTimeOfDay: TimeOfDay;  // 現在の時刻帯
-  actionCount: number;          // 本日の行動回数
-  maxActionsPerDay: number;     // 1日の最大行動回数
-  
+  currentDay: number; // 現在の日付（1から開始）
+  currentTimeOfDay: TimeOfDay; // 現在の時刻帯
+  actionCount: number; // 本日の行動回数
+  maxActionsPerDay: number; // 1日の最大行動回数
+
   // 空間管理
-  currentLocation: string;      // 現在の場所名
-  currentLocationId?: string;   // 場所ID（BaseLocationとの連携）
-  coordinates?: Coordinates;    // 詳細座標（オプション）
-  
+  currentLocation: string; // 現在の場所名
+  currentLocationId?: string; // 場所ID（BaseLocationとの連携）
+  coordinates?: Coordinates; // 詳細座標（オプション）
+
   // パーティー状態
-  activeCharacter: string;      // 現在操作中のキャラクターID
+  activeCharacter: string; // 現在操作中のキャラクターID
   partyLocation: PartyLocationState; // パーティー全体の位置情報
-  partyStatus: PartyStatus;     // パーティーの状態
-  
+  partyStatus: PartyStatus; // パーティーの状態
+
   // イベント進行
-  activeEvents: string[];       // 現在アクティブなイベントID
-  completedEvents: string[];    // 完了したイベントID
+  activeEvents: string[]; // 現在アクティブなイベントID
+  completedEvents: string[]; // 完了したイベントID
   triggeredEvents: TriggeredEvent[]; // 発生済みイベント履歴
 }
 
 // 時刻帯定義
-export type TimeOfDay = "morning" | "noon" | "afternoon" | "evening" | "night" | "late_night";
+export type TimeOfDay =
+  | "morning"
+  | "noon"
+  | "afternoon"
+  | "evening"
+  | "night"
+  | "late_night";
 
 // 🌍 世界観構築統合: 遭遇システム関連型定義
 export interface EncounterChance {
@@ -445,8 +447,24 @@ export interface ConditionalEvent {
   probability: number; // 発生確率
 }
 
-export type ClimateType = "temperate" | "tropical" | "arctic" | "desert" | "mountain" | "coastal" | "magical";
-export type TerrainType = "plains" | "forest" | "mountain" | "desert" | "swamp" | "urban" | "ruins" | "underground" | "aerial";
+export type ClimateType =
+  | "temperate"
+  | "tropical"
+  | "arctic"
+  | "desert"
+  | "mountain"
+  | "coastal"
+  | "magical";
+export type TerrainType =
+  | "plains"
+  | "forest"
+  | "mountain"
+  | "desert"
+  | "swamp"
+  | "urban"
+  | "ruins"
+  | "underground"
+  | "aerial";
 
 export interface WeatherPattern {
   season: string;
@@ -465,20 +483,27 @@ export interface Coordinates {
 
 // パーティー位置状態
 export interface PartyLocationState {
-  groupLocation: string;        // グループ全体の場所
-  memberLocations: {            // 個別メンバーの位置
+  groupLocation: string; // グループ全体の場所
+  memberLocations: {
+    // 個別メンバーの位置
     [characterId: string]: {
       location: string;
       coordinates?: Coordinates;
-      timeArrived: string;      // 到着時刻
-      isWithGroup: boolean;     // グループと同行中か
+      timeArrived: string; // 到着時刻
+      isWithGroup: boolean; // グループと同行中か
     };
   };
   movementHistory: MovementRecord[]; // 移動履歴
 }
 
 // パーティー状態
-export type PartyStatus = "exploring" | "resting" | "combat" | "shopping" | "dialogue" | "traveling";
+export type PartyStatus =
+  | "exploring"
+  | "resting"
+  | "combat"
+  | "shopping"
+  | "dialogue"
+  | "traveling";
 
 // 移動記録
 export interface MovementRecord {
@@ -498,7 +523,7 @@ export interface TriggeredEvent {
   timeOfDay: TimeOfDay;
   location: string;
   triggerType: "scheduled" | "encounter" | "manual" | "ai_initiated";
-  participants: string[];      // 参加キャラクターID
+  participants: string[]; // 参加キャラクターID
   result?: "success" | "failure" | "ongoing" | "cancelled";
 }
 
@@ -510,13 +535,13 @@ export interface SpatialTrackingSystem {
     npcs: { [npcId: string]: PositionInfo };
     enemies: { [enemyId: string]: PositionInfo };
   };
-  
+
   // 衝突判定設定
   collisionDetection: CollisionDetectionConfig;
-  
+
   // エリア定義
   definedAreas: GameArea[];
-  
+
   // 遭遇ルール
   encounterRules: EncounterRule[];
 }
@@ -528,22 +553,23 @@ export interface PositionInfo {
   arrivalTime: Date;
   dayNumber: number;
   timeOfDay: TimeOfDay;
-  isActive: boolean;           // アクティブ状態（戦闘可能等）
-  visibilityRange?: number;    // 検知範囲
-  movementSpeed?: number;      // 移動速度
+  isActive: boolean; // アクティブ状態（戦闘可能等）
+  visibilityRange?: number; // 検知範囲
+  movementSpeed?: number; // 移動速度
 }
 
 // 衝突判定設定
 export interface CollisionDetectionConfig {
-  enableSpatialCollision: boolean;      // 空間衝突判定を有効にするか
-  enableTemporalCollision: boolean;     // 時間衝突判定を有効にするか
-  collisionRadius: number;              // 衝突判定範囲（メートル等）
-  timeWindow: number;                   // 時間窓（分）
-  automaticEncounters: boolean;         // 自動遭遇を有効にするか
-  encounterProbability: {               // 遭遇確率設定
-    npc: number;        // NPC遭遇確率 (0-1)
-    enemy: number;      // エネミー遭遇確率 (0-1)
-    event: number;      // イベント発生確率 (0-1)
+  enableSpatialCollision: boolean; // 空間衝突判定を有効にするか
+  enableTemporalCollision: boolean; // 時間衝突判定を有効にするか
+  collisionRadius: number; // 衝突判定範囲（メートル等）
+  timeWindow: number; // 時間窓（分）
+  automaticEncounters: boolean; // 自動遭遇を有効にするか
+  encounterProbability: {
+    // 遭遇確率設定
+    npc: number; // NPC遭遇確率 (0-1)
+    enemy: number; // エネミー遭遇確率 (0-1)
+    event: number; // イベント発生確率 (0-1)
   };
 }
 
@@ -552,13 +578,14 @@ export interface GameArea {
   id: string;
   name: string;
   type: "safe" | "dangerous" | "neutral" | "special";
-  boundaries?: Coordinates[];   // エリア境界
-  encounterModifiers: {         // 遭遇修正
+  boundaries?: Coordinates[]; // エリア境界
+  encounterModifiers: {
+    // 遭遇修正
     npcMultiplier: number;
     enemyMultiplier: number;
     eventMultiplier: number;
   };
-  restrictions?: string[];      // 制限事項
+  restrictions?: string[]; // 制限事項
 }
 
 // 遭遇ルール
@@ -567,7 +594,7 @@ export interface EncounterRule {
   name: string;
   conditions: EncounterCondition[];
   actions: EncounterAction[];
-  priority: number;             // 優先度（高いほど先に処理）
+  priority: number; // 優先度（高いほど先に処理）
   isActive: boolean;
 }
 
@@ -581,7 +608,12 @@ export interface EncounterCondition {
 
 // 遭遇アクション
 export interface EncounterAction {
-  type: "spawn_enemy" | "trigger_event" | "spawn_npc" | "force_dialogue" | "require_dice_roll";
+  type:
+    | "spawn_enemy"
+    | "trigger_event"
+    | "spawn_npc"
+    | "force_dialogue"
+    | "require_dice_roll";
   parameters: Record<string, string | number | boolean | string[]>;
   description: string;
 }
@@ -593,17 +625,22 @@ export interface EncounterRecord {
   dayNumber: number;
   timeOfDay: TimeOfDay;
   location: string;
-  
+
   // 遭遇タイプ
-  encounterType: "npc_dialogue" | "enemy_combat" | "event_trigger" | "location_discovery" | "trap_activation";
-  
+  encounterType:
+    | "npc_dialogue"
+    | "enemy_combat"
+    | "event_trigger"
+    | "location_discovery"
+    | "trap_activation";
+
   // 参加者
   participants: {
-    players: string[];          // 参加プレイヤーキャラクターID
-    npcs?: string[];           // 関与NPC ID
-    enemies?: string[];        // 関与エネミーID
+    players: string[]; // 参加プレイヤーキャラクターID
+    npcs?: string[]; // 関与NPC ID
+    enemies?: string[]; // 関与エネミーID
   };
-  
+
   // 遭遇結果
   result: {
     outcome: "success" | "failure" | "escape" | "negotiation" | "ongoing";
@@ -613,15 +650,15 @@ export interface EncounterRecord {
     experienceGained?: number;
     questProgress?: Record<string, string | number | boolean>;
   };
-  
+
   // AI判定データ
   aiDecisions: {
-    wasAIInitiated: boolean;     // AI主導で発生したか
+    wasAIInitiated: boolean; // AI主導で発生したか
     difficultyCalculated: number; // AI計算難易度
-    surpriseRound?: boolean;     // サプライズラウンドの有無
+    surpriseRound?: boolean; // サプライズラウンドの有無
     tacticalAdvantage?: "player" | "enemy" | "neutral"; // 戦術的優位性
   };
-  
+
   // メタデータ
   description: string;
   tags: string[];
@@ -637,7 +674,14 @@ export interface SessionEvent {
   relatedCharacters: string[];
   relatedPlaces: string[];
   order: number;
-  eventType: "combat" | "roleplay" | "exploration" | "puzzle" | "social" | "discovery" | "rest";
+  eventType:
+    | "combat"
+    | "roleplay"
+    | "exploration"
+    | "puzzle"
+    | "social"
+    | "discovery"
+    | "rest";
   outcome?: "success" | "failure" | "partial" | "ongoing";
   postEventCharacterStatuses?: {
     [characterId: string]: CharacterStatus[];
@@ -658,7 +702,18 @@ export interface TimelineEvent {
   relatedCharacters: string[];
   relatedPlaces: string[];
   order: number;
-  eventType?: "battle" | "rest" | "dialogue" | "journey" | "discovery" | "turning_point" | "info" | "mystery" | "setup" | "celebration" | "other";
+  eventType?:
+    | "battle"
+    | "rest"
+    | "dialogue"
+    | "journey"
+    | "discovery"
+    | "turning_point"
+    | "info"
+    | "mystery"
+    | "setup"
+    | "celebration"
+    | "other";
   outcome?: "success" | "failure" | "partial" | "ongoing";
   postEventCharacterStatuses?: {
     [characterId: string]: CharacterStatus[];
@@ -673,7 +728,14 @@ export interface TimelineEvent {
 // イベント結果の型定義
 export interface EventResult {
   id: string;
-  type: "item_gained" | "item_lost" | "flag_set" | "flag_unset" | "condition_met" | "story_progress" | "character_change";
+  type:
+    | "item_gained"
+    | "item_lost"
+    | "flag_set"
+    | "flag_unset"
+    | "condition_met"
+    | "story_progress"
+    | "character_change";
   description: string;
   itemId?: string; // type が "item_gained" または "item_lost" の場合
   itemQuantity?: number; // アイテムの数量
@@ -685,7 +747,14 @@ export interface EventResult {
 // イベント発生条件の型定義
 export interface EventCondition {
   id: string;
-  type: "item_required" | "flag_required" | "character_status" | "location_required" | "quest_completed" | "day_range" | "custom";
+  type:
+    | "item_required"
+    | "flag_required"
+    | "character_status"
+    | "location_required"
+    | "quest_completed"
+    | "day_range"
+    | "custom";
   description: string;
   itemId?: string; // type が "item_required" の場合
   itemQuantity?: number; // 必要なアイテム数量（デフォルト1）
@@ -706,7 +775,13 @@ export interface ClearCondition {
   id: string;
   title: string;
   description: string;
-  type: "item_collection" | "quest_completion" | "character_survival" | "location_reached" | "story_milestone" | "custom";
+  type:
+    | "item_collection"
+    | "quest_completion"
+    | "character_survival"
+    | "location_reached"
+    | "story_milestone"
+    | "custom";
   requiredItems?: {
     itemId: string;
     itemName: string;
@@ -754,15 +829,38 @@ export interface Item {
 }
 
 // アイテムタイプ
-export type ItemType = "consumable" | "equipment" | "key_item" | "material" | "quest_item" | "currency" | "other";
+export type ItemType =
+  | "consumable"
+  | "equipment"
+  | "key_item"
+  | "material"
+  | "quest_item"
+  | "currency"
+  | "other";
 
 // アイテムカテゴリ
-export type ItemCategory = 
-  | "general" | "weapon" | "armor" | "accessory" | "consumable" 
-  | "material" | "tool" | "book" | "food" | "magic" | "treasure" | "junk";
+export type ItemCategory =
+  | "general"
+  | "weapon"
+  | "armor"
+  | "accessory"
+  | "consumable"
+  | "material"
+  | "tool"
+  | "book"
+  | "food"
+  | "magic"
+  | "treasure"
+  | "junk";
 
 // アイテムのレアリティ
-export type ItemRarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "artifact";
+export type ItemRarity =
+  | "common"
+  | "uncommon"
+  | "rare"
+  | "epic"
+  | "legendary"
+  | "artifact";
 
 // アイテム効果
 export interface ItemEffect {
@@ -782,9 +880,16 @@ export interface ItemAttribute {
 }
 
 // 装備スロット
-export type EquipmentSlot = 
-  | "head" | "body" | "hands" | "feet" | "weapon" | "shield" 
-  | "accessory" | "ring" | "necklace";
+export type EquipmentSlot =
+  | "head"
+  | "body"
+  | "hands"
+  | "feet"
+  | "weapon"
+  | "shield"
+  | "accessory"
+  | "ring"
+  | "necklace";
 
 // アイテムの入手場所
 export interface ItemLocation {
@@ -801,11 +906,22 @@ export interface ItemLocation {
 }
 
 // アイテムの入手可能性
-export type ItemAvailability = "always" | "limited" | "seasonal" | "quest_locked" | "level_locked" | "story_locked";
+export type ItemAvailability =
+  | "always"
+  | "limited"
+  | "seasonal"
+  | "quest_locked"
+  | "level_locked"
+  | "story_locked";
 
 // アイテム入手条件
 export interface ItemRequirement {
-  type: "level" | "quest_complete" | "item_owned" | "flag_set" | "location_discovered";
+  type:
+    | "level"
+    | "quest_complete"
+    | "item_owned"
+    | "flag_set"
+    | "location_discovered";
   value: string | number;
   description: string;
 }
@@ -814,10 +930,21 @@ export interface ItemRequirement {
 // Equipment interfaceはItem型で統一する
 
 // 装備タイプ
-export type EquipmentType = 
-  | "main_weapon" | "off_weapon" | "two_handed_weapon" | "ranged_weapon"
-  | "helmet" | "chest_armor" | "leg_armor" | "boots" | "gloves"
-  | "ring" | "necklace" | "earring" | "bracelet" | "cloak";
+export type EquipmentType =
+  | "main_weapon"
+  | "off_weapon"
+  | "two_handed_weapon"
+  | "ranged_weapon"
+  | "helmet"
+  | "chest_armor"
+  | "leg_armor"
+  | "boots"
+  | "gloves"
+  | "ring"
+  | "necklace"
+  | "earring"
+  | "bracelet"
+  | "cloak";
 
 // 装備ステータス
 export interface EquipmentStats {
@@ -907,7 +1034,6 @@ export interface CombatCondition {
   duration: number; // 残りターン数
   effects: string[];
 }
-
 
 // AIが生成するイベントの「種」の型定義
 export interface TimelineEventSeed {
@@ -1021,8 +1147,12 @@ export interface CampaignMetadata {
 }
 
 // キャンペーンステータス
-export type CampaignStatus = "planning" | "active" | "paused" | "completed" | "archived";
-
+export type CampaignStatus =
+  | "planning"
+  | "active"
+  | "paused"
+  | "completed"
+  | "archived";
 
 /**
  * タイムラインイベントの重要度 (project.ts オリジナル)
@@ -1204,7 +1334,6 @@ export enum WorldBuildingElementType {
   FREE_FIELD = "free_field",
 }
 
-
 // 世界観タブのカテゴリ定義
 export interface WorldBuildingCategory {
   id: string;
@@ -1292,7 +1421,7 @@ export const getOrderedCategories = (): WorldBuildingCategory[] => {
 
 // カテゴリIDからカテゴリ情報を取得するヘルパー関数
 export const getCategoryById = (
-  id: string
+  id: string,
 ): WorldBuildingCategory | undefined => {
   return worldBuildingCategories.find((category) => category.id === id);
 };
@@ -1373,7 +1502,7 @@ export interface WorldBuildingElementData {
  */
 export function createTypedWorldBuildingElement(
   type: string, // ここは WorldBuildingElementType の方がより厳密ですが、呼び出し元での柔軟性を考慮
-  data: WorldBuildingElementData
+  data: WorldBuildingElementData,
 ): WorldBuildingElement {
   const baseElement: Omit<BaseWorldBuildingElement, "id" | "type"> = {
     name: data.name || "名称未設定",
@@ -1548,7 +1677,7 @@ export interface BaseLocation {
   description: string;
   rank: string; // 小村、中規模都市、大都市、要塞都市
   importance: "主要拠点" | "サブ拠点" | "隠し拠点";
-  
+
   // 施設情報
   facilities: {
     inn?: Inn;
@@ -1559,52 +1688,59 @@ export interface BaseLocation {
     blacksmith?: Blacksmith;
     otherFacilities?: OtherFacility[];
   };
-  
+
   // 人物・NPC
   npcs: LocationNPC[];
-  
+
   // 機能・用途
   features: {
     fastTravel: boolean; // ファストトラベル可能か
     playerBase: boolean; // プレイヤー拠点として使えるか
-    questHub: boolean;   // クエスト発生ポイントか
+    questHub: boolean; // クエスト発生ポイントか
     defenseEvent: boolean; // 拠点防衛イベントの有無
   };
-  
+
   // 危険・影響要素
   threats: {
     dangerLevel: string; // 低、中、高
     monsterAttackRate: number; // モンスター襲撃率
-    playerReputation: number;   // プレイヤーの評判
-    currentEvents: string[];    // 現在の情勢
+    playerReputation: number; // プレイヤーの評判
+    currentEvents: string[]; // 現在の情勢
     controllingFaction: string; // 支配勢力
   };
-  
+
   // 経済・流通
   economy: {
-    currency: string;        // 通貨単位
-    priceModifier: number;   // 物価指数
-    localGoods: string[];    // 特産品
-    tradeGoods: string[];    // 交易品
+    currency: string; // 通貨単位
+    priceModifier: number; // 物価指数
+    localGoods: string[]; // 特産品
+    tradeGoods: string[]; // 交易品
   };
-  
+
   // TRPGセッション用: 行動可能リスト
   availableActions?: {
     id: string;
     name: string;
     description: string;
-    category: "exploration" | "social" | "shopping" | "training" | "rest" | "quest" | "custom";
+    category:
+      | "exploration"
+      | "social"
+      | "shopping"
+      | "training"
+      | "rest"
+      | "quest"
+      | "custom";
     requirements?: string[]; // 前提条件
     effects?: string[]; // 効果・結果
   }[];
-  
+
   // 🌍 世界観構築統合: 遭遇ルール
   encounterRules?: {
     timeOfDay: Record<TimeOfDay, EncounterChance>;
     weatherEffects?: WeatherModifier[];
     specialEvents?: ConditionalEvent[];
   };
-  
+
   // 🌍 世界観構築統合: NPCスケジュール
   npcSchedule?: {
     [npcId: string]: {
@@ -1613,14 +1749,14 @@ export interface BaseLocation {
       questTriggers: string[];
     };
   };
-  
+
   // 🌍 世界観構築統合: 文化的修正値
   culturalModifiers?: {
     negotiationDC: number;
     priceModifier: number;
     reputationImpact: number;
   };
-  
+
   // 🌍 世界観構築統合: 環境要因
   environmentalFactors?: {
     climate: ClimateType;
@@ -1634,14 +1770,14 @@ export interface BaseLocation {
     lat: number;
     lng: number;
   };
-  
+
   // メタ情報
   meta: {
     locationId: string;
     unlocked: boolean;
     lastUpdated: string;
   };
-  
+
   // その他
   imageUrl?: string;
   campaignId?: string;
@@ -1724,7 +1860,13 @@ export interface CharacterInteraction {
   id: string;
   sourceCharacterId: string;
   targetCharacterId: string;
-  interactionType: "heal" | "damage" | "statusEffect" | "buff" | "debuff" | "custom";
+  interactionType:
+    | "heal"
+    | "damage"
+    | "statusEffect"
+    | "buff"
+    | "debuff"
+    | "custom";
   value?: number; // HP変動値など
   statusEffect?: string; // 付与する状態異常名
   duration?: number; // 効果持続時間（ターン数）
