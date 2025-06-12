@@ -11,19 +11,24 @@ This is an AI-powered TRPG (Tabletop Role-Playing Game) campaign management and 
 ### Root Level Commands
 
 ```bash
-# Development
-# Dockerキャッシュをクリアしてビルド
-docker system prune -af
-docker compose -f docker-compose.dev.yml up --build frontend-dev
+# Development (Docker)
+# 🔒 VSCodeハング防止推奨: 安全起動スクリプト
+./start-dev-safe.sh                  # 対話式安全起動（VSCodeハング防止機能付き）
 
-# すでにビルド済みの場合（高速起動）
-docker compose -f docker-compose.dev.yml up frontend-dev
+# 通常のDocker起動（確認プロンプト付き）
+start-dev-safe.sh              # 既存コンテナを停止してから起動
+start-dev-safe.sh --docker --build      # ビルドしてから起動
+start-dev-safe.sh --docker --clean      # キャッシュクリアしてビルド・起動
 
-# バックグラウンドで実行
-docker compose -f docker-compose.dev.yml up -d frontend-dev
+# 直接Docker Compose使用する場合
+docker compose -f docker-compose.dev.yml down    # 既存コンテナ停止
+docker compose -f docker-compose.dev.yml up --build frontend-dev  # ビルド・起動
+docker compose -f docker-compose.dev.yml up frontend-dev          # 起動のみ
+docker compose -f docker-compose.dev.yml up -d frontend-dev       # バックグラウンド実行
+docker compose -f docker-compose.dev.yml logs -f frontend-dev     # ログ確認
 
-# ログを確認
-ocker compose -f docker-compose.dev.yml logs -f frontend-dev
+# 従来のローカル開発
+./start-dev.sh                       # ローカル環境での開発
 
 # Build
 pnpm build                 # Build all packages (using Turbo)

@@ -149,6 +149,7 @@ const TRPGSessionPageContent: React.FC = () => {
             onSelectCharacter={setSelectedCharacter}
             currentLocation={currentLocation}
             currentLocationImage={currentBaseImage}
+            isSessionStarted={uiState.isSessionStarted}
           />
         </Box>
 
@@ -200,6 +201,7 @@ const TRPGSessionPageContent: React.FC = () => {
             maxActionsPerDay={maxActionsPerDay}
             currentBase={getCurrentBase()}
             enemies={enemies}
+            npcs={npcs}
             selectedCharacter={selectedCharacter || undefined}
             bases={bases}
             onExecuteAction={executeAction}

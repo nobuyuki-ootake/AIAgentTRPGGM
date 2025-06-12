@@ -943,10 +943,45 @@ export const useTRPGSessionUI = () => {
       );
 
       // 他のプレイヤーキャラクターの自動行動を処理
-      setTimeout(() => processOtherPlayerCharacters(), 1000);
+      console.log(
+        `🎯 ${selectedCharacter.name} 行動完了 - 他キャラクター処理をトリガー`,
+      );
     },
-    [selectedCharacter],
+    [selectedCharacter, handleAddSystemMessage],
   );
+
+  // プレイヤーアクション完了後に他のキャラクターの処理を自動開始
+  useEffect(() => {
+    // セッション開始済み、かつターン処理中でない、かつ待機中キャラクターが1人以上いる場合
+    if (
+      uiState.isSessionStarted &&
+      !uiState.turnState.isProcessingTurn &&
+      uiState.turnState.awaitingCharacters.length > 0 &&
+      selectedCharacter &&
+      !uiState.turnState.awaitingCharacters.includes(selectedCharacter.id) // 選択キャラクターが行動済み
+    ) {
+      const otherCharacters = playerCharacters.filter(
+        (pc) =>
+          pc.id !== selectedCharacter.id &&
+          uiState.turnState.awaitingCharacters.includes(pc.id),
+      );
+
+      if (otherCharacters.length > 0) {
+        console.log(
+          `⏰ 他プレイヤーキャラクター処理を自動開始: ${otherCharacters.length}人`,
+        );
+        setTimeout(() => {
+          processOtherPlayerCharacters();
+        }, 1000);
+      }
+    }
+  }, [
+    uiState.isSessionStarted,
+    uiState.turnState.isProcessingTurn,
+    uiState.turnState.awaitingCharacters,
+    selectedCharacter?.id,
+    playerCharacters.length, // 配列の長さのみを監視
+  ]);
 
   const processOtherPlayerCharacters = useCallback(async () => {
     // 操作していない他のプレイヤーキャラクターを取得
@@ -956,16 +991,31 @@ export const useTRPGSessionUI = () => {
         uiState.turnState.awaitingCharacters.includes(pc.id),
     );
 
+    console.log(
+      `[ターン制] 待機中の他キャラクター数: ${otherPlayerCharacters.length}`,
+    );
+    console.log(
+      `[ターン制] 現在の待機中キャラクターID:`,
+      uiState.turnState.awaitingCharacters,
+    );
+    console.log(
+      `[ターン制] 全プレイヤーキャラクター数: ${playerCharacters.length}`,
+    );
+
     if (otherPlayerCharacters.length === 0) {
-      processTurnCompletion();
+      console.log(
+        `[ターン制] 他のキャラクターがいないため、ターン完了チェックを実行`,
+      );
+      // 他のキャラクターがいない場合、少し待ってからターン完了チェック
+      setTimeout(() => checkTurnCompletion(), 1000); // 1秒待機してからターン完了チェック
       return;
     }
 
     console.log(
-      `${otherPlayerCharacters.length}人の他プレイヤーキャラクターの行動を処理中...`,
+      `[ターン制] ${otherPlayerCharacters.length}人の他プレイヤーキャラクターの行動を処理中...`,
     );
     handleAddSystemMessage(
-      `🤖 AI操作キャラクター（${otherPlayerCharacters.length}人）の行動を処理中...`,
+      `🎭 他のプレイヤーキャラクター（${otherPlayerCharacters.length}人）の行動を決定中...`,
     );
 
     setUIState((prev) => ({
@@ -978,6 +1028,7 @@ export const useTRPGSessionUI = () => {
 
     // 各キャラクターの行動を順次処理
     for (const character of otherPlayerCharacters) {
+      console.log(`[ターン制] ${character.name}の行動を処理中...`);
       await processIndividualPlayerCharacterAction(character);
       await new Promise((resolve) => setTimeout(resolve, 1500)); // キャラクターアクション間の間隔
     }
@@ -990,17 +1041,147 @@ export const useTRPGSessionUI = () => {
       },
     }));
 
+    console.log(`[ターン制] 全ての他キャラクターの行動決定完了`);
     // 全キャラクターの行動が完了したかチェック
     setTimeout(() => checkTurnCompletion(), 500);
   }, [
     playerCharacters,
-    selectedCharacter,
+    selectedCharacter?.id, // IDのみを依存に変更
     uiState.turnState.awaitingCharacters,
+    handleAddSystemMessage,
   ]);
+
+  // キャラクター固有の能力・スキルに基づく行動を取得
+  const getCharacterAbilityActions = useCallback((character: any): string[] => {
+    const abilityActions: string[] = [];
+
+    // TRPGCharacterの場合はattributesから能力値を確認
+    if ("attributes" in character && character.attributes) {
+      const attrs = character.attributes;
+
+      // 高い能力値に基づく特殊行動
+      if (attrs.strength && attrs.strength > 15) {
+        abilityActions.push("力技で解決を試みる");
+      }
+      if (attrs.dexterity && attrs.dexterity > 15) {
+        abilityActions.push("敏捷性を活かした行動");
+      }
+      if (attrs.intelligence && attrs.intelligence > 15) {
+        abilityActions.push("知識を活用して分析する");
+      }
+      if (attrs.wisdom && attrs.wisdom > 15) {
+        abilityActions.push("直感で危険を察知する");
+      }
+      if (attrs.charisma && attrs.charisma > 15) {
+        abilityActions.push("交渉や説得を試みる");
+      }
+    }
+
+    // スキルに基づく行動
+    if (
+      "skills" in character &&
+      character.skills &&
+      Array.isArray(character.skills)
+    ) {
+      character.skills.forEach((skill: any) => {
+        if (typeof skill === "string") {
+          switch (skill.toLowerCase()) {
+            case "stealth":
+            case "隠密":
+              abilityActions.push("隠密行動を取る");
+              break;
+            case "perception":
+            case "知覚":
+              abilityActions.push("周囲を詳しく観察する");
+              break;
+            case "investigation":
+            case "調査":
+              abilityActions.push("手がかりを詳しく調べる");
+              break;
+            case "medicine":
+            case "医術":
+              abilityActions.push("仲間の状態をチェックする");
+              break;
+          }
+        }
+      });
+    }
+
+    return abilityActions;
+  }, []);
+
+  // キャラクターの状態に基づく行動を取得
+  const getStatusBasedActions = useCallback((character: any): string[] => {
+    const statusActions: string[] = [];
+
+    // HP状態による行動
+    const hp =
+      "derived" in character && character.derived
+        ? (character.currentHP ?? character.derived.HP)
+        : 100;
+    const maxHp =
+      "derived" in character && character.derived ? character.derived.HP : 100;
+
+    const hpPercentage = maxHp > 0 ? (hp / maxHp) * 100 : 100;
+
+    if (hpPercentage < 30) {
+      statusActions.push("安全な場所で休息する");
+      statusActions.push("治療を優先する");
+    } else if (hpPercentage < 60) {
+      statusActions.push("慎重に行動する");
+    } else {
+      statusActions.push("積極的に行動する");
+    }
+
+    // 装備による行動
+    if ("equipment" in character && character.equipment) {
+      const equipment = character.equipment;
+      if (equipment.weapon) {
+        statusActions.push("武器を活用した行動");
+      }
+      if (equipment.armor) {
+        statusActions.push("防具を信頼した前進");
+      }
+    }
+
+    return statusActions;
+  }, []);
+
+  // キャラクター個別の位置情報に基づく行動を取得
+  const getCharacterLocationActions = useCallback(
+    (character: any): { actions: string[]; location: string } => {
+      // キャラクター個別の位置情報を取得（フォールバック: 全体の現在地）
+      const characterLocation = character.currentLocation || currentLocation;
+
+      // そのキャラクターがいる場所の拠点情報を取得
+      const characterBase = bases.find(
+        (base) => base.name === characterLocation,
+      );
+
+      // その場所での利用可能行動を取得
+      const locationActions = characterBase
+        ? getLocationBasedActions(characterBase)
+        : [];
+
+      console.log(`📍 ${character.name}の位置: ${characterLocation}`);
+      console.log(
+        `🏢 利用可能施設:`,
+        Object.keys(characterBase?.facilities || {}),
+      );
+
+      return {
+        actions: locationActions,
+        location: characterLocation,
+      };
+    },
+    [bases, currentLocation, getLocationBasedActions],
+  );
 
   const generateCharacterSpecificActions = useCallback(
     async (character: any): Promise<string[]> => {
-      // AI APIを使わず、固定の行動選択肢を返す
+      console.log(`\n🎯 === ${character.name} 固有行動選択肢生成開始 ===`);
+
+      // 基本行動（全キャラクター共通）
       const baseActions = [
         "様子を見る",
         "情報収集を行う",
@@ -1008,30 +1189,53 @@ export const useTRPGSessionUI = () => {
         "準備を整える",
       ];
 
-      // 現在の拠点に基づく追加行動（施設の存在チェック済み）
-      const currentBase = getCurrentBase();
-      const locationActions = getLocationBasedActions(currentBase);
+      // 1. キャラクター個別の位置情報に基づく行動
+      const { actions: locationActions, location: characterLocation } =
+        getCharacterLocationActions(character);
 
-      // 職業に基づく行動
+      // 2. 職業に基づく行動
       const professionActions = getProfessionSpecificActions(
         character.profession,
       );
 
-      // 全ての行動をまとめて返す（基本4つ + 拠点1つ + 職業1つで最大6つ）
-      const allActions = [
-        ...baseActions,
-        ...locationActions.slice(0, 1), // 拠点固有行動は1つまで
-        ...professionActions.slice(0, 1), // 職業固有行動は1つまで
-      ];
+      // 3. キャラクター固有の能力・スキルに基づく行動
+      const abilityActions = getCharacterAbilityActions(character);
 
-      console.log(`🎯 ${character.name}の行動選択肢:`, allActions);
-      console.log(
-        `📍 拠点「${currentBase?.name}」利用可能施設:`,
-        Object.keys(currentBase?.facilities || {}),
+      // 4. キャラクターの現在状態に基づく行動
+      const statusActions = getStatusBasedActions(character);
+
+      // 全ての行動をまとめる（重複除去）
+      const allUniqueActions = Array.from(
+        new Set([
+          ...baseActions,
+          ...locationActions.slice(0, 2), // 拠点固有行動は2つまで
+          ...professionActions.slice(0, 1), // 職業固有行動は1つまで
+          ...abilityActions.slice(0, 1), // 能力固有行動は1つまで
+          ...statusActions.slice(0, 1), // 状態固有行動は1つまで
+        ]),
       );
-      return allActions.slice(0, 5); // 最大5つまで
+
+      console.log(`📋 ${character.name}の行動詳細:`);
+      console.log(`  位置: ${characterLocation}`);
+      console.log(`  職業: ${character.profession || "不明"}`);
+      console.log(`  拠点行動: [${locationActions.join(", ")}]`);
+      console.log(`  職業行動: [${professionActions.join(", ")}]`);
+      console.log(`  能力行動: [${abilityActions.join(", ")}]`);
+      console.log(`  状態行動: [${statusActions.join(", ")}]`);
+      console.log(
+        `🎯 最終選択肢 (${allUniqueActions.length}個):`,
+        allUniqueActions,
+      );
+      console.log(`=== ${character.name} 行動選択肢生成完了 ===\n`);
+
+      return allUniqueActions.slice(0, 6); // 最大6つまで
     },
-    [getCurrentBase, getLocationBasedActions, getProfessionSpecificActions],
+    [
+      getCharacterLocationActions,
+      getProfessionSpecificActions,
+      getCharacterAbilityActions,
+      getStatusBasedActions,
+    ],
   );
 
   const processIndividualPlayerCharacterAction = useCallback(
@@ -1041,66 +1245,164 @@ export const useTRPGSessionUI = () => {
         const availableActions =
           await generateCharacterSpecificActions(character);
 
-        // 固定ロジックで行動を選択（AI APIを使わない）
+        // キャラクター固有の情報に基づく行動選択ロジック
         let actionText = "様子を見ている";
 
         if (availableActions.length > 0) {
-          // シンプルなロジックで行動を選択
-          // キャラクターの職業に基づいて優先行動を決める
-          const profession = character.profession?.toLowerCase() || "";
+          console.log(`🤖 ${character.name} の行動選択処理開始`);
 
-          if (profession.includes("戦士") || profession.includes("fighter")) {
-            // 戦士は積極的行動を優先
-            const aggressiveActions = availableActions.filter(
+          // 1. HP状態による優先行動の決定
+          const hp =
+            "derived" in character && character.derived
+              ? (character.currentHP ?? character.derived.HP)
+              : 100;
+          const maxHp =
+            "derived" in character && character.derived
+              ? character.derived.HP
+              : 100;
+          const hpPercentage = maxHp > 0 ? (hp / maxHp) * 100 : 100;
+
+          // HP低下時は安全な行動を優先
+          if (hpPercentage < 30) {
+            const safeActions = availableActions.filter(
               (action) =>
-                action.includes("攻撃") ||
-                action.includes("戦術") ||
-                action.includes("武器"),
+                action.includes("休息") ||
+                action.includes("治療") ||
+                action.includes("安全") ||
+                action.includes("慎重"),
             );
-            actionText =
-              aggressiveActions[0] ||
-              availableActions[
-                Math.floor(Math.random() * Math.min(2, availableActions.length))
-              ];
-          } else if (
-            profession.includes("魔法使い") ||
-            profession.includes("mage")
-          ) {
-            // 魔法使いは研究・準備系を優先
-            const studyActions = availableActions.filter(
-              (action) =>
-                action.includes("研究") ||
-                action.includes("魔法") ||
-                action.includes("呪文"),
-            );
-            actionText =
-              studyActions[0] ||
-              availableActions[
-                Math.floor(Math.random() * Math.min(2, availableActions.length))
-              ];
-          } else if (
-            profession.includes("盗賊") ||
-            profession.includes("rogue")
-          ) {
-            // 盗賊は情報収集・隠密を優先
-            const stealthActions = availableActions.filter(
-              (action) =>
-                action.includes("情報") ||
-                action.includes("隠密") ||
-                action.includes("罠"),
-            );
-            actionText =
-              stealthActions[0] ||
-              availableActions[
-                Math.floor(Math.random() * Math.min(2, availableActions.length))
-              ];
-          } else {
-            // その他の職業はランダムに最初の2つから選択
-            actionText =
-              availableActions[
-                Math.floor(Math.random() * Math.min(2, availableActions.length))
-              ];
+            if (safeActions.length > 0) {
+              actionText = safeActions[0];
+              console.log(
+                `💔 ${character.name} HP低下により安全行動選択: ${actionText}`,
+              );
+            }
           }
+          // HP正常時は通常の行動選択
+          else {
+            // 2. 職業による行動優先度
+            const profession = character.profession?.toLowerCase() || "";
+            let preferredActions: string[] = [];
+
+            if (profession.includes("戦士") || profession.includes("fighter")) {
+              preferredActions = availableActions.filter(
+                (action) =>
+                  action.includes("力技") ||
+                  action.includes("積極的") ||
+                  action.includes("武器") ||
+                  action.includes("戦術") ||
+                  action.includes("前進"),
+              );
+            } else if (
+              profession.includes("魔法使い") ||
+              profession.includes("mage")
+            ) {
+              preferredActions = availableActions.filter(
+                (action) =>
+                  action.includes("知識") ||
+                  action.includes("分析") ||
+                  action.includes("研究") ||
+                  action.includes("魔法") ||
+                  action.includes("呪文"),
+              );
+            } else if (
+              profession.includes("盗賊") ||
+              profession.includes("rogue")
+            ) {
+              preferredActions = availableActions.filter(
+                (action) =>
+                  action.includes("隠密") ||
+                  action.includes("情報") ||
+                  action.includes("敏捷性") ||
+                  action.includes("観察") ||
+                  action.includes("調べる"),
+              );
+            } else if (
+              profession.includes("僧侶") ||
+              profession.includes("cleric")
+            ) {
+              preferredActions = availableActions.filter(
+                (action) =>
+                  action.includes("治療") ||
+                  action.includes("仲間") ||
+                  action.includes("祈り") ||
+                  action.includes("祝福") ||
+                  action.includes("チェック"),
+              );
+            }
+
+            // 3. 能力値による行動選択（高い能力値の行動を優先）
+            if (
+              preferredActions.length === 0 &&
+              "attributes" in character &&
+              character.attributes
+            ) {
+              const attrs = character.attributes;
+              const highestStat = Math.max(
+                attrs.strength || 0,
+                attrs.dexterity || 0,
+                attrs.intelligence || 0,
+                attrs.wisdom || 0,
+                attrs.charisma || 0,
+              );
+
+              if (attrs.strength === highestStat && attrs.strength > 12) {
+                preferredActions = availableActions.filter(
+                  (action) =>
+                    action.includes("力技") || action.includes("積極的"),
+                );
+              } else if (
+                attrs.intelligence === highestStat &&
+                attrs.intelligence > 12
+              ) {
+                preferredActions = availableActions.filter(
+                  (action) =>
+                    action.includes("知識") || action.includes("分析"),
+                );
+              } else if (
+                attrs.dexterity === highestStat &&
+                attrs.dexterity > 12
+              ) {
+                preferredActions = availableActions.filter(
+                  (action) =>
+                    action.includes("敏捷性") || action.includes("隠密"),
+                );
+              } else if (attrs.wisdom === highestStat && attrs.wisdom > 12) {
+                preferredActions = availableActions.filter(
+                  (action) =>
+                    action.includes("直感") || action.includes("観察"),
+                );
+              } else if (
+                attrs.charisma === highestStat &&
+                attrs.charisma > 12
+              ) {
+                preferredActions = availableActions.filter(
+                  (action) =>
+                    action.includes("交渉") || action.includes("説得"),
+                );
+              }
+            }
+
+            // 4. 最終的な行動決定
+            if (preferredActions.length > 0) {
+              actionText =
+                preferredActions[
+                  Math.floor(Math.random() * preferredActions.length)
+                ];
+              console.log(`⚡ ${character.name} 優先行動選択: ${actionText}`);
+            } else {
+              // フォールバック: 利用可能な行動からランダム選択
+              actionText =
+                availableActions[
+                  Math.floor(Math.random() * availableActions.length)
+                ];
+              console.log(
+                `🎲 ${character.name} ランダム行動選択: ${actionText}`,
+              );
+            }
+          }
+
+          console.log(`✅ ${character.name} 最終選択行動: ${actionText}`);
         }
 
         const action: CharacterAction = {
@@ -1123,7 +1425,9 @@ export const useTRPGSessionUI = () => {
         }));
 
         // システムメッセージでプレイヤーキャラクターアクションを記録
-        handleAddSystemMessage(`🤖 ${character.name}の行動: ${actionText}`);
+        handleAddSystemMessage(
+          `🎭 ${character.name}（AIが代理決定）: ${actionText}`,
+        );
       } catch (error) {
         console.error(
           `プレイヤーキャラクターアクションエラー (${character.name}):`,
@@ -1149,23 +1453,13 @@ export const useTRPGSessionUI = () => {
           },
         }));
 
-        handleAddSystemMessage(`🤖 ${character.name}の行動: 様子を見ている`);
+        handleAddSystemMessage(
+          `🎭 ${character.name}（AIが代理決定）: 様子を見ている`,
+        );
       }
     },
     [generateCharacterSpecificActions, handleAddSystemMessage],
   );
-
-  const checkTurnCompletion = useCallback(() => {
-    if (
-      uiState.turnState.awaitingCharacters.length === 0 &&
-      !uiState.turnState.isProcessingTurn
-    ) {
-      processTurnCompletion();
-    }
-  }, [
-    uiState.turnState.awaitingCharacters,
-    uiState.turnState.isProcessingTurn,
-  ]);
 
   const processTurnCompletion = useCallback(async () => {
     // ターン完了の処理
@@ -1276,15 +1570,19 @@ export const useTRPGSessionUI = () => {
 
   const startNextTurn = useCallback(() => {
     const nextTurn = uiState.turnState.currentTurn + 1;
-    const allCharacters = [...playerCharacters, ...npcs];
-    const characterIds = allCharacters.map((c) => c.id);
+    // プレイヤーキャラクター（PC）のみをターン管理対象にする
+    const characterIds = playerCharacters.map((c) => c.id);
+
+    console.log(`🎯 ターン ${nextTurn} 開始準備:`);
+    console.log(`  - プレイヤーキャラクター数: ${playerCharacters.length}`);
+    console.log(`  - 待機対象キャラクターID: [${characterIds.join(", ")}]`);
 
     setUIState((prev) => ({
       ...prev,
       turnState: {
         currentTurn: nextTurn,
         actionsThisTurn: [],
-        awaitingCharacters: characterIds,
+        awaitingCharacters: characterIds, // プレイヤーキャラクターのみ
         isProcessingTurn: false,
       },
       isAwaitingActionSelection: true,
@@ -1292,11 +1590,28 @@ export const useTRPGSessionUI = () => {
     }));
 
     handleAddSystemMessage(`\n🎯 ターン ${nextTurn} 開始！\n`);
+  }, [uiState.turnState.currentTurn, playerCharacters, handleAddSystemMessage]);
+
+  const checkTurnCompletion = useCallback(() => {
+    console.log(`[ターン制] ターン完了チェック:`, {
+      awaitingCharacters: uiState.turnState.awaitingCharacters.length,
+      isProcessingTurn: uiState.turnState.isProcessingTurn,
+      awaitingList: uiState.turnState.awaitingCharacters,
+    });
+
+    if (
+      uiState.turnState.awaitingCharacters.length === 0 &&
+      !uiState.turnState.isProcessingTurn
+    ) {
+      console.log(`[ターン制] 全キャラクターの行動完了、ターン完了処理を開始`);
+      processTurnCompletion();
+    } else {
+      console.log(`[ターン制] まだ行動待ちのキャラクターがいるか、処理中です`);
+    }
   }, [
-    uiState.turnState.currentTurn,
-    playerCharacters,
-    npcs,
-    handleAddSystemMessage,
+    uiState.turnState.awaitingCharacters,
+    uiState.turnState.isProcessingTurn,
+    processTurnCompletion,
   ]);
 
   const handleSendMessage = useCallback(() => {
@@ -1616,56 +1931,32 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
           chatMessages: [...prev.chatMessages, gmMessage],
         }));
 
-        // 現在の拠点から行動選択肢を取得
-        const currentBase = getCurrentBase();
-        if (
-          currentBase?.availableActions &&
-          currentBase.availableActions.length > 0
-        ) {
+        // ユーザー操作キャラクター固有の行動選択肢を設定
+        if (character) {
           console.log(
-            "拠点データベースから行動選択肢を取得:",
-            currentBase.availableActions.length,
-            "個",
-          );
-          const actionObjects = currentBase.availableActions.map(
-            (action, index) => ({
-              id: action.id || `location-action-${Date.now()}-${index}`,
-              type: "custom" as const,
-              label: action.name,
-              description: action.description,
-              icon: getActionIcon(action.name),
-              requiresTarget: false,
-            }),
+            `🎯 AI応答後: ${character.name} 固有の行動選択肢を生成中...`,
           );
 
-          setAvailableActions(actionObjects);
+          try {
+            // キャラクター固有の行動選択肢を生成
+            const characterActions =
+              await generateCharacterSpecificActions(character);
 
-          // アクション選択待ち状態を有効にする
-          setUIState((prev) => ({
-            ...prev,
-            isAwaitingActionSelection: true,
-            actionSelectionPrompt:
-              "チャット形式で行動を連絡、もしくはボタンで行動を選択してください",
-          }));
-        } else {
-          // フォールバック: AIレスポンスからアクション選択肢を抽出
-          const extractedActions = extractActionsFromAIResponse(aiResponse);
-
-          if (extractedActions.length > 0) {
-            console.log(
-              "フォールバック: AIから抽出されたアクション:",
-              extractedActions,
-            );
-            const actionObjects = extractedActions.map((action, index) => ({
-              id: `ai-action-${Date.now()}-${index}`,
+            const actionObjects = characterActions.map((action, index) => ({
+              id: `ai-response-action-${Date.now()}-${index}`,
               type: "custom" as const,
               label: action,
-              description: action,
+              description: `${character.name}の行動: ${action}`,
               icon: getActionIcon(action),
               requiresTarget: false,
             }));
 
             setAvailableActions(actionObjects);
+            console.log(
+              `✅ AI応答後: ${character.name} 固有行動選択肢設定完了:`,
+              actionObjects.length,
+              "個",
+            );
 
             // アクション選択待ち状態を有効にする
             setUIState((prev) => ({
@@ -1674,6 +1965,39 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
               actionSelectionPrompt:
                 "チャット形式で行動を連絡、もしくはボタンで行動を選択してください",
             }));
+          } catch (error) {
+            console.error(
+              `❌ AI応答後の ${character.name} 行動選択肢生成エラー:`,
+              error,
+            );
+
+            // エラー時のフォールバック: AIレスポンスから抽出
+            const extractedActions = extractActionsFromAIResponse(aiResponse);
+
+            if (extractedActions.length > 0) {
+              console.log(
+                "🔄 フォールバック: AIから抽出されたアクション:",
+                extractedActions,
+              );
+              const actionObjects = extractedActions.map((action, index) => ({
+                id: `ai-fallback-action-${Date.now()}-${index}`,
+                type: "custom" as const,
+                label: action,
+                description: action,
+                icon: getActionIcon(action),
+                requiresTarget: false,
+              }));
+
+              setAvailableActions(actionObjects);
+
+              // アクション選択待ち状態を有効にする
+              setUIState((prev) => ({
+                ...prev,
+                isAwaitingActionSelection: true,
+                actionSelectionPrompt:
+                  "チャット形式で行動を連絡、もしくはボタンで行動を選択してください",
+              }));
+            }
           }
         }
       } catch (error) {
@@ -1700,7 +2024,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
       currentCampaign,
       extractActionsFromAIResponse,
       getActionIcon,
-      getCurrentBase,
+      generateCharacterSpecificActions,
     ],
   );
 
@@ -1807,28 +2131,62 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
       console.log("✅ 行動案内メッセージ生成完了");
 
-      // UI用の行動選択肢を設定（施設ベース）
-      const currentBase2 = getCurrentBase();
-      const locationActions = getLocationBasedActions(currentBase2);
+      // ユーザー操作キャラクター固有の行動選択肢を設定
+      if (selectedCharacter) {
+        console.log(`🎯 ${selectedCharacter.name} 固有の行動選択肢を生成中...`);
 
-      if (locationActions.length > 0) {
-        const actionObjects = locationActions.map((action, index) => ({
-          id: `location-action-${Date.now()}-${index}`,
-          type: "custom" as const,
-          label: action,
-          description: `${currentLocation}で${action}`,
-          icon: getActionIcon(action),
-          requiresTarget: false,
-        }));
+        try {
+          // キャラクター固有の行動選択肢を生成
+          const characterActions =
+            await generateCharacterSpecificActions(selectedCharacter);
 
-        setAvailableActions(actionObjects);
-        console.log(
-          "🎯 施設ベース行動選択肢を設定完了:",
-          actionObjects.length,
-          "個",
-        );
+          const actionObjects = characterActions.map((action, index) => ({
+            id: `character-action-${Date.now()}-${index}`,
+            type: "custom" as const,
+            label: action,
+            description: `${selectedCharacter.name}の行動: ${action}`,
+            icon: getActionIcon(action),
+            requiresTarget: false,
+          }));
+
+          setAvailableActions(actionObjects);
+          console.log(
+            `✅ ${selectedCharacter.name} 固有行動選択肢設定完了:`,
+            actionObjects.length,
+            "個",
+          );
+        } catch (error) {
+          console.error(
+            `❌ ${selectedCharacter.name} 行動選択肢生成エラー:`,
+            error,
+          );
+
+          // エラー時のフォールバック: 基本行動
+          const basicActions = [
+            { name: "周囲を調べる", description: "現在地を詳しく調査する" },
+            { name: "情報収集", description: "地域の情報を収集する" },
+            { name: "準備を整える", description: "次の行動に向けて準備する" },
+            { name: "休息する", description: "体力を回復する" },
+          ];
+
+          const actionObjects = basicActions.map((action, index) => ({
+            id: `fallback-action-${Date.now()}-${index}`,
+            type: "custom" as const,
+            label: action.name,
+            description: action.description,
+            icon: getActionIcon(action.name),
+            requiresTarget: false,
+          }));
+
+          setAvailableActions(actionObjects);
+          console.log(
+            "🔄 フォールバック行動選択肢を設定:",
+            actionObjects.length,
+            "個",
+          );
+        }
       } else {
-        // フォールバック: 基本的な探索行動
+        // キャラクターが選択されていない場合の基本行動
         const basicActions = [
           { name: "周囲を調べる", description: "現在地を詳しく調査する" },
           { name: "情報収集", description: "地域の情報を収集する" },
@@ -1837,7 +2195,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         ];
 
         const actionObjects = basicActions.map((action, index) => ({
-          id: `basic-action-${Date.now()}-${index}`,
+          id: `no-character-action-${Date.now()}-${index}`,
           type: "custom" as const,
           label: action.name,
           description: action.description,
@@ -1846,7 +2204,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         }));
 
         setAvailableActions(actionObjects);
-        console.log("🎯 基本行動選択肢を設定完了:", actionObjects.length, "個");
+        console.log(
+          "⚠️ キャラクター未選択のため基本行動選択肢を設定:",
+          actionObjects.length,
+          "個",
+        );
       }
     } catch (error) {
       console.error("❌ 行動案内生成エラー:", error);
@@ -1855,7 +2217,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
   }, [
     getCurrentBase,
     generateLocationGuidanceMessage,
-    getLocationBasedActions,
+    generateCharacterSpecificActions,
     getActionIcon,
     currentDay,
     actionCount,
