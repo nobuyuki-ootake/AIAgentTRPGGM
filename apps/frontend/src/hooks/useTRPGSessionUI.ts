@@ -1930,7 +1930,6 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
 場所: ${currentLocationName}
 キャラクター: ${playerCharacters.map((pc) => pc.name).join(", ")}
-操作: ${selectedCharacter.name}
 
 以下の形式で簡潔に：
 
@@ -1938,7 +1937,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
 🌟 [場所の簡潔な描写（1-2行）]
 
-⚡ ${selectedCharacter.name}、行動を選択してください。`;
+冒険の始まりです。`;
 
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/ai-agent/chat`,
@@ -1972,7 +1971,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         senderType: "gm",
         message:
           data.response ||
-          `**【GM】セッション開始！** 📍${currentLocationName} で冒険が始まります。何をしますか？`,
+          `🎲 ${currentLocationName}でセッション開始！\n\n🌟 冒険者たちが集まり、新たな物語が始まろうとしています。\n\n冒険の始まりです。`,
         timestamp: new Date(),
       };
 
