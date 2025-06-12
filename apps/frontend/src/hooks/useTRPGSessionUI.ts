@@ -276,6 +276,50 @@ export const useTRPGSessionUI = () => {
     currentCampaign?.imageUrl ||
     "/default-location.jpg";
 
+  // 拠点の施設から利用可能な行動を取得するヘルパー関数
+  const getLocationBasedActions = useCallback((base: any): string[] => {
+    if (!base?.facilities) return [];
+
+    const availableActions: string[] = [];
+
+    // 宿屋がある場合
+    if (base.facilities.inn) {
+      availableActions.push("宿屋で休息する");
+    }
+
+    // 店舗がある場合
+    if (base.facilities.shops && base.facilities.shops.length > 0) {
+      availableActions.push("装備品を購入する");
+      availableActions.push("アイテムを売却する");
+    }
+
+    // 武具屋がある場合
+    if (base.facilities.armory) {
+      availableActions.push("武器を購入する");
+      availableActions.push("防具を購入する");
+    }
+
+    // 神殿がある場合
+    if (base.facilities.temple) {
+      availableActions.push("治療を受ける");
+      availableActions.push("祝福を受ける");
+    }
+
+    // ギルドがある場合
+    if (base.facilities.guild) {
+      availableActions.push("クエストを確認する");
+      availableActions.push("ギルドで情報収集する");
+    }
+
+    // 鍛冶屋がある場合
+    if (base.facilities.blacksmith) {
+      availableActions.push("装備を修理する");
+      availableActions.push("装備を強化する");
+    }
+
+    return availableActions;
+  }, []);
+
   // 職業別の行動選択肢を取得するヘルパー関数
   const getProfessionSpecificActions = useCallback(
     (profession: string): string[] => {
@@ -964,27 +1008,30 @@ export const useTRPGSessionUI = () => {
         "準備を整える",
       ];
 
-      // 現在の拠点に基づく追加行動
+      // 現在の拠点に基づく追加行動（施設の存在チェック済み）
       const currentBase = getCurrentBase();
-      const locationActions =
-        currentBase?.availableActions?.map((action) => action.name) || [];
+      const locationActions = getLocationBasedActions(currentBase);
 
       // 職業に基づく行動
       const professionActions = getProfessionSpecificActions(
         character.profession,
       );
 
-      // 全ての行動をまとめて返す
+      // 全ての行動をまとめて返す（基本4つ + 拠点1つ + 職業1つで最大6つ）
       const allActions = [
         ...baseActions,
-        ...locationActions.slice(0, 2),
-        ...professionActions,
+        ...locationActions.slice(0, 1), // 拠点固有行動は1つまで
+        ...professionActions.slice(0, 1), // 職業固有行動は1つまで
       ];
 
-      console.log(`🎯 ${character.name}の固定行動選択肢:`, allActions);
+      console.log(`🎯 ${character.name}の行動選択肢:`, allActions);
+      console.log(
+        `📍 拠点「${currentBase?.name}」利用可能施設:`,
+        Object.keys(currentBase?.facilities || {}),
+      );
       return allActions.slice(0, 5); // 最大5つまで
     },
-    [currentLocation, getCurrentBase],
+    [getCurrentBase, getLocationBasedActions, getProfessionSpecificActions],
   );
 
   const processIndividualPlayerCharacterAction = useCallback(
@@ -1170,28 +1217,23 @@ export const useTRPGSessionUI = () => {
         chatMessages: [...prev.chatMessages, gmMessage],
       }));
 
-      // 現在の拠点から行動選択肢を取得（ターン結果に関係なく拠点固有のアクション）
+      // 次のターンの行動選択肢を施設ベースで設定
       const currentBase = getCurrentBase();
-      if (
-        currentBase?.availableActions &&
-        currentBase.availableActions.length > 0
-      ) {
-        const actionObjects = currentBase.availableActions.map(
-          (action, index) => ({
-            id:
-              action.id ||
-              `turn-${currentTurn + 1}-location-action-${Date.now()}-${index}`,
-            type: "custom" as const,
-            label: action.name,
-            description: action.description,
-            icon: getActionIcon(action.name),
-            requiresTarget: false,
-          }),
-        );
+      const locationActions = getLocationBasedActions(currentBase);
+
+      if (locationActions.length > 0) {
+        const actionObjects = locationActions.map((action, index) => ({
+          id: `turn-${currentTurn + 1}-location-action-${Date.now()}-${index}`,
+          type: "custom" as const,
+          label: action,
+          description: `${currentLocation}で${action}`,
+          icon: getActionIcon(action),
+          requiresTarget: false,
+        }));
 
         setAvailableActions(actionObjects);
         console.log(
-          `🔄 ターン完了後の行動選択肢: 拠点データベースから ${actionObjects.length} 個を設定`,
+          `🔄 ターン完了後: 施設ベース行動選択肢 ${actionObjects.length} 個を設定`,
         );
       } else {
         // フォールバック: 基本的な探索行動
@@ -1227,6 +1269,7 @@ export const useTRPGSessionUI = () => {
     uiState.turnState.actionsThisTurn,
     currentLocation,
     getCurrentBase,
+    getLocationBasedActions,
     getActionIcon,
     handleAddSystemMessage,
   ]);
@@ -1249,7 +1292,12 @@ export const useTRPGSessionUI = () => {
     }));
 
     handleAddSystemMessage(`\n🎯 ターン ${nextTurn} 開始！\n`);
-  }, [uiState.turnState.currentTurn, playerCharacters, npcs]);
+  }, [
+    uiState.turnState.currentTurn,
+    playerCharacters,
+    npcs,
+    handleAddSystemMessage,
+  ]);
 
   const handleSendMessage = useCallback(() => {
     if (uiState.chatInput.trim()) {
@@ -1656,69 +1704,126 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     ],
   );
 
-  // バッチ処理: 各キャラクター向けの行動アナウンス生成（固定値版）
-  const generateBatchCharacterActionAnnouncements = useCallback(async () => {
-    console.log("📊 各キャラクター向けの行動選択肢を準備中...");
-    handleAddSystemMessage("📊 各キャラクター向けの行動選択肢を準備中...");
+  // 場所に応じた案内メッセージを生成するヘルパー関数
+  const generateLocationGuidanceMessage = useCallback(
+    (base: any, location: string): string => {
+      let guidance = `あなたは今、**${location}**にいます。\n\n`;
 
-    try {
-      // 各キャラクターの行動選択肢を固定値で生成
-      for (const character of playerCharacters) {
-        const actions = await generateCharacterSpecificActions(character);
-
-        let characterMessage = `【${character.name}の行動選択肢】\n\n`;
-        characterMessage += `職業: ${
-          character.profession || "冒険者"
-        } | 種族: ${character.nation || "人間"}\n\n`;
-
-        actions.forEach((action, index) => {
-          characterMessage += `${index + 1}. ${action}\n`;
-        });
-
-        // 各キャラクターのメッセージを個別にチャットに追加
-        const characterAnnouncementMessage: ChatMessage = {
-          id: uuidv4(),
-          sender: "ゲームマスター",
-          senderType: "gm",
-          message: characterMessage,
-          timestamp: new Date(),
-        };
-
-        setUIState((prev) => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, characterAnnouncementMessage],
-        }));
-
-        // メッセージ間に少し間隔を開ける
-        await new Promise((resolve) => setTimeout(resolve, 300));
+      if (!base?.facilities) {
+        // 一般的な場所の場合
+        guidance += "🔍 探索をすると、何かが見つかるかもしれません。";
+        return guidance;
       }
 
-      console.log(
-        "✅ 各キャラクターのアナウンス生成完了:",
-        playerCharacters.length,
-        "キャラクター",
+      // 拠点の場合、施設に応じた案内を追加
+      const facilityMessages: string[] = [];
+
+      if (base.facilities.inn) {
+        facilityMessages.push(
+          "🏨 街中に宿屋が見えます。休憩をしても良いかもしれませんね。",
+        );
+      }
+
+      if (base.facilities.shops && base.facilities.shops.length > 0) {
+        facilityMessages.push(
+          "🛒 商店が営業しています。装備品の購入や売却ができそうです。",
+        );
+      }
+
+      if (base.facilities.armory) {
+        facilityMessages.push(
+          "⚔️ 武器屋が見えています。装備を整えるのも良いかもしれませんよ。",
+        );
+      }
+
+      if (base.facilities.temple) {
+        facilityMessages.push(
+          "⛪ 神殿があります。治療や祝福を受けることができそうです。",
+        );
+      }
+
+      if (base.facilities.guild) {
+        facilityMessages.push(
+          "🏛️ ギルドの建物があります。クエストや情報が得られるかもしれません。",
+        );
+      }
+
+      if (base.facilities.blacksmith) {
+        facilityMessages.push(
+          "🔨 鍛冶屋の煙が上がっています。装備の修理や強化ができそうです。",
+        );
+      }
+
+      if (facilityMessages.length > 0) {
+        guidance += facilityMessages.join("\n");
+      } else {
+        guidance += "🔍 探索をすると、何かが見つかるかもしれません。";
+      }
+
+      return guidance;
+    },
+    [],
+  );
+
+  // シンプルな行動案内生成（固定値版）
+  const generateSimpleActionGuidance = useCallback(async () => {
+    console.log("📊 行動案内メッセージを生成中...");
+
+    try {
+      const currentBase = getCurrentBase();
+
+      // ターン・行動回数情報
+      const turnInfo = `**${currentDay}日目、${actionCount + 1}回目の行動 (${actionCount + 1}/${maxActionsPerDay})**`;
+
+      // 選択中のキャラクターの行動可能状態
+      const characterStatus = selectedCharacter
+        ? `**${selectedCharacter.name}**: 行動可能`
+        : "**キャラクターを選択してください**";
+
+      // 操作案内
+      const operationGuide = "📱 右パネルの探索・拠点のボタンから行動を選択！";
+
+      // 場所に応じた案内メッセージ
+      const locationGuidance = generateLocationGuidanceMessage(
+        currentBase,
+        currentLocation,
       );
 
-      // 現在の拠点から行動選択肢を取得してアクションボタンとして設定
-      const currentBase = getCurrentBase();
-      if (
-        currentBase?.availableActions &&
-        currentBase.availableActions.length > 0
-      ) {
-        const actionObjects = currentBase.availableActions.map(
-          (action, index) => ({
-            id: action.id || `location-action-${Date.now()}-${index}`,
-            type: "custom" as const,
-            label: action.name,
-            description: action.description,
-            icon: getActionIcon(action.name),
-            requiresTarget: false,
-          }),
-        );
+      // 統合メッセージ
+      const guidanceMessage = `${turnInfo}\n\n${characterStatus}\n\n${operationGuide}\n\n${locationGuidance}`;
+
+      const actionGuidanceMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: guidanceMessage,
+        timestamp: new Date(),
+      };
+
+      setUIState((prev) => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, actionGuidanceMessage],
+      }));
+
+      console.log("✅ 行動案内メッセージ生成完了");
+
+      // UI用の行動選択肢を設定（施設ベース）
+      const currentBase2 = getCurrentBase();
+      const locationActions = getLocationBasedActions(currentBase2);
+
+      if (locationActions.length > 0) {
+        const actionObjects = locationActions.map((action, index) => ({
+          id: `location-action-${Date.now()}-${index}`,
+          type: "custom" as const,
+          label: action,
+          description: `${currentLocation}で${action}`,
+          icon: getActionIcon(action),
+          requiresTarget: false,
+        }));
 
         setAvailableActions(actionObjects);
         console.log(
-          "🎯 拠点データベースから行動選択肢を設定完了:",
+          "🎯 施設ベース行動選択肢を設定完了:",
           actionObjects.length,
           "個",
         );
@@ -1744,16 +1849,19 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         console.log("🎯 基本行動選択肢を設定完了:", actionObjects.length, "個");
       }
     } catch (error) {
-      console.error("❌ バッチアナウンス生成エラー:", error);
-      handleAddSystemMessage(
-        "⚠️ キャラクター行動選択肢の生成中にエラーが発生しました。基本的な選択肢を使用します。",
-      );
+      console.error("❌ 行動案内生成エラー:", error);
+      handleAddSystemMessage("⚠️ 行動案内の生成中にエラーが発生しました。");
     }
   }, [
-    playerCharacters,
-    generateCharacterSpecificActions,
     getCurrentBase,
+    generateLocationGuidanceMessage,
+    getLocationBasedActions,
     getActionIcon,
+    currentDay,
+    actionCount,
+    maxActionsPerDay,
+    selectedCharacter,
+    currentLocation,
     handleAddSystemMessage,
   ]);
 
@@ -1873,11 +1981,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
         chatMessages: [...prev.chatMessages, gmMessage],
       }));
 
-      // セッション開始後、少し間を置いてからキャラクター行動内容をバッチ処理で生成
+      // セッション開始後、少し間を置いてからシンプルな行動案内を生成
       setTimeout(async () => {
         try {
-          // バッチ処理: 全キャラクター向けの行動アナウンスを生成
-          await generateBatchCharacterActionAnnouncements();
+          // シンプルな行動案内を生成
+          await generateSimpleActionGuidance();
 
           // ターンベースシステムを初期化
           initializeTurn();
@@ -1890,12 +1998,12 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
               "チャット形式で行動を連絡、もしくはボタンで行動を選択してください",
           }));
         } catch (error) {
-          console.error("バッチアナウンス処理でエラー:", error);
+          console.error("行動案内処理でエラー:", error);
           handleAddSystemMessage(
-            "⚠️ 行動選択肢の準備中にエラーが発生しました。基本的な選択肢を使用します。",
+            "⚠️ 行動案内の準備中にエラーが発生しました。基本的な選択肢を使用します。",
           );
         }
-      }, 2000); // 2秒待機してからバッチ処理を実行
+      }, 2000); // 2秒待機してから案内を表示
     } catch (error) {
       console.error("AI APIエラー:", error);
 
@@ -1928,9 +2036,9 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     currentCampaign,
     currentDay,
     playerCharacters,
-    extractActionsFromAIResponse,
-    getActionIcon,
+    generateSimpleActionGuidance,
     initializeTurn,
+    handleAddSystemMessage,
   ]);
 
   // ===== デバッグアクション =====
