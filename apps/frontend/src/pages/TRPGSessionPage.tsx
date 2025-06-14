@@ -48,6 +48,7 @@ const TRPGSessionPageContent: React.FC = () => {
 
     // セッションアクション
     executeAction,
+    handleExecuteMilestoneAction,
     advanceDay,
     saveSession,
     openAIAssist,
@@ -232,6 +233,7 @@ const TRPGSessionPageContent: React.FC = () => {
             isSessionStarted={uiState.sessionStatus === "active"}
             getCampaignFlag={getCampaignFlag}
             onExecuteAction={executeAction}
+            onExecuteMilestoneAction={handleExecuteMilestoneAction}
             onAdvanceDay={advanceDay}
             onFacilityInteract={handleFacilityInteract}
             onLocationChange={handleLocationChange}

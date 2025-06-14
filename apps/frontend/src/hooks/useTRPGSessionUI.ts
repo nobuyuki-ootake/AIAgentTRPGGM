@@ -295,15 +295,17 @@ export const useTRPGSessionUI = () => {
   const enemies = currentCampaign?.enemies || [];
   const bases = currentCampaign?.bases || [];
 
-  // デバッグ用ログ
+  // デバッグ用ログ（currentCampaignの変更時のみ実行）
   useEffect(() => {
-    console.log("[Debug] データ計算結果:", {
-      playerCharactersCount: playerCharacters.length,
-      npcsCount: npcs.length,
-      enemiesCount: enemies.length,
-      basesCount: bases.length,
-    });
-  }, [playerCharacters, npcs, enemies, bases]);
+    if (currentCampaign) {
+      console.log("[Debug] データ計算結果:", {
+        playerCharactersCount: currentCampaign.characters?.filter((c) => c.characterType === "PC").length || 0,
+        npcsCount: currentCampaign.npcs?.length || 0,
+        enemiesCount: currentCampaign.enemies?.length || 0,
+        basesCount: currentCampaign.bases?.length || 0,
+      });
+    }
+  }, [currentCampaign?.id]); // IDの変更時のみ実行
 
   // developerModeの変更をlocalStorageに保存
   useEffect(() => {
@@ -2647,6 +2649,104 @@ export const useTRPGSessionUI = () => {
   );
 
   // カスタムアクション実行
+  // マイルストーン探索行動実行ハンドラ
+  const handleExecuteMilestoneAction = useCallback(
+    async (actionId: string) => {
+      console.log("Executing milestone action:", actionId);
+
+      try {
+        // マイルストーン探索行動を取得
+        // TODO: useMilestoneExplorationから実際のアクションを取得
+        const mockAction = {
+          id: actionId,
+          type: "custom" as const,
+          label: "マイルストーン関連行動",
+          description: "マイルストーンに関連する探索行動を実行します",
+          icon: "🎯",
+          requiresTarget: false,
+        };
+
+        // 通常のアクション実行フローと同じ処理
+        executeAction(mockAction);
+
+        // Phase 2.5: マイルストーンチェックを実行
+        // TODO: 実際のアクション結果を使用してマイルストーンをチェック
+        const milestoneResults = await checkMilestonesAfterAction(
+          { 
+            actionText: "マイルストーン関連探索行動",
+            characterId: selectedCharacter?.id || "",
+            location: currentLocation || "リバーベント街",
+            dayNumber: currentDay,
+            timeOfDay: "morning" as const,
+            partyMembers: playerCharacters.map(pc => ({
+              id: pc.id,
+              name: pc.name,
+              currentHP: pc.derived?.HP || 0,
+              maxHP: pc.derived?.HP || 0,
+              currentMP: pc.derived?.MP,
+              maxMP: pc.derived?.MP,
+              level: 1,
+              gold: 0
+            })),
+            availableActions: [],
+            inventory: [],
+            statusEffects: [],
+            recentEvents: [],
+            campaignFlags: currentCampaign?.campaignFlags || {},
+            questStates: [],
+            environmentConditions: {
+              weather: "clear",
+              lighting: "bright",
+              temperature: "normal",
+              hazards: []
+            }
+          },
+          {
+            success: true,
+            result: "マイルストーン関連行動を実行しました",
+            effects: [],
+            consequenceEvents: [],
+            gainedItems: [],
+            lostItems: [],
+            discoveredLocations: [],
+            unlockedQuests: [],
+            completedQuests: [],
+            metCharacters: [],
+            flagsSet: [],
+            flagsUnset: []
+          }
+        );
+
+        // マイルストーン達成メッセージを追加
+        if (milestoneResults.milestoneMessages.length > 0) {
+          setUIState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, ...milestoneResults.milestoneMessages]
+          }));
+        }
+
+        // 達成通知表示
+        if (milestoneResults.shouldShowAchievement) {
+          handleAddSystemMessage("🎯 マイルストーンが達成されました！");
+        }
+
+      } catch (error) {
+        console.error("マイルストーンアクション実行エラー:", error);
+        handleAddSystemMessage("⚠️ マイルストーンアクションの実行に失敗しました");
+      }
+    },
+    [
+      selectedCharacter?.id,
+      currentLocation,
+      currentDay,
+      playerCharacters,
+      currentCampaign?.campaignFlags,
+      executeAction,
+      checkMilestonesAfterAction,
+      handleAddSystemMessage
+    ]
+  );
+
   const handleExecuteAction = useCallback(
     (action: ActionChoice) => {
       console.log("Executing action:", action);
@@ -3660,6 +3760,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     // セッションアクション (Phase 2: 構造化処理)
     executeAction: handleExecuteAction,
     originalExecuteAction: executeAction,
+    handleExecuteMilestoneAction,
     processStructuredActionResult,
     applyGameEffects,
     

@@ -24,6 +24,7 @@ import {
 } from "@mui/icons-material";
 import { DungeonIcon, BaseIcon, QuestScrollIcon } from "../icons/TRPGIcons";
 import EnemySelectionPanel from "./EnemySelectionPanel";
+import MilestoneExplorationPanel from "./MilestoneExplorationPanel";
 import {
   EnemyCharacter,
   TRPGCharacter,
@@ -102,6 +103,7 @@ interface MainContentPanelProps {
   isSessionStarted?: boolean;
   getCampaignFlag?: (flagKey: string, defaultValue?: any) => any;
   onExecuteAction: (action: ActionChoice) => void;
+  onExecuteMilestoneAction?: (actionId: string) => void;
   onAdvanceDay: () => void;
   onFacilityInteract: (facility: any) => void;
   onAttackEnemies?: (selectedEnemies: string[]) => void;
@@ -123,6 +125,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
   isSessionStarted = false,
   getCampaignFlag: _getCampaignFlag,
   onExecuteAction,
+  onExecuteMilestoneAction,
   onAdvanceDay,
   onFacilityInteract,
   onAttackEnemies,
@@ -269,14 +272,11 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
             }}
           >
             {/* マイルストーン探索行動セクション */}
-            <Box sx={{ mb: 3, p: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                🎯 マイルストーン探索行動
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                現在のマイルストーンに関連する探索行動がここに表示されます。
-              </Typography>
-            </Box>
+            <MilestoneExplorationPanel
+              onExecuteAction={onExecuteMilestoneAction}
+              actionCount={actionCount}
+              maxActionsPerDay={maxActionsPerDay}
+            />
 
             {showEnemySelection ? (
               // 敵選択UI表示
