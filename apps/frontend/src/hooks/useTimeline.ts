@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRecoilState } from "recoil";
 import { SelectChangeEvent } from "@mui/material";
-import moment from "moment";
+import * as moment from "moment";
 import {
   TRPGCampaign,
   TimelineEvent,
   SessionEvent,
   TRPGCharacter,
-  PlaceElement,
+  UnifiedLocationElement,
   BaseLocation,
   CharacterStatus,
   QuestElement,
@@ -45,7 +45,7 @@ export function useTimeline() {
     useRecoilState(currentCampaignState);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [characters, setCharacters] = useState<TRPGCharacter[]>([]);
-  const [places, setPlaces] = useState<PlaceElement[]>([]);
+  const [places, setPlaces] = useState<UnifiedLocationElement[]>([]);
   const [bases, setBases] = useState<BaseLocation[]>([]);
   const [allQuests, setAllQuests] = useState<QuestElement[]>([]);
 
@@ -59,23 +59,27 @@ export function useTimeline() {
   const [safeMaxY, setSafeMaxY] = useState<number>(0);
 
   // SessionEventTypeをTimelineEventTypeに変換するヘルパー関数
-  const convertSessionEventType = (sessionEventType: any): TimelineEvent["eventType"] => {
+  const _convertSessionEventType = (
+    sessionEventType: any,
+  ): TimelineEvent["eventType"] => {
     const typeMap: Record<string, TimelineEvent["eventType"]> = {
-      "combat": "battle",
-      "roleplay": "dialogue", 
-      "exploration": "journey",
-      "rest": "rest",
-      "discovery": "discovery",
-      "puzzle": "mystery",
-      "social": "dialogue"
+      combat: "battle",
+      roleplay: "dialogue",
+      exploration: "journey",
+      rest: "rest",
+      discovery: "discovery",
+      puzzle: "mystery",
+      social: "dialogue",
     };
     return typeMap[sessionEventType] || "other";
   };
 
   // タイムライン設定
-  const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>(() => ({
-    maxDays: 30,
-  }));
+  const [timelineSettings, setTimelineSettings] = useState<TimelineSettings>(
+    () => ({
+      maxDays: 30,
+    }),
+  );
 
   // 設定ダイアログの状態
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -109,7 +113,9 @@ export function useTimeline() {
   useEffect(() => {
     if (currentCampaign) {
       // SessionEventをTimelineEventに変換
-      const convertedEvents: TimelineEvent[] = (currentCampaign.timeline || []).map((sessionEvent: SessionEvent) => ({
+      const convertedEvents: TimelineEvent[] = (
+        currentCampaign.timeline || []
+      ).map((sessionEvent: SessionEvent) => ({
         id: sessionEvent.id,
         title: sessionEvent.title,
         description: sessionEvent.description,
@@ -119,26 +125,34 @@ export function useTimeline() {
         order: sessionEvent.order,
         eventType: (() => {
           switch (sessionEvent.eventType) {
-            case 'combat': return 'battle';
-            case 'roleplay': return 'dialogue';
-            case 'exploration': return 'journey';
-            case 'puzzle': return 'mystery';
-            case 'social': return 'dialogue';
-            case 'discovery': return 'discovery';
-            case 'rest': return 'rest';
-            default: return 'other';
+            case "combat":
+              return "battle";
+            case "roleplay":
+              return "dialogue";
+            case "exploration":
+              return "journey";
+            case "puzzle":
+              return "mystery";
+            case "social":
+              return "dialogue";
+            case "discovery":
+              return "discovery";
+            case "rest":
+              return "rest";
+            default:
+              return "other";
           }
         })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
         relatedQuestIds: sessionEvent.relatedQuestIds || [], // relatedQuestIdsをrelatedQuestIdsにマップ
         placeId: sessionEvent.placeId,
       }));
-      
+
       setTimelineEvents(convertedEvents);
       // キャラクターを読み込み
       setCharacters(currentCampaign.characters || []);
       // クエストを読み込み
-      setAllPlots(currentCampaign.plot || []);
+      setAllQuests(currentCampaign.quests || []);
       // 場所を読み込み
       setPlaces(currentCampaign.worldBuilding?.places || []);
       // 拠点を読み込み
@@ -161,12 +175,12 @@ export function useTimeline() {
         prevEvents.map((event) =>
           event.id === eventId
             ? { ...event, placeId: newPlaceId, date: newDate }
-            : event
-        )
+            : event,
+        ),
       );
       setHasUnsavedChanges(true);
     },
-    []
+    [],
   );
 
   // イベント変更ハンドラー
@@ -175,7 +189,7 @@ export function useTimeline() {
       e:
         | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
         | SelectChangeEvent<string>,
-      field?: string
+      field?: string,
     ) => {
       const target = e.target;
       const name = field || target.name;
@@ -203,7 +217,7 @@ export function useTimeline() {
       }));
       setHasUnsavedChanges(true);
     },
-    []
+    [],
   );
 
   // キャラクター選択ハンドラー
@@ -219,7 +233,7 @@ export function useTimeline() {
       }));
       setHasUnsavedChanges(true);
     },
-    []
+    [],
   );
 
   // キャラクター状態変更ハンドラー
@@ -234,7 +248,7 @@ export function useTimeline() {
       }));
       setHasUnsavedChanges(true);
     },
-    []
+    [],
   );
 
   // 関連プロット変更ハンドラー
@@ -252,7 +266,7 @@ export function useTimeline() {
       e:
         | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
         | SelectChangeEvent<string>,
-      field?: string
+      field?: string,
     ) => {
       const target = e.target;
       const name = field || target.name;
@@ -275,7 +289,7 @@ export function useTimeline() {
       }));
       setHasUnsavedChanges(true);
     },
-    []
+    [],
   );
 
   // 設定保存ハンドラー
@@ -297,8 +311,8 @@ export function useTimeline() {
         prevEvents.map((event) =>
           event.id === currentEventId
             ? { ...newEvent, id: currentEventId }
-            : event
-        )
+            : event,
+        ),
       );
     } else {
       // 新規イベントの追加
@@ -313,7 +327,7 @@ export function useTimeline() {
     setHasUnsavedChanges(true);
     setDialogOpen(false);
     setSnackbarMessage(
-      isEditing ? "イベントが更新されました。" : "イベントが追加されました。"
+      isEditing ? "イベントが更新されました。" : "イベントが追加されました。",
     );
     setSnackbarOpen(true);
   }, [newEvent, isEditing, currentEventId, timelineEvents.length]);
@@ -321,7 +335,7 @@ export function useTimeline() {
   // イベント削除ハンドラー
   const handleDeleteEvent = useCallback((eventId: string) => {
     setTimelineEvents((prevEvents) =>
-      prevEvents.filter((event) => event.id !== eventId)
+      prevEvents.filter((event) => event.id !== eventId),
     );
     setHasUnsavedChanges(true);
     setSnackbarMessage("イベントが削除されました。");
@@ -347,7 +361,7 @@ export function useTimeline() {
       const character = characters.find((c) => c.id === id);
       return character ? character.name : "不明なキャラクター";
     },
-    [characters]
+    [characters],
   );
 
   // 地名取得関数 - 場所と拠点の両方から検索
@@ -356,14 +370,14 @@ export function useTimeline() {
       // まず場所から検索
       const place = places.find((p) => p.id === id);
       if (place) return place.name;
-      
+
       // 次に拠点から検索
       const base = bases.find((b) => b.id === id);
       if (base) return base.name;
-      
+
       return "不明な場所";
     },
-    [places, bases]
+    [places, bases],
   );
 
   // その他の未実装関数（仮実装）
@@ -382,7 +396,6 @@ export function useTimeline() {
   // 初期データのロード
   useEffect(() => {
     if (currentCampaign) {
-
       let campaignDataToUse = { ...currentCampaign };
 
       // 最新のデータをローカルストレージから直接読み込み
@@ -392,7 +405,7 @@ export function useTimeline() {
         try {
           const projects: TRPGCampaign[] = JSON.parse(projectsStr);
           const latestProjectFromLocalStorage = projects.find(
-            (p) => p.id === campaignId
+            (p) => p.id === campaignId,
           );
 
           if (latestProjectFromLocalStorage) {
@@ -409,12 +422,15 @@ export function useTimeline() {
               setCurrentCampaign(campaignDataToUse);
             }
           }
-        } catch (error) {
+        } catch {
+          // エラーはローカルストレージの読み込み失敗として無視
         }
       }
 
       // SessionEventをTimelineEventに変換
-      const convertedEvents: TimelineEvent[] = (campaignDataToUse.timeline || []).map((sessionEvent: SessionEvent) => ({
+      const convertedEvents: TimelineEvent[] = (
+        campaignDataToUse.timeline || []
+      ).map((sessionEvent: SessionEvent) => ({
         id: sessionEvent.id,
         title: sessionEvent.title,
         description: sessionEvent.description,
@@ -424,14 +440,22 @@ export function useTimeline() {
         order: sessionEvent.order,
         eventType: (() => {
           switch (sessionEvent.eventType) {
-            case 'combat': return 'battle';
-            case 'roleplay': return 'dialogue';
-            case 'exploration': return 'journey';
-            case 'puzzle': return 'mystery';
-            case 'social': return 'dialogue';
-            case 'discovery': return 'discovery';
-            case 'rest': return 'rest';
-            default: return 'other';
+            case "combat":
+              return "battle";
+            case "roleplay":
+              return "dialogue";
+            case "exploration":
+              return "journey";
+            case "puzzle":
+              return "mystery";
+            case "social":
+              return "dialogue";
+            case "discovery":
+              return "discovery";
+            case "rest":
+              return "rest";
+            default:
+              return "other";
           }
         })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
@@ -443,17 +467,16 @@ export function useTimeline() {
       setPlaces(campaignDataToUse.worldBuilding?.places || []);
       setBases(campaignDataToUse.bases || []);
       setDefinedCharacterStatusesForDialog(
-        campaignDataToUse.definedCharacterStatuses || []
+        campaignDataToUse.definedCharacterStatuses || [],
       );
-      setAllPlots(campaignDataToUse.plot || []);
+      setAllQuests(campaignDataToUse.quests || []);
 
-      // 設定を読み込み
-      if (campaignDataToUse.worldBuilding?.timelineSettings?.startDate) {
-        setTimelineSettings({
-          maxDays: 30,
-        });
-      }
+      // 設定を読み込み（デフォルト値を設定）
+      setTimelineSettings({
+        maxDays: 30,
+      });
     } else {
+      // キャンペーンが存在しない場合の処理は不要
     }
   }, [currentCampaign, setCurrentCampaign]);
 
@@ -462,16 +485,15 @@ export function useTimeline() {
     // 日数ベースでタイムライン設定（デフォルト7日間：約1時間のプレイ時間想定）
     const maxDays = timelineSettings.maxDays;
     const dayLabels: string[] = [];
-    
+
     // 1日目～X日目のラベルを生成
     for (let i = 1; i <= maxDays; i++) {
       dayLabels.push(`${i}日目`);
     }
-    
+
     setDateArray(dayLabels);
     setSafeMinY(1);
     setSafeMaxY(maxDays);
-    
   }, [timelineSettings.maxDays]);
 
   // 地名（グループ）の更新 - 場所と拠点の両方を含める
@@ -501,8 +523,8 @@ export function useTimeline() {
   const sortedTimelineEvents = useMemo(() => {
     if (
       !currentCampaign ||
-      !currentCampaign.plot ||
-      currentCampaign.plot.length === 0
+      !currentCampaign.quests ||
+      currentCampaign.quests.length === 0
     ) {
       return [...timelineEvents].sort((a, b) => {
         const dateA = moment(a.date).valueOf();
@@ -515,12 +537,12 @@ export function useTimeline() {
     }
 
     const plotOrderMap = new Map<string, number>(
-      currentCampaign.plot.map((p) => [p.id, p.order])
+      currentCampaign.quests.map((p) => [p.id, p.order]),
     );
 
     return [...timelineEvents].sort((a, b) => {
       const getFirstValidPlotId = (
-        event: TimelineEvent
+        event: TimelineEvent,
       ): string | undefined => {
         if (!event.relatedQuestIds || event.relatedQuestIds.length === 0)
           return undefined;
@@ -530,8 +552,12 @@ export function useTimeline() {
       const plotIdA = getFirstValidPlotId(a);
       const plotIdB = getFirstValidPlotId(b);
 
-      const plotOrderA = plotIdA ? plotOrderMap.get(plotIdA)! : Infinity;
-      const plotOrderB = plotIdB ? plotOrderMap.get(plotIdB)! : Infinity;
+      const plotOrderA = plotIdA
+        ? (plotOrderMap.get(plotIdA) ?? Infinity)
+        : Infinity;
+      const plotOrderB = plotIdB
+        ? (plotOrderMap.get(plotIdB) ?? Infinity)
+        : Infinity;
 
       if (plotOrderA !== plotOrderB) {
         return plotOrderA - plotOrderB;
@@ -603,7 +629,7 @@ export function useTimeline() {
       const updatedEvents = [...prevEvents];
       let maxOrderInBatch = prevEvents.reduce(
         (max, item) => Math.max(max, item.order || 0),
-        0
+        0,
       );
       newEvents.forEach((newEvent) => {
         if (!updatedEvents.find((e) => e.id === newEvent.id)) {
@@ -623,30 +649,33 @@ export function useTimeline() {
   const handleSave = useCallback(async () => {
     if (currentCampaign) {
       // TimelineEventをSessionEventに変換して保存
-      const sessionEvents: SessionEvent[] = sortedTimelineEvents.map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        sessionDay: 1, // デフォルト値
-        sessionTime: event.date,
-        relatedCharacters: event.relatedCharacters,
-        relatedPlaces: event.relatedPlaces,
-        order: event.order,
-        eventType: event.eventType as SessionEvent["eventType"],
-        postEventCharacterStatuses: event.postEventCharacterStatuses,
-        relatedQuestIds: event.relatedQuestIds,
-        placeId: event.placeId,
-      }));
-      
+      const sessionEvents: SessionEvent[] = sortedTimelineEvents.map(
+        (event) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          sessionDay: 1, // デフォルト値
+          sessionTime: event.date,
+          relatedCharacters: event.relatedCharacters,
+          relatedPlaces: event.relatedPlaces,
+          order: event.order,
+          eventType: event.eventType as SessionEvent["eventType"],
+          postEventCharacterStatuses: event.postEventCharacterStatuses,
+          relatedQuestIds: event.relatedQuestIds,
+          placeId: event.placeId,
+        }),
+      );
+
       const updatedCampaign: TRPGCampaign = {
         ...currentCampaign,
         timeline: sessionEvents,
         worldBuilding: {
-          ...currentCampaign.worldBuilding,
-          timelineSettings: {
-            startDate: new Date().toISOString(),
-          },
+          id: currentCampaign.worldBuilding?.id || crypto.randomUUID(),
+          setting: currentCampaign.worldBuilding?.setting || [],
           places: places,
+          worldmaps: currentCampaign.worldBuilding?.worldmaps || [],
+          rules: currentCampaign.worldBuilding?.rules || [],
+          worldMapImageUrl: currentCampaign.worldBuilding?.worldMapImageUrl,
         },
         characters: characters,
         quests: allQuests,
@@ -662,7 +691,7 @@ export function useTimeline() {
         setHasUnsavedChanges(false);
         setSnackbarMessage("セッション履歴が保存されました。");
         setSnackbarOpen(true);
-      } catch (error) {
+      } catch {
         setSnackbarMessage("保存中にエラーが発生しました。");
         setSnackbarOpen(true);
       }
@@ -671,7 +700,6 @@ export function useTimeline() {
     currentCampaign,
     setCurrentCampaign,
     sortedTimelineEvents,
-    timelineSettings,
     characters,
     places,
     bases,
@@ -723,7 +751,7 @@ export function useTimeline() {
         handleOpenDialog();
       }
     },
-    [timelineEvents, handleOpenDialog]
+    [timelineEvents, handleOpenDialog],
   );
 
   return {

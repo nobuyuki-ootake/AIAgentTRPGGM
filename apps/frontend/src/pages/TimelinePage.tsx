@@ -29,21 +29,20 @@ import {
   DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
-import { useRecoilValue, useRecoilState } from "recoil";
+import { useRecoilValue as _useRecoilValue, useRecoilState } from "recoil";
 import { currentCampaignState, developerModeState } from "../store/atoms";
 import { useTimeline } from "../hooks/useTimeline";
 import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
 import TimelineSettingsDialog from "../components/timeline/TimelineSettingsDialog";
 import TimelineEventList from "../components/timeline/TimelineEventList";
-import TimelineChart from "../components/timeline/TimelineChart";
+import _TimelineChart from "../components/timeline/TimelineChart";
 import TimelineDayList from "../components/timeline/TimelineDayList";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
 import EventSeedReviewDialog from "../components/timeline/EventSeedReviewDialog";
 import {
   TimelineEventSeed,
   TimelineEvent,
-  PlaceElement,
-  BaseLocation,
+  BaseLocation as _BaseLocation,
   ClearCondition,
   EventCondition,
   // TRPGCampaign, // Unused
@@ -67,11 +66,11 @@ const convertSeedToTimelineEvent = (
   indexInBatch: number,
   targetDate?: string,
   targetPlaceId?: string,
-  targetRelatedPlotIds?: string[]
+  targetRelatedPlotIds?: string[],
 ): TimelineEvent => {
   const maxOrder = currentTimelineEvents.reduce(
     (max, item) => Math.max(max, item.order || 0), // item.order を参照 (TimelineEventにはorderがある)
-    0
+    0,
   );
   return {
     id: crypto.randomUUID(),
@@ -99,7 +98,7 @@ const TimelinePage: React.FC = () => {
     timelineItems, // これは TimelineItem[] であり、TimelineChart など表示系で使われる
     timelineEvents, // ★追加: useTimeline から TimelineEvent[] を取得 (状態そのもの)
     characters,
-    places, // ★ useTimeline から places (PlaceElement[]) を再度取得
+    places, // ★ useTimeline から places (UnifiedLocationElement[]) を再度取得
     bases, // ★ useTimeline から bases (BaseLocation[]) を追加
     hasUnsavedChanges,
     dialogOpen,
@@ -145,7 +144,7 @@ const TimelinePage: React.FC = () => {
     useState(false);
 
   const [activeDragItem, setActiveDragItem] = useState<TimelineEvent | null>(
-    null
+    null,
   );
 
   // Event result handler state
@@ -163,7 +162,7 @@ const TimelinePage: React.FC = () => {
       activationConstraint: {
         distance: 8,
       },
-    })
+    }),
   );
 
   const generateDynamicDefaultPrompt = useCallback(
@@ -201,7 +200,7 @@ const TimelinePage: React.FC = () => {
       }
       return prompt;
     },
-    [allQuests, characters]
+    [allQuests, characters],
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -236,26 +235,8 @@ const TimelinePage: React.FC = () => {
     const { active, over, activatorEvent } = event;
 
     if (!over) {
-      console.log("[TimelinePage] Drag ended, but not over a droppable area.");
       return;
     }
-    console.log("[TimelinePage] DragEndEvent details:", {
-      activeId: active.id,
-      overId: over.id,
-      overRect: over.rect,
-      activatorEventCoordinates: {
-        clientY: (activatorEvent as MouseEvent)?.clientY,
-        clientX: (activatorEvent as MouseEvent)?.clientX,
-        pageY: (activatorEvent as MouseEvent)?.pageY,
-        pageX: (activatorEvent as MouseEvent)?.pageX,
-        screenY: (activatorEvent as MouseEvent)?.screenY,
-        screenX: (activatorEvent as MouseEvent)?.screenX,
-        target: activatorEvent.target,
-      },
-      draggedItemType: active.data.current?.type,
-      droppedOnItemType: over.data.current?.type,
-      activeData: active.data.current,
-    });
 
     const draggedItemType = active.data.current?.type as string;
     const originalEventId = active.data.current?.originalEventId as
@@ -277,10 +258,6 @@ const TimelinePage: React.FC = () => {
       | undefined;
 
     if (!dropTargetData || !activatorEvent) {
-      console.error(
-        "[TimelinePage] Missing dropTargetData or activatorEvent for drag and drop operation.",
-        { dropTargetData, activatorEvent }
-      );
       return;
     }
 
@@ -291,10 +268,6 @@ const TimelinePage: React.FC = () => {
     const columnRect = over.rect;
     const columnTop: number | undefined = columnRect.top;
     const columnHeight: number | undefined = columnRect.height;
-    console.log("[TimelinePage] Using over.rect for column geometry:", {
-      top: columnTop,
-      height: columnHeight,
-    });
 
     // active要素の中心Y座標を使用する新しい試み
     let dropYCoordinate: number | undefined = undefined;
@@ -302,28 +275,13 @@ const TimelinePage: React.FC = () => {
       dropYCoordinate =
         active.rect.current.translated.top +
         active.rect.current.translated.height / 2;
-      console.log(
-        "[TimelinePage] Using active.rect.current.translated for drop Y coordinate:",
-        {
-          translatedTop: active.rect.current.translated.top,
-          translatedHeight: active.rect.current.translated.height,
-          calculatedDropY: dropYCoordinate,
-        }
-      );
     } else {
-      console.warn(
-        "[TimelinePage] active.rect.current.translated is not available. Falling back to activatorEvent.clientY if possible."
-      );
       // フォールバックとして元のclientYを使用 (activatorEvent が MouseEvent の場合のみ)
       if (
         activatorEvent instanceof MouseEvent &&
         typeof activatorEvent.clientY === "number"
       ) {
         dropYCoordinate = activatorEvent.clientY;
-        console.log(
-          "[TimelinePage] Fallback to activatorEvent.clientY:",
-          dropYCoordinate
-        );
       }
     }
 
@@ -349,22 +307,7 @@ const TimelinePage: React.FC = () => {
         .utc()
         .startOf("day")
         .toISOString();
-
-      console.log(
-        `[TimelinePage] Drop Y: ${dropYCoordinate}, Column Top: ${columnTop}, Column Height: ${columnHeight}, Y%: ${yPercentInColumn}, Estimated Date: ${estimatedDateString}`
-      );
     } else {
-      console.warn(
-        "[TimelinePage] Could not accurately determine date from drop. Conditions not met:",
-        {
-          dropYCoordinate, // dropYInClient から dropYCoordinate に変更
-          columnTop,
-          columnHeight,
-          dateArrayLength: dateArray?.length,
-          safeMinY,
-          safeMaxY,
-        }
-      );
       // フォールバックとして、現在の日付やアイテムが元々持っていた日付を使うなどの処理が必要かもしれない
     }
 
@@ -374,39 +317,21 @@ const TimelinePage: React.FC = () => {
       droppedOnItemType === "timeline-place-column"
     ) {
       if (!originalEventId || !draggedEventData) {
-        console.error(
-          "[TimelinePage] Original event ID or event data is missing from dragged item."
-        );
         return;
       }
 
-      const dateBeforeFinal_new = estimatedDateString;
+      const _dateBeforeFinal_new = estimatedDateString;
       const finalDate =
         estimatedDateString ||
         draggedEventData.date ||
         new Date().toISOString();
-      console.log("[TimelinePage] Event Drop - Date Calculation Details:", {
-        estimatedDateString,
-        originalEventDate: draggedEventData.date,
-        dateBeforeFinal: dateBeforeFinal_new,
-        finalDate,
-        draggedItemType,
-      });
 
       if (handleUpdateEventLocationAndDate) {
         handleUpdateEventLocationAndDate(
           originalEventId,
           targetPlaceId || "",
-          finalDate
+          finalDate,
         );
-        console.log(
-          `[TimelinePage] Updating event ${originalEventId} (type: ${draggedItemType}) to place ${targetPlaceId} at date ${finalDate}`
-        );
-      } else {
-        console.error(
-          "[TimelinePage] handleUpdateEventLocationAndDate is not available from useTimeline."
-        );
-        console.error("エラー: イベント移動処理の関数が見つかりません。");
       }
     } else if (
       (draggedItemType === "list-timeline-event" ||
@@ -416,9 +341,6 @@ const TimelinePage: React.FC = () => {
     ) {
       // 日付への直接ドロップ処理
       if (!originalEventId || !draggedEventData) {
-        console.error(
-          "[TimelinePage] Original event ID or event data is missing from dragged item."
-        );
         return;
       }
 
@@ -430,14 +352,7 @@ const TimelinePage: React.FC = () => {
         handleUpdateEventLocationAndDate(
           originalEventId,
           draggedEventData.placeId || "", // 既存の場所IDを保持
-          finalDate
-        );
-        console.log(
-          `[TimelinePage] Updating event ${originalEventId} to date ${finalDate}`
-        );
-      } else {
-        console.error(
-          "[TimelinePage] handleUpdateEventLocationAndDate is not available."
+          finalDate,
         );
       }
     } else if (
@@ -447,9 +362,6 @@ const TimelinePage: React.FC = () => {
     ) {
       const seed = active.data.current?.seed as TimelineEventSeed | undefined;
       if (!seed) {
-        console.error(
-          "[TimelinePage] Event seed data is missing for 'event-seed' type."
-        );
         return;
       }
       const finalDateForSeed =
@@ -461,8 +373,8 @@ const TimelinePage: React.FC = () => {
         seed.relatedQuestIds && seed.relatedQuestIds.length > 0
           ? seed.relatedQuestIds
           : allQuests && allQuests.length > 0
-          ? [allQuests[0].id]
-          : [];
+            ? [allQuests[0].id]
+            : [];
 
       // 日付ドロップの場合、場所IDをseedから取得するか、デフォルト場所を使用
       const finalPlaceId =
@@ -470,10 +382,10 @@ const TimelinePage: React.FC = () => {
         (seed.relatedPlaceIds && seed.relatedPlaceIds.length > 0
           ? seed.relatedPlaceIds[0]
           : places && places.length > 0
-          ? places[0].id
-          : bases && bases.length > 0
-          ? bases[0].id
-          : undefined);
+            ? places[0].id
+            : bases && bases.length > 0
+              ? bases[0].id
+              : undefined);
 
       const newTimelineEvent = convertSeedToTimelineEvent(
         seed,
@@ -481,19 +393,9 @@ const TimelinePage: React.FC = () => {
         0,
         finalDateForSeed,
         finalPlaceId,
-        targetRelatedPlotIds
+        targetRelatedPlotIds,
       );
       addTimelineEventsBatch([newTimelineEvent]);
-      console.log(
-        `[TimelinePage] Adding new event from seed ${seed.eventName} to place ${targetPlaceId} at date ${finalDateForSeed}`
-      );
-    } else {
-      console.log("[TimelinePage] Unhandled drag and drop scenario.", {
-        draggedItemType,
-        droppedOnItemType,
-        activeData: active.data.current,
-        overData: over.data.current,
-      });
     }
   };
 
@@ -513,7 +415,6 @@ const TimelinePage: React.FC = () => {
         },
         onComplete: (result) => {
           // AIAssistTabで生成されたTimelineEventSeedを受け取る
-          console.log("タイムラインイベント生成完了:", result);
           if (result.content && Array.isArray(result.content)) {
             const eventSeeds = result.content as TimelineEventSeed[];
             setReviewableEventSeeds(eventSeeds);
@@ -521,14 +422,13 @@ const TimelinePage: React.FC = () => {
           }
         },
       },
-      currentCampaign // キャンペーンデータを渡す
+      currentCampaign, // キャンペーンデータを渡す
     );
   };
 
   const handleConfirmEventSeeds = (selectedSeeds: TimelineEventSeed[]) => {
-    console.log("ユーザーが選択したイベントの種:", selectedSeeds);
     const newEvents: TimelineEvent[] = selectedSeeds.map((seed, index) =>
-      convertSeedToTimelineEvent(seed, timelineEvents, index)
+      convertSeedToTimelineEvent(seed, timelineEvents, index),
     );
     if (newEvents.length > 0) {
       addTimelineEventsBatch(newEvents);
@@ -546,10 +446,8 @@ const TimelinePage: React.FC = () => {
   };
 
   const handleEventResultSubmit = (result: EventResult) => {
-    console.log("Event result submitted:", result);
-
     // Convert event result to world state change format
-    const worldStateChange = {
+    const _worldStateChange = {
       eventId: result.eventId,
       eventName: result.eventName,
       eventType: result.eventType,
@@ -563,7 +461,6 @@ const TimelinePage: React.FC = () => {
     // Apply to world state if WorldStateManager is available
     if (worldState) {
       // This would trigger world state changes
-      console.log("Applying world state changes:", worldStateChange);
     }
 
     // Update the event with result information
@@ -577,10 +474,9 @@ const TimelinePage: React.FC = () => {
   };
 
   const handleWorldStateSuggestion = (
-    suggestion: string,
-    priority: "low" | "medium" | "high"
+    _suggestion: string,
+    _priority: "low" | "medium" | "high",
   ) => {
-    console.log(`World state suggestion (${priority}):`, suggestion);
     // Could show a snackbar or notification
   };
 
@@ -614,8 +510,6 @@ const TimelinePage: React.FC = () => {
       ...currentCampaign,
       clearConditions: clearConditions,
     });
-
-    console.log("クリア条件を保存しました:", clearConditions);
   };
 
   // イベント条件を変更
@@ -624,20 +518,18 @@ const TimelinePage: React.FC = () => {
     handleEventChange({ target: { value: conditions } } as any, "conditions");
   };
 
-  console.log(
-    "[TimelinePage] definedCharacterStatuses from useTimeline:",
-    definedCharacterStatuses
-  );
-
   // 🧪 **タイムラインクエスト・イベント表示コンポーネント**
-  const QuestTimelineView: React.FC = () => {
+  const _QuestTimelineView: React.FC = () => {
     const quests = currentCampaign?.quests || [];
-    const questsByDay = quests.reduce((acc: Record<number, typeof quests>, quest: any) => {
-      const day = quest.scheduledDay || 1;
-      if (!acc[day]) acc[day] = [];
-      acc[day].push(quest);
-      return acc;
-    }, {} as Record<number, typeof quests>);
+    const questsByDay = quests.reduce(
+      (acc: Record<number, typeof quests>, quest: any) => {
+        const day = quest.scheduledDay || 1;
+        if (!acc[day]) acc[day] = [];
+        acc[day].push(quest);
+        return acc;
+      },
+      {} as Record<number, typeof quests>,
+    );
 
     const maxDay = Math.max(...Object.keys(questsByDay).map(Number), 7);
     const daysArray = Array.from({ length: maxDay }, (_, i) => i + 1);
@@ -1094,7 +986,7 @@ const TimelinePage: React.FC = () => {
                   onEventResultsChange={(results) => {
                     handleEventChange(
                       { target: { value: results } } as any,
-                      "results"
+                      "results",
                     );
                   }}
                   onEventConditionsChange={handleEventConditionsChange}
@@ -1122,7 +1014,7 @@ const TimelinePage: React.FC = () => {
                 existingConditions={currentCampaign?.clearConditions || []}
                 availableItems={
                   currentCampaign?.items?.filter(
-                    (item) => item.type === "key_item"
+                    (item) => item.type === "key_item",
                   ) || []
                 }
                 availableQuests={allQuests || []}
@@ -1142,7 +1034,7 @@ const TimelinePage: React.FC = () => {
             <Box sx={{ mt: 3 }}>
               <WorldStateManager
                 campaign={currentCampaign as any}
-                locations={(places || []) as any[]} // basesはBaseLocation型でplacesはPlaceElement型なので異なる型で統合不可
+                locations={(places || []) as any[]} // basesはBaseLocation型でplacesはUnifiedLocationElement型なので異なる型で統合不可
                 onStateChange={handleWorldStateChange}
                 onSuggestion={handleWorldStateSuggestion}
               />
