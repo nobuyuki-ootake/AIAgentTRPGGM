@@ -2,9 +2,6 @@ import React from "react";
 import {
   Box,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
   Avatar,
   Chip,
   Stack,
@@ -17,7 +14,6 @@ import {
   CardContent,
   IconButton,
   Fade,
-  Divider,
 } from "@mui/material";
 import {
   PersonOutline,
@@ -27,14 +23,12 @@ import {
   Shield,
   Speed,
   Bolt,
-  Visibility,
   Edit,
   Warning,
   CheckCircle,
   LocalHospital,
   SentimentVeryDissatisfied,
   SentimentSatisfied,
-  SentimentVerySatisfied,
   Whatshot,
   AcUnit,
   WbSunny,
@@ -131,7 +125,7 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     if (hp <= 0) return { status: 'dead', icon: SentimentVeryDissatisfied, color: 'error', label: '死亡' };
     if (percentage <= 25) return { status: 'critical', icon: Warning, color: 'error', label: '重傷' };
     if (percentage <= 50) return { status: 'wounded', icon: LocalHospital, color: 'warning', label: '負傷' };
-    if (percentage <= 75) return { status: 'injured', icon: SentimentSatisfied, color: 'warning', label: '躽傷' };
+    if (percentage <= 75) return { status: 'injured', icon: SentimentSatisfied, color: 'warning', label: '軽傷' };
     return { status: 'healthy', icon: CheckCircle, color: 'success', label: '健康' };
   };
 
@@ -170,10 +164,9 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
     const isSelectionDisabled = combatMode || !onCharacterSelect;
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
-    // TRPGCharacterはattributes、その他はstatsを使用
-    const stats = 'attributes' in character ? character.attributes : (character as any).stats || null;
-    const hp = getHPValue(stats?.hitPoints);
-    const maxHp = getMaxHPValue(stats?.maxHitPoints);
+    
+    // HP情報を取得
+    const { current: currentHp, max: maxCurrentHp } = getCharacterHP(character);
     
     return (
       <Card 
@@ -182,32 +175,11 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
           cursor: !isSelectionDisabled ? "pointer" : "default",
           bgcolor: selectedCharacter?.id === character.id ? "action.selected" : "background.paper",
           opacity: isSelectionDisabled ? 0.7 : 1,
-          border: status.status === 'critical' || status.status === 'dead' ? '2px solid' : '1px solid',
-          borderColor: status.status === 'critical' || status.status === 'dead' ? 'error.main' : 'divider',
         }}
-        onClick={() => !isSelectionDisabled && onCharacterSelect?.(character)}
+        onClick={() => !isSelectionDisabled && onCharacterSelect && onCharacterSelect(character)}
       >
-      <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <Badge
-            badgeContent={
-              <Tooltip title={status.label}>
-                <status.icon 
-                  sx={{ 
-                    fontSize: 16, 
-                    color: `${status.color}.main`,
-                    animation: status.status === 'critical' ? 'pulse 1.5s infinite' : 'none',
-                    '@keyframes pulse': {
-                      '0%': { opacity: 1 },
-                      '50%': { opacity: 0.5 },
-                      '100%': { opacity: 1 },
-                    }
-                  }} 
-                />
-              </Tooltip>
-            }
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          >
+        <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
             <Avatar 
               sx={{ 
                 width: 32, 
@@ -218,194 +190,35 @@ const CharacterDisplay: React.FC<CharacterDisplayProps> = ({
             >
               {character.name[0]}
             </Avatar>
-          </Badge>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle2" noWrap>
-              {character.name}
-            </Typography>
-            {"class" in character && (character as any).class && (
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {"race" in character ? String((character as any).race || "") : ""} {String((character as any).class || "")}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle2" noWrap>
+                {character.name}
               </Typography>
-            )}
-            {"role" in character && (character as any).role && (
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {String((character as any).role)}
+              <Typography variant="caption" color="text.secondary">
+                HP: {currentHp}/{maxCurrentHp}
               </Typography>
-            )}
-            {"enemyType" in character && (
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {String((character as any).enemyType)} (CR {"challengeRating" in character ? (character as any).challengeRating : 0})
-              </Typography>
+            </Box>
+            {onEditCharacter && (
+              <IconButton 
+                size="small" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditCharacter(character);
+                }}
+              >
+                <Edit fontSize="small" />
+              </IconButton>
             )}
           </Box>
-          {onEditCharacter && (
-            <IconButton 
-              size="small" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditCharacter(character);
-              }}
-            >
-              <Edit fontSize="small" />
-            </IconButton>
-          )}
-        </Box>
-
-        {/* ステータス表示 */}
-        {(() => {
-          const { current: hp, max: maxHp } = getCharacterHP(character);
-          return (
-            <Stack spacing={0.5}>
-              {/* HP */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Favorite 
-                  fontSize="small" 
-                  color={getHPColor(hp, maxHp)}
-                  sx={{
-                    animation: status.status === 'critical' ? 'heartbeat 1.5s infinite' : 'none',
-                    '@keyframes heartbeat': {
-                      '0%': { transform: 'scale(1)' },
-                      '50%': { transform: 'scale(1.2)' },
-                      '100%': { transform: 'scale(1)' },
-                    }
-                  }}
-                />
-                <Box sx={{ flex: 1 }}>
-                  <Typography 
-                    variant="caption"
-                    sx={{ 
-                      fontWeight: status.status === 'critical' ? 'bold' : 'normal',
-                      color: status.status === 'dead' ? 'error.main' : 'text.primary'
-                    }}
-                  >
-                    HP: {hp}/{maxHp}
-                    {status.status === 'dead' && ' (死亡)'}
-                    {status.status === 'critical' && ' (危険)'}
-                  </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={maxHp > 0 ? (hp / maxHp) * 100 : 0}
-                    color={getHPColor(hp, maxHp)}
-                    sx={{ 
-                      height: 6, 
-                      borderRadius: 3,
-                      transition: 'all 0.3s ease-in-out',
-                      '& .MuiLinearProgress-bar': {
-                        transition: 'transform 0.5s ease-in-out',
-                        animation: status.status === 'critical' ? 'pulse 2s infinite' : 'none',
-                      }
-                    }}
-                  />
-                </Box>
-              </Box>
-
-            {/* 状態異常表示 */}
-            {statusEffects.length > 0 && (
-              <Box>
-                <Typography variant="caption" color="text.secondary" gutterBottom>
-                  状態異常:
-                </Typography>
-                <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                  {statusEffects.map((effect, index) => (
-                    <Fade in key={index}>
-                      <Tooltip title={effect.label}>
-                        <Chip
-                          icon={<effect.icon />}
-                          label={effect.label}
-                          size="small"
-                          color={effect.color as any}
-                          variant="filled"
-                          sx={{ 
-                            fontSize: '0.6rem',
-                            height: 20,
-                            animation: 'fadeIn 0.5s ease-in-out',
-                            '@keyframes fadeIn': {
-                              '0%': { opacity: 0, transform: 'scale(0.8)' },
-                              '100%': { opacity: 1, transform: 'scale(1)' },
-                            }
-                          }}
-                        />
-                      </Tooltip>
-                    </Fade>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-
-            {/* その他のステータス */}
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Tooltip title="アーマークラス">
-                <Chip
-                  icon={<Shield />}
-                  label={`AC:${(() => {
-                    // TRPGCharacterの場合はarmorからACを計算、または固定値10
-                    if ('armor' in character && character.armor) {
-                      // 簡易AC計算（胴体装甲値 + 10）
-                      return character.armor.body + 10;
-                    }
-                    // EnemyCharacterの場合
-                    if ('derivedStats' in character && character.derivedStats) {
-                      return character.derivedStats.defense || 10;
-                    }
-                    return 10;
-                  })()}`}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
-              <Tooltip title="移動速度">
-                <Chip
-                  icon={<Speed />}
-                  label={`速度:${(() => {
-                    // TRPGCharacterの場合
-                    if ('derived' in character && character.derived) {
-                      return character.derived.SW || 30; // Strike Rankを移動速度として使用
-                    }
-                    // EnemyCharacterの場合
-                    if ('derivedStats' in character && character.derivedStats) {
-                      return character.derivedStats.initiative || 30;
-                    }
-                    return 30;
-                  })()}`}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
-              <Tooltip title="レベル">
-                <Chip
-                  icon={<Bolt />}
-                  label={`Lv.${(() => {
-                    // EnemyCharacterの場合
-                    if ('level' in character) {
-                      return character.level || 1;
-                    }
-                    // TRPGCharacterの場合は固定値1（または計算）
-                    return 1;
-                  })()}`}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
-            </Stack>
-          );
-        })()
-
-        {/* 状態異常表示 */}
-        {"statuses" in character && character.statuses && Array.isArray(character.statuses) && character.statuses.length > 0 && (
-          <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 1 }}>
-            {character.statuses.map((status: any, index: number) => (
-              <Chip
-                key={index}
-                label={String(status)}
-                size="small"
-                color="warning"
-              />
-            ))}
-          </Stack>
-        )}
-      </CardContent>
-    </Card>
+          
+          <LinearProgress
+            variant="determinate"
+            value={maxCurrentHp > 0 ? (currentHp / maxCurrentHp) * 100 : 0}
+            color={getHPColor(currentHp, maxCurrentHp)}
+            sx={{ height: 6, borderRadius: 3 }}
+          />
+        </CardContent>
+      </Card>
     );
   };
 

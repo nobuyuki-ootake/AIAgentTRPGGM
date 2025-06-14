@@ -31,7 +31,8 @@ import {
 import { createTrulyEmptyCampaign } from "../utils/emptyCampaignDefaults";
 import { EnemyCharacter } from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../api/aiAgent";
-import { TRPGActionRequest, TRPGActionResult, EventResult, PartyInventoryItem, ClearCondition } from "@trpg-ai-gm/types";
+import { TRPGActionRequest, TRPGActionResult, EventResult, PartyInventoryItem, ClearCondition, PlayerCharacter, TimeOfDay } from "@trpg-ai-gm/types";
+import { useTRPGSessionWithMilestone } from "./useTRPGSessionWithMilestone";
 
 // ターンベース行動管理
 interface CharacterAction {
@@ -111,6 +112,20 @@ interface TRPGSessionUIState {
   activeEnemies: EnemyCharacter[];
   currentEvent: any;
   activeTrap: any;
+
+  // セッション状態
+  sessionStatus: string;
+
+  // マイルストーン関連状態
+  showMilestoneWarning: boolean;
+  milestoneWarningMessage: string | null;
+  lastMilestoneCheck: number;
+  milestoneNotificationQueue: Array<{
+    id: string;
+    type: 'achievement' | 'warning' | 'guidance';
+    message: string;
+    timestamp: Date;
+  }>;
 }
 
 // ビジネスロジックとUIの統合フック
@@ -142,6 +157,19 @@ export const useTRPGSessionUI = () => {
     saveSession,
     processDiceResult,
   } = sessionHookData;
+
+  // マイルストーン統合機能
+  const milestoneIntegration = useTRPGSessionWithMilestone();
+  const {
+    currentMilestone,
+    activeMilestones,
+    checkMilestonesAfterAction,
+    enhanceMessageWithMilestone,
+    performDailyMilestoneCheck,
+    getMilestoneWarnings,
+    getMilestoneProgress,
+    getUrgentMilestoneNotification,
+  } = milestoneIntegration;
 
   // 初期案内メッセージを生成
   const createInitialWelcomeMessages = useCallback((): ChatMessage[] => {
@@ -212,6 +240,15 @@ export const useTRPGSessionUI = () => {
     activeEnemies: [],
     currentEvent: null,
     activeTrap: null,
+
+    // セッション状態の初期化
+    sessionStatus: "waiting",
+
+    // マイルストーン関連状態の初期化
+    showMilestoneWarning: false,
+    milestoneWarningMessage: null,
+    lastMilestoneCheck: 0,
+    milestoneNotificationQueue: [],
   });
 
   // TRPGセッションページでのテストデータ自動読み込み
@@ -563,6 +600,42 @@ export const useTRPGSessionUI = () => {
       }));
     }
   }, [aiDiceRequest]);
+
+  // 🎯 日次マイルストーンチェック
+  useEffect(() => {
+    if (currentDay > 1 && currentCampaign?.milestones && currentCampaign.milestones.length > 0) {
+      // 非同期で日次マイルストーンチェックを実行
+      performDailyMilestoneCheck().then((dailyMessages) => {
+        if (dailyMessages.length > 0) {
+          console.log("📅 日次マイルストーンメッセージを追加:", dailyMessages.length);
+          setUIState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, ...dailyMessages]
+          }));
+        }
+      }).catch(error => {
+        console.warn("日次マイルストーンチェックエラー:", error);
+      });
+    }
+  }, [currentDay, currentCampaign?.milestones, performDailyMilestoneCheck]);
+
+  // マイルストーン警告の監視
+  useEffect(() => {
+    if (currentMilestone) {
+      const warnings = getMilestoneWarnings();
+      setUIState(prev => ({
+        ...prev,
+        showMilestoneWarning: warnings.hasUrgentMilestone,
+        milestoneWarningMessage: warnings.warningMessage || null
+      }));
+    } else {
+      setUIState(prev => ({
+        ...prev,
+        showMilestoneWarning: false,
+        milestoneWarningMessage: null
+      }));
+    }
+  }, [currentMilestone, currentDay, getMilestoneWarnings]);
 
   // セッション自動開始は削除 - ユーザーが明示的に「AIにセッションを始めてもらう」ボタンを押した時のみ開始
 
@@ -1044,7 +1117,7 @@ export const useTRPGSessionUI = () => {
       return;
     }
     
-    const currentHP = character.currentHP ?? character.derived?.HP ?? 40;
+    const currentHP = (character as PlayerCharacter).currentHP ?? character.derived?.HP ?? 40;
     const maxHP = character.derived?.HP ?? 40;
     const newHP = Math.max(0, Math.min(maxHP, currentHP + change));
     
@@ -1065,7 +1138,7 @@ export const useTRPGSessionUI = () => {
       return;
     }
     
-    const currentMP = character.currentMP ?? character.derived?.MP ?? 20;
+    const currentMP = (character as PlayerCharacter).currentMP ?? character.derived?.MP ?? 20;
     const maxMP = character.derived?.MP ?? 20;
     const newMP = Math.max(0, Math.min(maxMP, currentMP + change));
     
@@ -1605,6 +1678,75 @@ export const useTRPGSessionUI = () => {
       } catch (error) {
         console.error("構造化行動結果処理エラー:", error);
         // フォールバックとして従来の処理は不要（processStructuredActionResult内でフォールバック処理済み）
+      }
+
+      // 🎯 Phase 2.5: マイルストーンチェックを実行
+      console.log("🏁 マイルストーンチェックを開始...");
+      try {
+        const actionRequest: TRPGActionRequest = {
+          actionText: actionText,
+          characterId: selectedCharacter.id,
+          location: currentLocation,
+          dayNumber: currentDay,
+          timeOfDay: "morning", // TODO: 実際の時刻システムから取得
+          partyMembers: playerCharacters.map(pc => ({
+            id: pc.id,
+            name: pc.name,
+            currentHP: (pc as PlayerCharacter).currentHP || pc.derived?.HP || 40,
+            maxHP: pc.derived?.HP || 40,
+            currentMP: (pc as PlayerCharacter).currentMP || pc.derived?.MP || 20,
+            maxMP: pc.derived?.MP || 20,
+            level: 1, // TODO: TRPGCharacterにlevelプロパティがないので固定値
+            gold: currentCampaign?.partyGold || 0
+          })),
+          campaignFlags: currentCampaign?.campaignFlags,
+          partyInventory: currentCampaign?.partyInventory?.map(item => ({
+            itemId: item.itemId,
+            itemName: item.itemId, // TODO: アイテム名を実際に取得
+            quantity: item.quantity
+          })) || []
+        };
+
+        const actionResult: TRPGActionResult = {
+          narrative: `${selectedCharacter.name}が${actionText}を実行しました`,
+          gameEffects: [],
+          newOpportunities: [],
+          futureConsequences: []
+        };
+
+        const milestoneResults = await checkMilestonesAfterAction(actionRequest, actionResult);
+        
+        // マイルストーンメッセージをチャットに追加
+        if (milestoneResults.milestoneMessages.length > 0) {
+          setUIState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, ...milestoneResults.milestoneMessages]
+          }));
+        }
+
+        // 達成があった場合は通知を表示
+        if (milestoneResults.shouldShowAchievement) {
+          setUIState(prev => ({
+            ...prev,
+            milestoneNotificationQueue: [
+              ...prev.milestoneNotificationQueue,
+              {
+                id: `achievement-${Date.now()}`,
+                type: 'achievement' as const,
+                message: '🎉 マイルストーンが達成されました！',
+                timestamp: new Date()
+              }
+            ]
+          }));
+        }
+
+        console.log("✅ マイルストーンチェック完了", {
+          messagesAdded: milestoneResults.milestoneMessages.length,
+          milestonesUpdated: milestoneResults.updatedMilestones.length,
+          achievement: milestoneResults.shouldShowAchievement
+        });
+      } catch (error) {
+        console.error("❌ マイルストーンチェックエラー:", error);
       }
 
       // 他のプレイヤーキャラクターの自動行動を処理
@@ -2279,7 +2421,7 @@ export const useTRPGSessionUI = () => {
     processTurnCompletion,
   ]);
 
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback(async () => {
     if (uiState.chatInput.trim()) {
       // 入力された行動の有効性をチェック
       const validationResult = validateActionInput(uiState.chatInput);
@@ -2331,6 +2473,32 @@ export const useTRPGSessionUI = () => {
           ...prev,
           chatMessages: [...prev.chatMessages, feedbackMessage],
         }));
+      }
+
+      // 🎯 マイルストーン誘導機能: チャットメッセージを拡張
+      try {
+        const enhancementResult = await enhanceMessageWithMilestone(
+          validationResult.normalizedAction,
+          uiState.chatMessages
+        );
+
+        // マイルストーン誘導メッセージがある場合は追加
+        if (enhancementResult.guidanceMessage) {
+          const guidanceMessage: ChatMessage = {
+            id: uuidv4(),
+            sender: "AI Game Master",
+            senderType: "gm",
+            message: `🎯 ${enhancementResult.guidanceMessage}`,
+            timestamp: new Date(),
+          };
+
+          setUIState((prev) => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, guidanceMessage],
+          }));
+        }
+      } catch (error) {
+        console.warn("マイルストーン誘導生成エラー:", error);
       }
 
       // アクション選択状態をリセット
@@ -3464,6 +3632,16 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
 
     // UI状態
     uiState,
+
+    // マイルストーン関連
+    currentMilestone,
+    activeMilestones,
+    getMilestoneProgress,
+    getMilestoneWarnings,
+    getUrgentMilestoneNotification,
+    showMilestoneWarning: uiState.showMilestoneWarning,
+    milestoneWarningMessage: uiState.milestoneWarningMessage,
+    milestoneNotificationQueue: uiState.milestoneNotificationQueue,
 
     // アクション選択状態
     isAwaitingActionSelection: uiState.isAwaitingActionSelection,

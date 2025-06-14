@@ -39,6 +39,7 @@ export interface TRPGCampaign {
   partyGold?: number; // パーティ共通の所持金
   partyInventory?: PartyInventoryItem[]; // パーティ共通のインベントリ
   campaignFlags?: Record<string, any>; // キャンペーンフラグ（ストーリー進行、条件判定用）
+  milestones?: CampaignMilestone[]; // マイルストーン管理
 }
 
 // プレイヤーの型定義
@@ -87,6 +88,15 @@ export interface QuestElement {
   priority?: "low" | "medium" | "high";
   giver?: string; // クエスト提供者
   notes?: string; // GM用メモ
+  
+  // 探索行動システム連携
+  explorationActions?: ExplorationAction[]; // このクエストに関連する探索行動
+  unlockConditions?: {
+    itemsRequired?: string[]; // クエスト発見に必要なアイテム
+    locationsRequired?: string[]; // クエスト発見に必要な場所
+    prerequisiteQuests?: string[]; // 前提クエスト
+    characterLevelRequired?: number; // 必要キャラクターレベル
+  };
 }
 
 // クエスト目標の型定義
@@ -350,6 +360,19 @@ export interface EnemyCharacter {
     location: string;
   };
 
+  // 探索・追跡システム
+  trackingInfo?: {
+    hasTrackableTraces: boolean; // 痕跡追跡可能か
+    traceLocations?: string[]; // 痕跡が見つかる場所のID
+    huntingDifficulty?: ExplorationDifficulty; // 討伐難易度
+    requiredPartyLevel?: number; // 討伐に必要なパーティーレベル
+    maxEncounterSize?: number; // 一度に遭遇する最大数
+    spawnsInGroups?: boolean; // 群れで出現するか
+  };
+  
+  // 探索行動システム連携
+  explorationActions?: ExplorationAction[]; // このエネミーに関連する探索行動（痕跡探し等）
+  
   // その他
   imageUrl?: string;
   campaignId?: string;
@@ -816,6 +839,9 @@ export interface UnifiedEvent {
   lootGained?: Equipment[]; // TRPG用戦利品
   results?: EventResult[]; // イベントの結果（アイテム取得、フラグ設定など）
   conditions?: EventCondition[]; // イベントの発生条件
+  
+  // 探索行動システム連携
+  explorationActions?: ExplorationAction[]; // このイベントに関連する探索行動
 }
 
 // SessionEvent: UnifiedEventの型エイリアス（後方互換性）
@@ -2289,6 +2315,170 @@ export interface TRPGActionRequest {
 export interface PartyInventoryItem {
   itemId: string; // 既存のItemのIDを参照
   quantity: number;
+}
+
+// =============================================================================
+// 探索行動システム型定義
+// =============================================================================
+
+// 探索行動の種類
+export type ExplorationActionType = 
+  | "investigate"    // 調査・探索
+  | "search"         // 捜索・発見
+  | "interact"       // 交流・会話
+  | "combat"         // 戦闘・討伐
+  | "collect"        // 収集・取得
+  | "travel"         // 移動・探検
+  | "rest"           // 休息・準備
+  | "other";         // その他
+
+// 探索行動の難易度
+export type ExplorationDifficulty = "easy" | "normal" | "hard" | "extreme";
+
+// 探索行動の基本定義
+export interface ExplorationAction {
+  id: string;
+  title: string;
+  description: string;
+  actionType: ExplorationActionType;
+  difficulty: ExplorationDifficulty;
+  
+  // 実行条件
+  prerequisites?: {
+    requiredItems?: string[];       // 必要アイテム
+    requiredSkills?: string[];      // 必要スキル
+    requiredLocation?: string;      // 必要場所
+    requiredPartySize?: number;     // 必要パーティサイズ
+    timeRequired?: number;          // 所要時間（分）
+  };
+  
+  // 成功時の結果
+  successOutcomes?: {
+    experience?: number;            // 獲得経験値
+    items?: string[];              // 獲得アイテム
+    information?: string[];        // 獲得情報
+    flagChanges?: Record<string, any>; // フラグ変更
+    nextActions?: string[];        // 解放される次の行動
+  };
+  
+  // 失敗時の結果
+  failureOutcomes?: {
+    consequences?: string[];       // 失敗の結果
+    retryable?: boolean;          // 再挑戦可能か
+    penaltyDays?: number;         // ペナルティ日数
+  };
+  
+  // 関連要素
+  relatedQuestId?: string;        // 関連クエスト
+  relatedEventId?: string;        // 関連イベント
+  relatedEnemyId?: string;        // 関連エネミー
+  
+  // 表示制御
+  isVisible?: boolean;            // 探索タブに表示するか
+  priority?: number;              // 表示優先度
+}
+
+// 探索行動グループ（マイルストーン別）
+export interface ExplorationActionGroup {
+  milestoneId: string;
+  milestoneTitle: string;
+  actions: ExplorationAction[];
+  estimatedDays: number;          // 推定完了日数
+  priority: "low" | "medium" | "high" | "critical";
+}
+
+// =============================================================================
+// マイルストーン管理システム型定義
+// =============================================================================
+
+// マイルストーン達成条件の型定義
+export interface MilestoneRequirement {
+  type: "events" | "quests" | "items" | "enemies";
+  
+  // イベント達成条件
+  eventIds?: string[];           // 必要なイベントID配列
+  
+  // クエスト達成条件  
+  questIds?: string[];           // 必要なクエストID配列
+  
+  // アイテム取得条件
+  itemRequirements?: {
+    itemId: string;
+    quantity: number;
+  }[];
+  
+  // エネミー討伐条件
+  enemyRequirements?: {
+    enemyId: string;
+    count: number;              // 討伐必要数
+  }[];
+  
+  // 達成に必要な数（部分達成の場合）
+  requiredCount?: number;        // 指定した場合、この数だけ達成すれば条件クリア
+  description: string;           // 条件の説明
+}
+
+// キャンペーンマイルストーン
+export interface CampaignMilestone {
+  id: string;
+  title: string;
+  description: string;
+  
+  // 期限設定
+  targetDay: number;             // 目標達成日
+  deadline: boolean;             // デッドライン設定（true=必須期限, false=推奨期限）
+  
+  // 達成条件（複数の条件を組み合わせ可能）
+  requirements: MilestoneRequirement[];
+  
+  // 全条件達成が必要か、部分達成でも可とするか
+  completionMode: "all" | "partial";  // all=全条件達成, partial=requirements内のrequiredCount使用
+  
+  // 達成状態
+  status: "pending" | "active" | "completed" | "failed" | "overdue";
+  achievedDay?: number;          // 実際の達成日
+  
+  // GM向けガイダンス
+  gmGuidance: {
+    onTimeHints: string[];       // 期限内達成時のGMアナウンス案
+    delayedHints: string[];      // 遅延時のGMアナウンス案（deadline=false時）
+    failureMessage?: string;     // ゲームオーバー時メッセージ（deadline=true時）
+  };
+  
+  // 優先度
+  priority: "critical" | "important" | "optional";
+  
+  // メタ情報
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// マイルストーン進捗情報
+export interface MilestoneProgress {
+  milestoneId: string;
+  requirements: {
+    [requirementIndex: number]: {
+      type: MilestoneRequirement["type"];
+      completed: boolean;
+      progress: number;          // 0-100の進捗率
+      details: string;           // 詳細状況
+    };
+  };
+  overallProgress: number;       // 全体進捗率
+  estimatedCompletionDay?: number; // 完了予想日
+}
+
+// マイルストーン判定結果
+export interface MilestoneCheckResult {
+  milestoneId: string;
+  wasCompleted: boolean;
+  wasOverdue: boolean;
+  shouldGameOver: boolean;       // deadline=trueかつ遅延の場合true
+  gmAction?: {
+    type: "announce" | "gameover" | "continue";
+    message: string;
+    suggestedActions?: string[]; // GMが提示すべき行動案
+  };
 }
 
 // =============================================================================

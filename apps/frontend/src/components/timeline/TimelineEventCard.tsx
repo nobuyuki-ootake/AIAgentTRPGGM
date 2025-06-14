@@ -39,6 +39,7 @@ interface TimelineEventCardProps {
   getCharacterNameById?: (id: string) => string;
   dndContextType: "list" | "chart" | "overlay" | "day-list";
   compact?: boolean;
+  milestoneColor?: string; // マイルストーンの色
 }
 
 const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
@@ -51,6 +52,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
   getCharacterNameById,
   dndContextType,
   compact = false,
+  milestoneColor,
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const EventTypeIcon = getEventTypeIconComponent(event.eventType);
@@ -97,6 +99,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
           position: "relative",
           opacity: isDragging ? 0.8 : 1,
           transition: "box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out",
+          border: milestoneColor ? `3px solid ${milestoneColor}` : undefined,
           "&:hover": {
             boxShadow: isDragging ? 8 : 4,
           },

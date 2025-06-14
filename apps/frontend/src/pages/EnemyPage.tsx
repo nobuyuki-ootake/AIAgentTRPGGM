@@ -387,7 +387,7 @@ const EnemyPage: React.FC = () => {
                     >
                       <Favorite fontSize="small" color="error" />
                       <Typography variant="body2">
-                        HP: {enemy.derivedStats.hp}
+                        HP: {enemy.derivedStats?.hp ?? 0}
                       </Typography>
                     </Box>
                   </Grid>
@@ -397,7 +397,7 @@ const EnemyPage: React.FC = () => {
                     >
                       <Shield fontSize="small" color="primary" />
                       <Typography variant="body2">
-                        防御: {enemy.derivedStats.defense}
+                        防御: {enemy.derivedStats?.defense ?? 0}
                       </Typography>
                     </Box>
                   </Grid>
@@ -407,7 +407,7 @@ const EnemyPage: React.FC = () => {
                     >
                       <Speed fontSize="small" color="action" />
                       <Typography variant="body2">
-                        イニシアチブ: {enemy.derivedStats.initiative}
+                        イニシアチブ: {enemy.derivedStats?.initiative ?? 0}
                       </Typography>
                     </Box>
                   </Grid>
@@ -423,7 +423,7 @@ const EnemyPage: React.FC = () => {
                   </Grid>
                 </Grid>
 
-                {enemy.behavior.aiPattern && (
+                {enemy.behavior?.aiPattern && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="body2" color="text.secondary">
                       AI行動: {enemy.behavior.aiPattern}

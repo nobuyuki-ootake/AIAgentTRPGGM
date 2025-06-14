@@ -1122,6 +1122,126 @@ export const testCampaignData: TRPGCampaign = {
     "ancient_ruins_unlocked": false
   },
 
+  // マイルストーン管理
+  milestones: [
+    {
+      id: "milestone-forest-threat",
+      title: "森の脅威解決",
+      description: "翠の森道に出没する盗賊団を討伐し、安全な通行を確保する",
+      targetDay: 3,
+      deadline: false,
+      completionMode: "all",
+      requirements: [
+        {
+          type: "enemies",
+          enemyRequirements: [
+            { enemyId: "bandit-leader", count: 1 }
+          ],
+          description: "盗賊団の頭領を討伐"
+        },
+        {
+          type: "quests",
+          questIds: ["quest-forest-bandits"],
+          description: "森の盗賊団遭遇クエストを完了"
+        }
+      ],
+      status: "active",
+      gmGuidance: {
+        onTimeHints: [
+          "街の人々から感謝の言葉をかけられる",
+          "森道を通る商人が安全に取引できるようになった",
+          "村長から報酬が支払われる"
+        ],
+        delayedHints: [
+          "被害が拡大し、商人たちが困っている",
+          "別の冒険者パーティが危険にさらされている",
+          "盗賊団がより大胆になってきている"
+        ]
+      },
+      priority: "important",
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "milestone-village-connection",
+      title: "村との信頼関係構築",
+      description: "ハーベスト村の住民と信頼関係を築き、重要な情報を得る",
+      targetDay: 5,
+      deadline: false,
+      completionMode: "partial",
+      requirements: [
+        {
+          type: "quests",
+          questIds: ["quest-village-request"],
+          requiredCount: 1,
+          description: "村長からの依頼を完了"
+        },
+        {
+          type: "events",
+          eventIds: [], // タイムラインイベントに基づいて設定
+          description: "村人との交流イベントを2回以上実施"
+        }
+      ],
+      status: "pending",
+      gmGuidance: {
+        onTimeHints: [
+          "村人たちがパーティを信頼し始める",
+          "古代の地図の断片を入手できる",
+          "村の秘密について教えてもらえる"
+        ],
+        delayedHints: [
+          "村人たちが他の冒険者を頼るようになっている",
+          "重要な情報を逃すかもしれない"
+        ]
+      },
+      priority: "important",
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    },
+    {
+      id: "milestone-ancient-ruins",
+      title: "古代遺跡攻略",
+      description: "忘却の遺跡の謎を解き、古代文明の秘宝を発見する",
+      targetDay: 7,
+      deadline: true,
+      completionMode: "all",
+      requirements: [
+        {
+          type: "quests",
+          questIds: ["quest-ancient-ruins"],
+          description: "古代遺跡の謎解きクエストを完了"
+        },
+        {
+          type: "enemies",
+          enemyRequirements: [
+            { enemyId: "ancient-guardian", count: 1 }
+          ],
+          description: "古代の守護者を倒す"
+        },
+        {
+          type: "items",
+          itemRequirements: [
+            { itemId: "ancient-crystal", quantity: 1 }
+          ],
+          description: "古代のクリスタルを取得"
+        }
+      ],
+      status: "pending",
+      gmGuidance: {
+        onTimeHints: [
+          "古代文明の謎が解明される",
+          "強力な魔法のアイテムを入手",
+          "キャンペーンのクライマックスへ繋がる"
+        ],
+        delayedHints: [],
+        failureMessage: "遺跡の魔法的な封印が活性化し、永久に封じられてしまった。この地方の平和は失われ、キャンペーンは失敗に終わる。"
+      },
+      priority: "critical",
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+    }
+  ],
+
   rules: [],
   handouts: [],
   feedback: []

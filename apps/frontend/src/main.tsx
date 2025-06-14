@@ -222,7 +222,7 @@ const migrateExistingData = () => {
       let needsMigration = false;
 
       const migratedProjects = projects.map((project) => {
-        const migratedChapters = project.sessions.map((chapter) => {
+        const migratedChapters = (project.sessions || []).map((chapter) => {
           // contentがstring型の場合、Descendant[]に変換
           if (typeof chapter.content === "string") {
             needsMigration = true;

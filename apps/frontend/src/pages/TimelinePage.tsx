@@ -18,6 +18,7 @@ import {
   DeveloperMode as DeveloperModeIcon,
   PlayArrow as PlayIcon,
   History as HistoryIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import {
   DndContext,
@@ -29,7 +30,7 @@ import {
   DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
-import { useRecoilValue as _useRecoilValue, useRecoilState } from "recoil";
+import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
 import { currentCampaignState, developerModeState } from "../store/atoms";
 import { useTimeline } from "../hooks/useTimeline";
 import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
@@ -45,6 +46,7 @@ import {
   BaseLocation as _BaseLocation,
   ClearCondition,
   EventCondition,
+  CampaignMilestone,
   // TRPGCampaign, // Unused
   // PlotElement, // Unused
   // Character, // Unused
@@ -57,6 +59,7 @@ import TimelineEventResultHandler, {
 } from "../components/timeline/TimelineEventResultHandler";
 import WorldStateManager from "../components/world/WorldStateManager";
 import ClearConditionDialog from "../components/timeline/ClearConditionDialog";
+import MilestoneDialog from "../components/timeline/MilestoneDialog";
 // import { TimelineProvider } from "../contexts/TimelineContext"; // Unused and path error
 // TypeScript test: error detection working properly
 
@@ -137,6 +140,10 @@ const TimelinePage: React.FC = () => {
 
   const { openAIAssist, closeAIAssist } = useAIChatIntegration();
 
+  // キャンペーンからマイルストーンを取得
+  const milestones = currentCampaign?.milestones || [];
+  const currentDay = 1; // TODO: 実際のセッション日数から取得
+
   const [reviewableEventSeeds, setReviewableEventSeeds] = useState<
     TimelineEventSeed[]
   >([]);
@@ -146,6 +153,10 @@ const TimelinePage: React.FC = () => {
   const [activeDragItem, setActiveDragItem] = useState<TimelineEvent | null>(
     null,
   );
+
+  // マイルストーンダイアログの状態管理
+  const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
+  const [editingMilestone, setEditingMilestone] = useState<CampaignMilestone | undefined>();
 
   // Event result handler state
   const [eventResultDialogOpen, setEventResultDialogOpen] = useState(false);
@@ -502,6 +513,45 @@ const TimelinePage: React.FC = () => {
     setClearConditionDialogOpen(false);
   };
 
+  // マイルストーンダイアログを開く
+  const handleOpenMilestoneDialog = () => {
+    setEditingMilestone(undefined);
+    setMilestoneDialogOpen(true);
+  };
+
+  // マイルストーン編集ハンドラー
+  const handleMilestoneEdit = (milestone: CampaignMilestone) => {
+    setEditingMilestone(milestone);
+    setMilestoneDialogOpen(true);
+  };
+
+  // マイルストーンダイアログを閉じる
+  const handleCloseMilestoneDialog = () => {
+    setMilestoneDialogOpen(false);
+    setEditingMilestone(undefined);
+  };
+
+  // マイルストーンを保存
+  const handleSaveMilestone = (milestone: CampaignMilestone) => {
+    if (!currentCampaign) return;
+
+    const existingIndex = currentCampaign.milestones?.findIndex(m => m.id === milestone.id) ?? -1;
+    const updatedMilestones = currentCampaign.milestones || [];
+
+    if (existingIndex >= 0) {
+      // 既存のマイルストーンを更新
+      updatedMilestones[existingIndex] = milestone;
+    } else {
+      // 新しいマイルストーンを追加
+      updatedMilestones.push(milestone);
+    }
+
+    setCurrentCampaign({
+      ...currentCampaign,
+      milestones: updatedMilestones,
+    });
+  };
+
   // クリア条件を保存
   const handleSaveClearConditions = (clearConditions: ClearCondition[]) => {
     if (!currentCampaign) return;
@@ -846,15 +896,26 @@ const TimelinePage: React.FC = () => {
               </Box>
 
               {developerMode && (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<SettingsIcon />}
-                  onClick={handleOpenSettingsDialog}
-                  size="small"
-                >
-                  タイムライン設定
-                </Button>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenMilestoneDialog}
+                    size="small"
+                  >
+                    マイルストーン追加
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<SettingsIcon />}
+                    onClick={handleOpenSettingsDialog}
+                    size="small"
+                  >
+                    タイムライン設定
+                  </Button>
+                </Box>
               )}
             </Box>
 
@@ -929,11 +990,14 @@ const TimelinePage: React.FC = () => {
                       places={[...(places || []), ...(bases || [])]} // placesとbasesを統合
                       plots={allQuests}
                       dateArray={dateArray}
+                      milestones={milestones}
+                      currentDay={currentDay}
                       onEventClick={handleEventClick}
                       onDeleteEvent={handleDeleteEvent}
                       onEventResultClick={handleEventResultClick}
                       onAddEventToDay={handleAddEventToDay}
                       onClearConditionClick={handleOpenClearConditionDialog}
+                      onMilestoneEdit={handleMilestoneEdit}
                     />
                   )}
                 </Paper>
@@ -1069,6 +1133,18 @@ const TimelinePage: React.FC = () => {
               [] // factionsプロパティはTRPGCampaign型に存在しない
             }
             availableItems={currentCampaign?.items || []}
+          />
+
+          {/* Milestone Dialog */}
+          <MilestoneDialog
+            open={milestoneDialogOpen}
+            milestone={editingMilestone}
+            onClose={handleCloseMilestoneDialog}
+            onSave={handleSaveMilestone}
+            availableQuests={allQuests}
+            availableEnemies={currentCampaign?.enemies || []}
+            availableItems={currentCampaign?.items || []}
+            timelineEvents={timelineEvents}
           />
         </Paper>
       </Box>

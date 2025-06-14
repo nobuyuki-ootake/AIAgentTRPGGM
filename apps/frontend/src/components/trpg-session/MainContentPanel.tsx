@@ -268,6 +268,16 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
               },
             }}
           >
+            {/* マイルストーン探索行動セクション */}
+            <Box sx={{ mb: 3, p: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                🎯 マイルストーン探索行動
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                現在のマイルストーンに関連する探索行動がここに表示されます。
+              </Typography>
+            </Box>
+
             {showEnemySelection ? (
               // 敵選択UI表示
               <EnemySelectionPanel

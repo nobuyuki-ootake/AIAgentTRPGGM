@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRecoilState } from "recoil";
 import { SelectChangeEvent } from "@mui/material";
-import * as moment from "moment";
+import moment from "moment";
 import {
   TRPGCampaign,
   TimelineEvent,

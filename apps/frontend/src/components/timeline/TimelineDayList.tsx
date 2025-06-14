@@ -24,8 +24,10 @@ import {
   TimelineEvent,
   PlaceElement,
   BaseLocation,
+  CampaignMilestone,
 } from "@trpg-ai-gm/types";
 import TimelineEventCard from "./TimelineEventCard";
+import MilestoneIndicator from "./MilestoneIndicator";
 import moment from "moment";
 
 interface TimelineDayListProps {
@@ -33,11 +35,14 @@ interface TimelineDayListProps {
   places: (PlaceElement | BaseLocation)[];
   plots: any[];
   dateArray: string[];
+  milestones?: CampaignMilestone[];
+  currentDay?: number;
   onEventClick: (id: string) => void;
   onDeleteEvent?: (id: string) => void;
   onEventResultClick?: (event: TimelineEvent) => void;
   onAddEventToDay?: (date: string) => void;
   onClearConditionClick?: () => void;
+  onMilestoneEdit?: (milestone: CampaignMilestone) => void;
 }
 
 const TimelineDayList: React.FC<TimelineDayListProps> = ({
@@ -45,11 +50,14 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
   places,
   plots,
   dateArray,
+  milestones = [],
+  currentDay = 1,
   onEventClick,
   onDeleteEvent,
   onEventResultClick,
   onAddEventToDay,
   onClearConditionClick,
+  onMilestoneEdit,
 }) => {
   const theme = useTheme();
 
@@ -83,6 +91,46 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
     
     return map;
   }, [timelineEvents, dateArray]);
+
+  // 日数ごとのマイルストーンをグループ化
+  const milestonesByDay = useMemo(() => {
+    const map = new Map<number, CampaignMilestone[]>();
+    
+    milestones.forEach(milestone => {
+      // targetDayに基づいてマイルストーンを配置
+      const day = milestone.targetDay;
+      const existingMilestones = map.get(day) || [];
+      map.set(day, [...existingMilestones, milestone]);
+    });
+    
+    return map;
+  }, [milestones]);
+
+  // イベントの色をマイルストーンに基づいて決定
+  const getEventColor = useCallback((event: TimelineEvent) => {
+    // このイベントが関連するマイルストーンを検索
+    const relatedMilestone = milestones.find(milestone => 
+      milestone.requirements.some(req => 
+        req.type === "events" && req.eventIds?.includes(event.id)
+      )
+    );
+    
+    if (relatedMilestone) {
+      // マイルストーンの色を返す
+      if (relatedMilestone.status === "completed") return "#4CAF50";
+      if (relatedMilestone.status === "failed") return "#F44336";
+      if (relatedMilestone.status === "overdue") return "#FF5722";
+      
+      switch (relatedMilestone.priority) {
+        case "critical": return "#E91E63";
+        case "important": return "#2196F3";
+        case "optional": return "#9E9E9E";
+        default: return "#2196F3";
+      }
+    }
+    
+    return null; // デフォルト色を使用
+  }, [milestones]);
 
   // 場所名を取得
   const getPlaceName = useCallback((placeId?: string) => {
@@ -200,6 +248,7 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
           const dayNumber = index + 1;
           const formattedDate = validDate.isValid() ? validDate.format("MM月DD日(ddd)") : `${dayNumber}日目`;
           const isFinalDay = index === dateArray.length - 1;
+          const dayMilestones = milestonesByDay.get(dayNumber) || [];
           
           return (
             <Paper 
@@ -232,6 +281,40 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
                   <Typography variant="subtitle1">
                     {formattedDate}
                   </Typography>
+                  
+                  {/* マイルストーンインジケーター */}
+                  {dayMilestones.length > 0 && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      {dayMilestones.map((milestone) => (
+                        <Box key={milestone.id} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <MilestoneIndicator
+                            milestone={milestone}
+                            day={dayNumber}
+                            currentDay={currentDay}
+                            onEdit={onMilestoneEdit}
+                            size="medium"
+                          />
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              fontSize: "0.7rem",
+                              fontWeight: "bold",
+                              color: dayEvents.length > 0 
+                                ? theme.palette.primary.contrastText 
+                                : theme.palette.text.primary,
+                              maxWidth: 80,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {milestone.title}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                  
                   <Chip 
                     label={`${dayEvents.length}イベント`}
                     size="small"
@@ -333,6 +416,7 @@ const TimelineDayList: React.FC<TimelineDayListProps> = ({
                                   onEventResultClick={onEventResultClick}
                                   dndContextType="day-list"
                                   compact={true}
+                                  milestoneColor={getEventColor(event) || undefined}
                                 />
                                 
                                 {/* 場所情報 */}
