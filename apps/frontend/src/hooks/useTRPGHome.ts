@@ -98,7 +98,7 @@ export function useTRPGHome() {
       },
       timeline: [],
       sessions: [],
-      plot: [],
+      quests: [],
       bases: [],
       items: [],
       itemLocations: [],

@@ -255,7 +255,6 @@ const WritingPageContent: React.FC = () => {
         await generateChapterByAI(aiParams);
       }
     } catch (err) {
-      console.error("AI章生成エラー:", err);
       setError(err instanceof Error ? err : "AI章生成中にエラーが発生しました");
     }
   };
@@ -355,11 +354,9 @@ ${
             if (hasContent) {
               // 上書き確認ダイアログを表示する処理
               // WritingContextの機能を利用
-              console.log("Generated content:", result.content);
               // 実際の実装では、生成された内容を一時保存して上書き確認後に適用
             } else {
               // エディターの値を更新（型に応じて適切に変換）
-              console.log("Setting generated content:", result.content);
               // handleEditorChangeの実装に依存するため、ここではログのみ
             }
           }
@@ -643,7 +640,7 @@ ${
         selectedEvents={selectedEvents}
         characters={(currentProject as TRPGCampaign).characters || []}
         places={(currentProject as TRPGCampaign).worldBuilding?.places || []}
-        allPlots={(currentProject as TRPGCampaign).plot || []}
+        allQuests={(currentProject as TRPGCampaign).quests || []}
         onClose={handleCloseAssignEventsDialog}
         onToggle={handleToggleEvent}
         onSave={handleAssignEvents}

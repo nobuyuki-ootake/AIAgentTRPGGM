@@ -4,11 +4,14 @@ import {
   WorldBuildingElementType,
   QuestElement,
   TRPGCharacter,
-  WorldBuildingElement,
-  SessionEvent,
+  TRPGPlaceElement,
+  UnifiedEvent,
   StandardAIResponse,
   BaseLocation,
   TRPGCampaign,
+  TRPGActionRequest,
+  TRPGActionResult,
+  UnifiedLocationElement,
 } from "@trpg-ai-gm/types";
 
 // APIのベースURL
@@ -33,16 +36,11 @@ const buildApiBaseUrl = () => {
 
 const API_BASE_URL = buildApiBaseUrl();
 
-// デバッグ用ログ
-console.log("環境変数 VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
-console.log("環境変数 VITE_API_URL:", import.meta.env.VITE_API_URL);
-console.log("構築されたAPI_BASE_URL:", API_BASE_URL);
 
 // APIエラーハンドリング共通関数
-const handleApiError = (error: AxiosError | Error, operationName: string) => {
+const handleApiError = (error: AxiosError | Error, _operationName: string) => {
   // ネットワークエラーの処理 (Error 型の場合)
   if (!(error instanceof AxiosError) && error.message === "Network Error") {
-    console.error(`${operationName} - ネットワークエラー:`, error);
     throw new Error(
       `サーバーへの接続に失敗しました。ネットワーク接続を確認してください。`
     );
@@ -53,7 +51,6 @@ const handleApiError = (error: AxiosError | Error, operationName: string) => {
     const status = error.response.status;
     const errorData = error.response.data as { error?: string }; // errorData の型を仮定
 
-    console.error(`${operationName} - APIエラー (${status}):`, errorData);
 
     // ステータスコードに応じたエラーメッセージ
     switch (status) {
@@ -77,7 +74,6 @@ const handleApiError = (error: AxiosError | Error, operationName: string) => {
   }
 
   // その他のエラー (AxiosError ではない Error インスタンスなど)
-  console.error(`${operationName} - 予期しないエラー:`, error);
   throw error;
 };
 
@@ -108,7 +104,7 @@ export const aiAgentApi = {
   chat: async (
     message: string,
     selectedElements: Array<
-      QuestElement | TRPGCharacter | WorldBuildingElement
+      QuestElement | TRPGCharacter | UnifiedLocationElement
     > = [],
     networkType:
       | "trpg-session"
@@ -344,10 +340,11 @@ export const aiAgentApi = {
    * 世界観構築に関するアドバイスを取得
    * @param message ユーザーのメッセージ
    * @param worldElements 世界観要素
+   * @deprecated PlaceManagementへ移行中
    */
   getWorldBuildingAdvice: async (
     message: string,
-    worldElements: WorldBuildingElement[] = []
+    worldElements: UnifiedLocationElement[] = []
   ) => {
     try {
       const response = await axios.post(
@@ -367,7 +364,79 @@ export const aiAgentApi = {
   },
 
   /**
+   * 場所管理に関するアドバイスを取得
+   * @param message ユーザーのメッセージ
+   * @param placeElements 場所要素
+   */
+  getPlaceManagementAdvice: async (
+    message: string,
+    placeElements: UnifiedLocationElement[] = []
+  ) => {
+    // 内部的にはworldbuilding APIを使用（後方互換性のため）
+    return aiAgentApi.getWorldBuildingAdvice(message, placeElements);
+  },
+
+  /**
+   * 場所リストを生成する
+   * @param message ユーザーのメッセージ
+   * @param questElements クエスト要素
+   * @param charactersElements キャラクター要素
+   * @param model 使用するAIモデル
+   * @param format レスポンス形式
+   * @param elementType 生成する要素タイプ
+   * @returns 場所要素のリスト
+   */
+  generatePlaceList: async (
+    message: string,
+    questElements: QuestElement[] = [],
+    charactersElements: TRPGCharacter[] = [],
+    model: string = "gemini-1.5-pro",
+    format: string = "json",
+    elementType: string = "place-management-list"
+  ) => {
+    // 内部的にはworldbuilding APIを使用
+    return aiAgentApi.generateWorldBuildingList(
+      message,
+      questElements,
+      charactersElements,
+      model,
+      format,
+      elementType
+    );
+  },
+
+  /**
+   * 特定の場所の詳細情報を生成する
+   * @param placeName 場所名
+   * @param placeType 場所タイプ
+   * @param message 追加の指示
+   * @param questElements クエスト要素
+   * @param charactersElements キャラクター要素
+   * @param format レスポンス形式
+   * @returns 場所の詳細情報
+   */
+  generatePlaceDetail: async (
+    placeName: string,
+    placeType: string,
+    message: string = "",
+    questElements: QuestElement[] = [],
+    charactersElements: TRPGCharacter[] = [],
+    format: string = "json"
+  ): Promise<WorldBuildingApiResponse> => {
+    // 内部的にはworldbuilding APIを使用
+    return aiAgentApi.generateWorldBuildingDetail(
+      placeName,
+      placeType,
+      message,
+      questElements,
+      charactersElements,
+      format
+    );
+  },
+
+  /**
    * 世界観の要素リストを生成する（分割リクエスト第1段階）
+   * @deprecated PlaceManagementへ移行中
    * @param message ユーザーのメッセージ
    * @param plotElements プロット要素
    * @param charactersElements キャラクター要素
@@ -443,18 +512,6 @@ export const aiAgentApi = {
 
       // 型の検証
       if (!isWorldBuildingApiResponse(response.data)) {
-        console.error("期待される型: WorldBuildingApiResponse", {
-          status: "string",
-          data: "Record<string, unknown>",
-          rawContent: "string",
-          metadata: {
-            model: "string",
-            processingTime: "number",
-            requestType: "string",
-            format: "string",
-          },
-        });
-        console.error("実際のレスポンス:", response.data);
         throw new Error("レスポンスの型が不正です");
       }
 
@@ -463,7 +520,6 @@ export const aiAgentApi = {
       if (error instanceof AxiosError || error instanceof Error) {
         // handleApiError は void を返すことがあるため、Promise<WorldBuildingApiResponse> と型が合わない
         // ここではエラーをそのまま throw するか、エラー用のレスポンスを整形して返す必要がある
-        console.error("世界観要素詳細生成エラー (詳細):", error);
         if (error instanceof AxiosError && error.response) {
           throw new Error(
             `API Error ${error.response.status}: ${
@@ -562,15 +618,18 @@ export const aiAgentApi = {
    */
   generateChapterContent: async (
     chapterTitle: string,
-    relatedEvents: Pick<SessionEvent, "id" | "title" | "description">[],
+    relatedEvents: Pick<UnifiedEvent, "id" | "title" | "description">[],
     charactersInChapter: Pick<
       TRPGCharacter,
       "id" | "name" | "description" | "profession"
     >[],
-    selectedLocations: Pick<
-      WorldBuildingElement,
+    selectedLocations: (Pick<
+      TRPGPlaceElement,
       "id" | "name" | "description"
-    >[],
+    > | Pick<
+      BaseLocation,
+      "id" | "name" | "description"
+    >)[],
     userInstructions?: string,
     targetChapterLength?: "short" | "medium" | "long",
     model?: string
@@ -601,7 +660,6 @@ export const aiAgentApi = {
         } else if (error.message) {
           errorMessage = error.message;
         }
-        console.error("章本文生成APIエラー (詳細):", error);
         throw new Error(errorMessage);
       }
       throw error;
@@ -670,6 +728,41 @@ export const aiAgentApi = {
   },
 
   /**
+   * AI PC会話生成
+   * 状況に応じたAI PC(プレイヤーキャラクター)の会話を生成します
+   */
+  generateAIPCDialogue: async (params: {
+    characterName: string;
+    characterInfo?: TRPGCharacter;
+    currentSituation: string;
+    currentLocation: string;
+    sessionContext?: string;
+    playerCharacterName?: string;
+    model?: string;
+    // 🎯 包括的なコンテキスト情報
+    allPlayerCharacters?: TRPGCharacter[];
+    currentBaseInfo?: BaseLocation;
+    activeEvent?: any;
+    activeEnemies?: any[];
+    activeTrap?: any;
+    campaignInfo?: TRPGCampaign;
+    currentDay?: number;
+    actionCount?: number;
+    maxActionsPerDay?: number;
+    currentSession?: any;
+  }) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/ai-pc-dialogue-generation`, params);
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "AI PC会話生成");
+      }
+      throw error;
+    }
+  },
+
+  /**
    * 🌍 WorldContextBuilder統合・コンテキスト認識型世界観生成
    * 
    * 現在のゲーム状況、場所、キャラクター、セッション情報を考慮した
@@ -711,13 +804,6 @@ export const aiAgentApi = {
     };
   }> => {
     try {
-      console.log('[AI Agent API] コンテキスト認識型世界観生成リクエスト:', {
-        elementName: params.elementName,
-        elementType: params.elementType,
-        situation: params.situation,
-        hasLocation: !!params.currentLocation,
-        hasTRPGCharacters: !!params.activeTRPGCharacters,
-      });
 
       const response = await axios.post(
         `${API_BASE_URL}/worldbuilding-context-generation`,
@@ -728,6 +814,42 @@ export const aiAgentApi = {
     } catch (error) {
       if (error instanceof AxiosError || error instanceof Error) {
         return handleApiError(error, "コンテキスト認識型世界観生成");
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * TRPGアクション結果生成
+   * プレイヤーの行動に対して構造化された結果を生成します
+   */
+  generateTRPGActionResult: async (actionRequest: TRPGActionRequest): Promise<{
+    status: string;
+    data: TRPGActionResult;
+    metadata: {
+      model: string;
+      processingTime: number;
+      requestType: string;
+      hasStructuredResponse: boolean;
+    };
+  }> => {
+    try {
+
+      const response = await axios.post(
+        `${API_BASE_URL}/trpg-action-result`,
+        actionRequest,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000, // 30秒タイムアウト
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError || error instanceof Error) {
+        return handleApiError(error, "TRPG行動結果生成");
       }
       throw error;
     }

@@ -30,6 +30,8 @@ import {
 } from "../utils/testDataLoader";
 import { createTrulyEmptyCampaign } from "../utils/emptyCampaignDefaults";
 import { EnemyCharacter } from "@trpg-ai-gm/types";
+import { aiAgentApi } from "../api/aiAgent";
+import { TRPGActionRequest, TRPGActionResult, EventResult, PartyInventoryItem, ClearCondition } from "@trpg-ai-gm/types";
 
 // ターンベース行動管理
 interface CharacterAction {
@@ -104,6 +106,11 @@ interface TRPGSessionUIState {
 
   // デバッグパネル状態
   showDebugPanel: boolean;
+
+  // 🎯 イベント・エネミー・トラップ状態（AI PC会話用）
+  activeEnemies: EnemyCharacter[];
+  currentEvent: any;
+  activeTrap: any;
 }
 
 // ビジネスロジックとUIの統合フック
@@ -122,6 +129,7 @@ export const useTRPGSessionUI = () => {
     setSelectedCharacter,
     currentDay,
     actionCount,
+    setActionCount,
     maxActionsPerDay,
     currentLocation,
     setCurrentLocation,
@@ -199,6 +207,11 @@ export const useTRPGSessionUI = () => {
       awaitingCharacters: [],
       isProcessingTurn: false,
     },
+
+    // 🎯 イベント・エネミー・トラップ状態の初期化
+    activeEnemies: [],
+    currentEvent: null,
+    activeTrap: null,
   });
 
   // TRPGセッションページでのテストデータ自動読み込み
@@ -894,6 +907,74 @@ export const useTRPGSessionUI = () => {
     }));
   }, []);
 
+  // AIレスポンスから行動選択肢をパースして更新
+  const parseAndUpdateActionsFromMessage = useCallback((message: string) => {
+    console.log("🔍 AIメッセージから行動選択肢をパース中:", message);
+    
+    // 「新しい選択肢」や「💡 新しい選択肢」パターンを検索
+    const actionPattern = /💡\s*新しい選択肢[:\s]*\n?([\s\S]*?)(?=\n\n|$)/i;
+    const match = message.match(actionPattern);
+    
+    if (match) {
+      const actionsText = match[1];
+      console.log("📋 抽出された選択肢テキスト:", actionsText);
+      
+      // 選択肢を行ごとに分割
+      const actionLines = actionsText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0 && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')));
+      
+      if (actionLines.length > 0) {
+        const newActions: ActionChoice[] = actionLines.map((line, index) => {
+          // '• アクション名: 説明' または '• アクション名' 形式をパース
+          const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+          const colonIndex = cleanLine.indexOf(':');
+          
+          let actionName: string;
+          let actionDescription: string;
+          
+          if (colonIndex > 0) {
+            actionName = cleanLine.substring(0, colonIndex).trim();
+            actionDescription = cleanLine.substring(colonIndex + 1).trim();
+          } else {
+            actionName = cleanLine;
+            actionDescription = cleanLine;
+          }
+          
+          return {
+            id: `ai-action-${Date.now()}-${index}`,
+            type: "custom" as const,
+            label: actionName,
+            description: actionDescription,
+            icon: getActionIcon(actionName),
+            requiresTarget: false,
+          };
+        });
+        
+        console.log("✅ 新しい行動選択肢を設定:", newActions);
+        setAvailableActions(newActions);
+      } else {
+        console.log("⚠️ 行動選択肢が見つかりませんでした");
+      }
+    } else {
+      console.log("⚠️ '新しい選択肢' パターンが見つかりませんでした");
+    }
+  }, [getActionIcon, setAvailableActions]);
+
+  // システムメッセージ監視：行動選択肢の自動パース
+  useEffect(() => {
+    const latestMessage = uiState.chatMessages[uiState.chatMessages.length - 1];
+    if (latestMessage && 
+        latestMessage.senderType === 'system' && 
+        latestMessage.message.includes('💡 新しい選択肢')) {
+      console.log("🔄 システムメッセージから行動選択肢をパース");
+      setTimeout(() => {
+        parseAndUpdateActionsFromMessage(latestMessage.message);
+      }, 100);
+    }
+  }, [uiState.chatMessages, parseAndUpdateActionsFromMessage]);
+
   // ターン管理機能（プレイヤーキャラクターのみ）
   const initializeTurn = useCallback(() => {
     // プレイヤーキャラクターのみをターン管理対象にする
@@ -914,8 +995,579 @@ export const useTRPGSessionUI = () => {
     }));
   }, [playerCharacters, uiState.turnState.currentTurn]);
 
+  // ===============================
+  // 🎯 Phase 2: 構造化行動結果処理
+  // ===============================
+
+  // ===============================
+  // 🎯 Phase 3: ゲーム状態変更システム
+  // ===============================
+
+  /**
+   * キャラクターステータス汎用更新関数
+   */
+  const updateCharacterStatus = useCallback((
+    characterId: string, 
+    updates: Partial<PlayerCharacter>
+  ) => {
+    console.log("🔄 キャラクターステータス更新:", { characterId, updates });
+    
+    setCurrentCampaign(prev => {
+      if (!prev) {
+        console.warn("❌ currentCampaignが存在しません");
+        return prev;
+      }
+      
+      const updatedCampaign = {
+        ...prev,
+        characters: prev.characters?.map(char => 
+          char.id === characterId 
+            ? { ...char, ...updates }
+            : char
+        )
+      };
+      
+      console.log("✅ キャラクターステータス更新完了:", characterId);
+      return updatedCampaign;
+    });
+  }, [setCurrentCampaign]);
+
+  /**
+   * キャラクターHP更新関数
+   */
+  const updateCharacterHP = useCallback((characterId: string, change: number) => {
+    console.log("💗 HP更新開始:", { characterId, change });
+    
+    const character = playerCharacters.find(c => c.id === characterId);
+    if (!character) {
+      console.warn("❌ キャラクターが見つかりません:", characterId);
+      return;
+    }
+    
+    const currentHP = character.currentHP ?? character.derived?.HP ?? 40;
+    const maxHP = character.derived?.HP ?? 40;
+    const newHP = Math.max(0, Math.min(maxHP, currentHP + change));
+    
+    console.log("💗 HP計算:", { currentHP, maxHP, change, newHP });
+    
+    updateCharacterStatus(characterId, { currentHP: newHP });
+  }, [playerCharacters, updateCharacterStatus]);
+
+  /**
+   * キャラクターMP更新関数
+   */
+  const updateCharacterMP = useCallback((characterId: string, change: number) => {
+    console.log("🔮 MP更新開始:", { characterId, change });
+    
+    const character = playerCharacters.find(c => c.id === characterId);
+    if (!character) {
+      console.warn("❌ キャラクターが見つかりません:", characterId);
+      return;
+    }
+    
+    const currentMP = character.currentMP ?? character.derived?.MP ?? 20;
+    const maxMP = character.derived?.MP ?? 20;
+    const newMP = Math.max(0, Math.min(maxMP, currentMP + change));
+    
+    console.log("🔮 MP計算:", { currentMP, maxMP, change, newMP });
+    
+    updateCharacterStatus(characterId, { currentMP: newMP });
+  }, [playerCharacters, updateCharacterStatus]);
+
+  /**
+   * パーティ所持金更新関数
+   */
+  const updatePartyGold = useCallback((change: number) => {
+    console.log("💰 所持金更新開始:", { change });
+    
+    setCurrentCampaign(prev => {
+      if (!prev) {
+        console.warn("❌ currentCampaignが存在しません");
+        return prev;
+      }
+      
+      const currentGold = prev.partyGold ?? 500; // デフォルト500G
+      const newGold = Math.max(0, currentGold + change);
+      
+      console.log("💰 所持金計算:", { currentGold, change, newGold });
+      
+      const updatedCampaign = {
+        ...prev,
+        partyGold: newGold
+      };
+      
+      console.log("✅ パーティ所持金更新完了:", newGold);
+      return updatedCampaign;
+    });
+  }, [setCurrentCampaign]);
+
+  /**
+   * インベントリアイテム追加関数
+   */
+  const addInventoryItem = useCallback((itemId: string, quantity: number = 1) => {
+    console.log("📦 アイテム追加開始:", { itemId, quantity });
+    
+    setCurrentCampaign(prev => {
+      if (!prev) {
+        console.warn("❌ currentCampaignが存在しません");
+        return prev;
+      }
+      
+      const currentInventory = prev.partyInventory ?? [];
+      const existingItemIndex = currentInventory.findIndex(item => item.itemId === itemId);
+      
+      let updatedInventory;
+      if (existingItemIndex >= 0) {
+        // 既存アイテムの数量を増やす
+        updatedInventory = [...currentInventory];
+        updatedInventory[existingItemIndex] = {
+          ...updatedInventory[existingItemIndex],
+          quantity: updatedInventory[existingItemIndex].quantity + quantity
+        };
+        console.log("📦 既存アイテム数量更新:", updatedInventory[existingItemIndex]);
+      } else {
+        // 新規アイテムを追加
+        const newItem: PartyInventoryItem = {
+          itemId,
+          quantity
+        };
+        updatedInventory = [...currentInventory, newItem];
+        console.log("📦 新規アイテム追加:", newItem);
+      }
+      
+      const updatedCampaign = {
+        ...prev,
+        partyInventory: updatedInventory
+      };
+      
+      console.log("✅ インベントリ更新完了");
+      return updatedCampaign;
+    });
+  }, [setCurrentCampaign]);
+
+  /**
+   * インベントリアイテム削除関数
+   */
+  const removeInventoryItem = useCallback((itemId: string, quantity: number = 1) => {
+    console.log("📦 アイテム削除開始:", { itemId, quantity });
+    
+    setCurrentCampaign(prev => {
+      if (!prev) {
+        console.warn("❌ currentCampaignが存在しません");
+        return prev;
+      }
+      
+      const currentInventory = prev.partyInventory ?? [];
+      const existingItemIndex = currentInventory.findIndex(item => item.itemId === itemId);
+      
+      if (existingItemIndex < 0) {
+        console.warn("❌ アイテムが見つかりません:", itemId);
+        return prev;
+      }
+      
+      let updatedInventory = [...currentInventory];
+      const currentItem = updatedInventory[existingItemIndex];
+      
+      if (currentItem.quantity <= quantity) {
+        // アイテムを完全に削除
+        updatedInventory.splice(existingItemIndex, 1);
+        console.log("📦 アイテム完全削除:", itemId);
+      } else {
+        // 数量を減らす
+        updatedInventory[existingItemIndex] = {
+          ...currentItem,
+          quantity: currentItem.quantity - quantity
+        };
+        console.log("📦 アイテム数量減少:", updatedInventory[existingItemIndex]);
+      }
+      
+      const updatedCampaign = {
+        ...prev,
+        partyInventory: updatedInventory
+      };
+      
+      console.log("✅ インベントリ削除完了");
+      return updatedCampaign;
+    });
+  }, [setCurrentCampaign]);
+
+  /**
+   * キャンペーンフラグ設定関数
+   */
+  const setCampaignFlag = useCallback((flagKey: string, flagValue: any) => {
+    console.log("🚩 フラグ設定開始:", { flagKey, flagValue });
+    
+    setCurrentCampaign(prev => {
+      if (!prev) {
+        console.warn("❌ currentCampaignが存在しません");
+        return prev;
+      }
+      
+      const currentFlags = prev.campaignFlags ?? {};
+      const updatedFlags = {
+        ...currentFlags,
+        [flagKey]: flagValue
+      };
+      
+      const updatedCampaign = {
+        ...prev,
+        campaignFlags: updatedFlags
+      };
+      
+      console.log("✅ フラグ設定完了:", { flagKey, flagValue });
+      return updatedCampaign;
+    });
+  }, [setCurrentCampaign]);
+
+  /**
+   * キャンペーンフラグ取得関数
+   */
+  const getCampaignFlag = useCallback((flagKey: string, defaultValue: any = null): any => {
+    const campaign = currentCampaign;
+    if (!campaign?.campaignFlags) {
+      return defaultValue;
+    }
+    
+    const value = campaign.campaignFlags[flagKey];
+    return value !== undefined ? value : defaultValue;
+  }, [currentCampaign]);
+
+  /**
+   * クリア条件チェック関数
+   */
+  const checkClearConditions = useCallback((): {
+    condition: ClearCondition;
+    isCompleted: boolean;
+    progress: string;
+  }[] => {
+    if (!currentCampaign?.clearConditions) {
+      return [];
+    }
+    
+    return currentCampaign.clearConditions.map(condition => {
+      let isCompleted = false;
+      let progress = "未達成";
+      
+      switch (condition.type) {
+        case "item_collection":
+          if (condition.requiredItems && currentCampaign.partyInventory) {
+            const inventory = currentCampaign.partyInventory;
+            const totalRequired = condition.requiredItems.length;
+            let completedItems = 0;
+            
+            for (const requiredItem of condition.requiredItems) {
+              const inventoryItem = inventory.find(item => item.itemId === requiredItem.itemId);
+              if (inventoryItem && inventoryItem.quantity >= requiredItem.quantity) {
+                completedItems++;
+              }
+            }
+            
+            isCompleted = completedItems === totalRequired;
+            progress = `${completedItems}/${totalRequired} アイテム取得済み`;
+          }
+          break;
+          
+        case "story_milestone":
+          if (condition.storyMilestone) {
+            const flagValue = getCampaignFlag(condition.storyMilestone, false);
+            isCompleted = !!flagValue;
+            progress = isCompleted ? "達成済み" : "未達成";
+          }
+          break;
+          
+        case "custom":
+          // カスタム条件はフラグで管理
+          const customFlagKey = `custom_condition_${condition.id}`;
+          const customValue = getCampaignFlag(customFlagKey, false);
+          isCompleted = !!customValue;
+          progress = isCompleted ? "達成済み" : "未達成";
+          break;
+          
+        default:
+          progress = "未実装の条件タイプ";
+          break;
+      }
+      
+      return {
+        condition,
+        isCompleted,
+        progress
+      };
+    });
+  }, [currentCampaign, getCampaignFlag]);
+
+  /**
+   * ゲーム効果を実際のゲーム状態に適用する
+   */
+  const applyGameEffects = useCallback(async (
+    gameEffects: EventResult[],
+    targetCharacter: any
+  ): Promise<void> => {
+    for (const effect of gameEffects) {
+      try {
+        console.log("🎲 ゲーム効果適用:", effect);
+
+        switch (effect.type) {
+          case "hp_change":
+            if (effect.value && effect.characterId) {
+              // 🎯 実際のHP更新
+              updateCharacterHP(effect.characterId, effect.value);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `💗 ${targetCharacter.name}のHP: ${effect.value > 0 ? '+' : ''}${effect.value} (${effect.description})`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          case "mp_change":
+            if (effect.value && effect.characterId) {
+              // 🎯 実際のMP更新
+              updateCharacterMP(effect.characterId, effect.value);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `🔮 ${targetCharacter.name}のMP: ${effect.value > 0 ? '+' : ''}${effect.value} (${effect.description})`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          case "gold_change":
+            if (effect.value) {
+              // 🎯 実際の所持金更新
+              updatePartyGold(effect.value);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `💰 所持金: ${effect.value > 0 ? '+' : ''}${effect.value}G (${effect.description})`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          case "item_gained":
+            if (effect.itemId && effect.itemQuantity) {
+              // 🎯 実際のアイテム追加
+              addInventoryItem(effect.itemId, effect.itemQuantity);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `📦 アイテム取得: ${effect.itemId} x${effect.itemQuantity} (${effect.description})`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          case "flag_set":
+            if (effect.flagKey && effect.flagValue !== undefined) {
+              // 🎯 実際のキャンペーンフラグ設定
+              setCampaignFlag(effect.flagKey, effect.flagValue);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `🚩 ${effect.description}`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          case "flag_unset":
+            if (effect.flagKey) {
+              // 🎯 キャンペーンフラグの削除
+              setCampaignFlag(effect.flagKey, null);
+              
+              const effectMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: "システム",
+                senderType: "system",
+                message: `🚩 ${effect.description}`,
+                timestamp: new Date(),
+              };
+              
+              setUIState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, effectMessage],
+              }));
+            }
+            break;
+
+          default:
+            console.log("🔧 未対応のゲーム効果:", effect.type);
+            break;
+        }
+      } catch (effectError) {
+        console.error("ゲーム効果適用エラー:", effectError);
+      }
+    }
+  }, [updateCharacterHP, updateCharacterMP, updatePartyGold, addInventoryItem, setCampaignFlag]);
+
+  /**
+   * 構造化されたアクション結果を処理する
+   */
+  const processStructuredActionResult = useCallback(async (
+    actionText: string,
+    characterId: string,
+    character: any
+  ): Promise<void> => {
+    try {
+      console.log("🎯 構造化行動結果処理開始:", { actionText, characterId });
+
+      // リッチなコンテキスト情報を構築
+      const actionRequest: TRPGActionRequest = {
+        actionText,
+        characterId,
+        location: currentLocation,
+        dayNumber: currentDay,
+        timeOfDay: "morning", // TODO: 実際の時刻管理を実装
+        partyMembers: playerCharacters.map(pc => ({
+          id: pc.id,
+          name: pc.name,
+          currentHP: pc.derived?.HP || 40,
+          maxHP: pc.derived?.HP || 40,
+          currentMP: pc.derived?.MP || 20,
+          maxMP: pc.derived?.MP || 20,
+          level: 1, // TODO: 実際のレベル管理
+          gold: 500, // TODO: 実際の所持金管理
+        })),
+        availableFacilities: getCurrentBase()?.facilities ? 
+          Object.keys(getCurrentBase()!.facilities).filter(key => {
+            const facilities = getCurrentBase()!.facilities;
+            return facilities[key as keyof typeof facilities] !== undefined;
+          }) : [],
+        activeQuests: [], // TODO: 実際のクエスト管理
+        campaignFlags: {}, // TODO: 実際のフラグ管理
+        partyInventory: [], // TODO: 実際のインベントリ管理
+        previousActions: uiState.turnState.actionsThisTurn
+          .slice(-3)
+          .map(action => action.actionText),
+        locationDescription: getCurrentBase()?.description || `${currentLocation}での冒険`,
+        currentEvents: [], // TODO: 実際のイベント管理
+      };
+
+      // AIから構造化結果を取得
+      const response = await aiAgentApi.generateTRPGActionResult(actionRequest);
+
+      if (response.status === 'success') {
+        const result: TRPGActionResult = response.data;
+        
+        console.log("✅ 構造化レスポンス取得成功:", {
+          narrativeLength: result.narrative.length,
+          gameEffectsCount: result.gameEffects.length,
+          newOpportunitiesCount: result.newOpportunities?.length || 0
+        });
+
+        // 1. ナラティブテキストをチャットに表示
+        const narrativeMessage: ChatMessage = {
+          id: uuidv4(),
+          sender: "AIゲームマスター",
+          senderType: "gm",
+          message: `🎭 ${result.narrative}`,
+          timestamp: new Date(),
+        };
+
+        setUIState(prev => ({
+          ...prev,
+          chatMessages: [...prev.chatMessages, narrativeMessage],
+        }));
+
+        // 2. ゲーム効果を適用
+        await applyGameEffects(result.gameEffects, character);
+
+        // 3. 新しい機会があれば表示
+        if (result.newOpportunities && result.newOpportunities.length > 0) {
+          const opportunitiesText = result.newOpportunities
+            .map(opp => `• ${opp.actionName}: ${opp.description}`)
+            .join('\n');
+          
+          const opportunitiesMessage: ChatMessage = {
+            id: uuidv4(),
+            sender: "システム",
+            senderType: "system",
+            message: `💡 新しい選択肢:\n${opportunitiesText}`,
+            timestamp: new Date(),
+          };
+
+          setUIState(prev => ({
+            ...prev,
+            chatMessages: [...prev.chatMessages, opportunitiesMessage],
+          }));
+        }
+
+        // 4. 将来の影響があれば記録
+        if (result.futureConsequences && result.futureConsequences.length > 0) {
+          console.log("📝 将来への影響:", result.futureConsequences);
+          // TODO: キャンペーンフラグとして保存
+        }
+
+      } else {
+        throw new Error('AI API からの無効なレスポンス');
+      }
+
+    } catch (error) {
+      console.error("❌ 構造化行動結果処理エラー:", error);
+      
+      // フォールバック: 基本的なメッセージを表示
+      const fallbackMessage: ChatMessage = {
+        id: uuidv4(),
+        sender: "システム",
+        senderType: "system",
+        message: `⚠️ ${actionText}を実行しましたが、詳細な結果の取得に失敗しました。`,
+        timestamp: new Date(),
+      };
+
+      setUIState(prev => ({
+        ...prev,
+        chatMessages: [...prev.chatMessages, fallbackMessage],
+      }));
+    }
+  }, [
+    currentLocation,
+    currentDay,
+    playerCharacters,
+    getCurrentBase,
+    uiState.turnState.actionsThisTurn,
+    applyGameEffects,
+  ]);
+
   const processPlayerAction = useCallback(
-    (actionText: string) => {
+    async (actionText: string) => {
       if (!selectedCharacter) return;
 
       const action: CharacterAction = {
@@ -942,12 +1594,25 @@ export const useTRPGSessionUI = () => {
         `🎯 ${selectedCharacter.name}の行動: ${actionText}`,
       );
 
+      // 🎯 行動回数をインクリメント
+      setActionCount(prev => prev + 1);
+      console.log(`📊 行動回数をインクリメント: ${actionCount + 1}/${maxActionsPerDay}`);
+
+      // 🎯 Phase 2: 構造化行動結果処理を実行
+      console.log("🚀 構造化行動結果処理を開始...");
+      try {
+        await processStructuredActionResult(actionText, selectedCharacter.id, selectedCharacter);
+      } catch (error) {
+        console.error("構造化行動結果処理エラー:", error);
+        // フォールバックとして従来の処理は不要（processStructuredActionResult内でフォールバック処理済み）
+      }
+
       // 他のプレイヤーキャラクターの自動行動を処理
       console.log(
         `🎯 ${selectedCharacter.name} 行動完了 - 他キャラクター処理をトリガー`,
       );
     },
-    [selectedCharacter, handleAddSystemMessage],
+    [selectedCharacter, handleAddSystemMessage, processStructuredActionResult, setActionCount, actionCount, maxActionsPerDay],
   );
 
   // プレイヤーアクション完了後に他のキャラクターの処理を自動開始
@@ -1931,6 +2596,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
           chatMessages: [...prev.chatMessages, gmMessage],
         }));
 
+        // AIレスポンスから行動選択肢をパースして抽出
+        setTimeout(() => {
+          parseAndUpdateActionsFromMessage(aiResponse);
+        }, 100);
+
         // ユーザー操作キャラクター固有の行動選択肢を設定
         if (character) {
           console.log(
@@ -2089,6 +2759,147 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     [],
   );
 
+  // 🤖 汎用AI PC会話生成関数（任意のキャラクター対応）
+  const generateAIPCDialogue = useCallback(async (context: string) => {
+    console.log("🤖 汎用AI PC会話生成中（全キャラクター対応）...");
+    
+    try {
+      const otherPCs = playerCharacters.filter(pc => pc.id !== selectedCharacter?.id);
+      if (otherPCs.length === 0) {
+        console.log("⚠️ 他のPCが存在しないため、AI PC会話をスキップ");
+        return;
+      }
+
+      console.log(`📊 対象PC数: ${otherPCs.length}人 (${otherPCs.map(pc => pc.name).join(', ')})`);
+
+      // 現在の状況情報を詳細に収集
+      const currentBase = getCurrentBase();
+      const sessionContext = {
+        campaignTitle: currentCampaign?.title || 'TRPGセッション',
+        campaignSynopsis: currentCampaign?.synopsis || '',
+        currentLocation: currentLocation,
+        currentDay: currentDay,
+        actionCount: actionCount,
+        maxActions: maxActionsPerDay,
+        situation: context || '行動選択待ち',
+        baseInfo: currentBase ? {
+          name: currentBase.name,
+          type: currentBase.type,
+          description: currentBase.description
+        } : null
+      };
+
+      console.log("📋 セッションコンテキスト:", sessionContext);
+
+      // AI PC会話を順次生成（最大2人まで、処理負荷を考慮）
+      const pcToProcess = otherPCs.slice(0, 2);
+      
+      for (let i = 0; i < pcToProcess.length; i++) {
+        const character = pcToProcess[i];
+        
+        setTimeout(async () => {
+          try {
+            console.log(`🎭 ${character.name}(${character.profession})の会話をAI生成中...`);
+            
+            // 状況説明を動的に生成
+            const situationDescription = `${sessionContext.campaignTitle}の${sessionContext.currentDay}日目、
+現在地「${sessionContext.currentLocation}」での${sessionContext.situation}の場面。
+行動回数: ${sessionContext.actionCount}/${sessionContext.maxActions}`;
+            
+            // 包括的なコンテキスト情報を収集
+            const currentBase = getCurrentBase();
+            
+            // 現在アクティブなエネミー情報を取得
+            const activeEnemies = uiState.activeEnemies || [];
+            
+            // 現在のイベント情報を取得（セッションログや状態から判定）
+            const activeEvent = uiState.currentEvent || null;
+            
+            // 現在のトラップ情報を取得
+            const activeTrap = uiState.activeTrap || null;
+
+            // AIに会話を生成させる（包括的パラメータ）
+            const response = await aiAgentApi.generateAIPCDialogue({
+              characterName: character.name,
+              characterInfo: character,
+              currentSituation: situationDescription,
+              currentLocation: sessionContext.currentLocation,
+              sessionContext: sessionContext.campaignSynopsis,
+              playerCharacterName: selectedCharacter?.name || '',
+              // 🎯 包括的なコンテキスト情報
+              allPlayerCharacters: playerCharacters,
+              currentBaseInfo: currentBase,
+              activeEvent: activeEvent,
+              activeEnemies: activeEnemies,
+              activeTrap: activeTrap,
+              campaignInfo: currentCampaign || undefined,
+              currentDay: sessionContext.currentDay,
+              actionCount: sessionContext.actionCount,
+              maxActionsPerDay: sessionContext.maxActions,
+              currentSession: {
+                day: sessionContext.currentDay,
+                location: sessionContext.currentLocation,
+                baseInfo: currentBase
+              }
+            });
+
+            if (response.status === 'success' && response.data?.dialogue) {
+              const aiPCMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: character.name,
+                senderType: "ai_pc",
+                message: `💬 ${response.data.dialogue}`,
+                timestamp: new Date(),
+              };
+
+              setUIState((prev) => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, aiPCMessage],
+              }));
+
+              console.log(`✅ ${character.name}のAI生成会話完了: "${response.data.dialogue}"`);
+            } else {
+              console.warn(`⚠️ ${character.name}の会話生成失敗、汎用フォールバック使用`);
+              
+              // 汎用フォールバック（キャラクター情報を活用）
+              const fallbackMessage: ChatMessage = {
+                id: uuidv4(),
+                sender: character.name,
+                senderType: "ai_pc",
+                message: `💬 ${selectedCharacter?.name || 'みんな'}、${character.profession}の視点から何かアドバイスできるかも`,
+                timestamp: new Date(),
+              };
+
+              setUIState((prev) => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, fallbackMessage],
+              }));
+            }
+          } catch (error) {
+            console.error(`❌ ${character.name}の会話生成エラー:`, error);
+            
+            // 汎用エラーフォールバック
+            const errorFallbackMessage: ChatMessage = {
+              id: uuidv4(),
+              sender: character.name,
+              senderType: "ai_pc", 
+              message: `💬 ${selectedCharacter?.name || 'チーム'}、一緒に考えよう`,
+              timestamp: new Date(),
+            };
+
+            setUIState((prev) => ({
+              ...prev,
+              chatMessages: [...prev.chatMessages, errorFallbackMessage],
+            }));
+          }
+        }, (i + 1) * 2500); // 2.5秒間隔で表示（API処理時間を考慮）
+      }
+
+    } catch (error) {
+      console.error("❌ 汎用AI PC会話生成エラー:", error);
+    }
+  }, [playerCharacters, selectedCharacter, currentLocation, currentDay, currentCampaign, actionCount, maxActionsPerDay, getCurrentBase]);
+
   // シンプルな行動案内生成（固定値版）
   const generateSimpleActionGuidance = useCallback(async () => {
     console.log("📊 行動案内メッセージを生成中...");
@@ -2130,6 +2941,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
       }));
 
       console.log("✅ 行動案内メッセージ生成完了");
+
+      // 🎯 NEW: システムメッセージ後にAI PC会話を生成
+      setTimeout(() => {
+        generateAIPCDialogue(currentLocation);
+      }, 1000);
 
       // ユーザー操作キャラクター固有の行動選択肢を設定
       if (selectedCharacter) {
@@ -2263,6 +3079,7 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     setUIState((prev) => ({
       ...prev,
       isSessionStarted: true,
+      sessionStatus: "active", // タブを有効化するために追加
       turnState: {
         currentTurn: 1,
         actionsThisTurn: [],
@@ -2620,6 +3437,11 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     ],
   );
 
+  // ===============================
+  // 🎯 Phase 2: 構造化行動結果処理
+  // ===============================
+
+
   return {
     // セッションデータ
     currentCampaign,
@@ -2657,9 +3479,23 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     handleOpenStartingLocationDialog,
     handleSetStartingLocation,
 
-    // セッションアクション
+    // セッションアクション (Phase 2: 構造化処理)
     executeAction: handleExecuteAction,
     originalExecuteAction: executeAction,
+    processStructuredActionResult,
+    applyGameEffects,
+    
+    // Phase 3: ゲーム状態変更システム
+    updateCharacterStatus,
+    updateCharacterHP,
+    updateCharacterMP,
+    updatePartyGold,
+    addInventoryItem,
+    removeInventoryItem,
+    setCampaignFlag,
+    getCampaignFlag,
+    checkClearConditions,
+    
     advanceDay,
     saveSession,
     openAIAssist: handleStartAISession,
@@ -2682,4 +3518,21 @@ ${character?.name || "冒険者"}が${playerAction}を行います。
     toggleDebugPanel,
     debugActions,
   };
+};
+
+// フック関数外でカスタムイベントリスナーを設定
+export const useDebugItemListener = (addInventoryItem: (itemId: string, quantity: number) => void) => {
+  useEffect(() => {
+    const handleDebugAddItem = (event: CustomEvent) => {
+      const { itemId, quantity } = event.detail;
+      console.log('🔧 デバッグ: アイテム追加', { itemId, quantity });
+      addInventoryItem(itemId, quantity);
+    };
+
+    window.addEventListener('debug-add-item', handleDebugAddItem as EventListener);
+    
+    return () => {
+      window.removeEventListener('debug-add-item', handleDebugAddItem as EventListener);
+    };
+  }, [addInventoryItem]);
 };

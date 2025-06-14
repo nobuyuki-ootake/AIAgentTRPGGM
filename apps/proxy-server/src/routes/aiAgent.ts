@@ -13,7 +13,8 @@ import {
   TRPG_ENCOUNTER_GENERATOR,
   TRPG_GM_ASSISTANT,
   TRPG_COMBAT_RESOLVER,
-  TRPG_STORY_PROGRESSION
+  TRPG_STORY_PROGRESSION,
+  TRPG_ACTION_RESULT_GENERATOR
 } from '../utils/systemPrompts.js';
 import * as yaml from 'js-yaml';
 import {
@@ -22,8 +23,10 @@ import {
   Chapter,
   TimelineEvent,
   Character,
+  TRPGActionRequest,
+  TRPGActionResult,
 } from '@trpg-ai-gm/types';
-import { generateElementPrompt } from '../utils/worldBuildingSchemas.js';
+import { generateElementPrompt } from '../utils/placeGenerationSchemas.js';
 import { GoogleCloudStorageService } from '../services/google-cloud.service.js';
 
 const router = express.Router();
@@ -2262,6 +2265,179 @@ GMとして適切な対応を提案してください。`;
 });
 
 /**
+ * AI PC会話生成エンドポイント
+ * 状況に応じたAI PC(プレイヤーキャラクター)の会話を生成します
+ */
+router.post('/ai-pc-dialogue-generation', async (req, res) => {
+  try {
+    const { 
+      characterName, 
+      characterInfo, 
+      currentSituation, 
+      currentLocation, 
+      sessionContext, 
+      playerCharacterName,
+      model,
+      // 🎯 新しいコンテキスト情報
+      allPlayerCharacters,
+      currentBaseInfo,
+      activeEvent,
+      activeEnemies,
+      activeTrap,
+      campaignInfo,
+      currentDay,
+      actionCount,
+      maxActionsPerDay,
+      currentSession
+    } = req.body;
+    
+    console.log('[API] AI PC会話生成リクエスト:', {
+      characterName,
+      currentLocation,
+      playerCharacterName
+    });
+
+    // キャラクター情報から重要な要素を抽出
+    const characterDetails = characterInfo ? {
+      name: characterInfo.name || characterName,
+      profession: characterInfo.profession || '不明',
+      gender: characterInfo.gender || '不明',
+      description: characterInfo.description || '',
+      personality: characterInfo.backstory || characterInfo.description || '',
+      skills: characterInfo.skills ? Object.keys(characterInfo.skills).join(', ') : '不明'
+    } : null;
+
+    // パーティー情報の整理
+    const partyInfo = allPlayerCharacters ? allPlayerCharacters.map(pc => 
+      `${pc.name}(${pc.profession || '職業不明'})`
+    ).join(', ') : '不明';
+
+    // 現在のイベント・危険情報の整理
+    const currentEvents = [];
+    if (activeEvent) currentEvents.push(`イベント: ${activeEvent.title || activeEvent.name || '不明'}`);
+    if (activeEnemies && activeEnemies.length > 0) {
+      currentEvents.push(`敵: ${activeEnemies.map(e => e.name).join(', ')}`);
+    }
+    if (activeTrap) currentEvents.push(`トラップ: ${activeTrap.name || activeTrap.type || '不明'}`);
+    
+    const eventInfo = currentEvents.length > 0 ? currentEvents.join(', ') : 'なし';
+
+    // 拠点情報の整理
+    const baseInfo = currentBaseInfo ? `
+拠点名: ${currentBaseInfo.name || '不明'}
+拠点タイプ: ${currentBaseInfo.type || '不明'}  
+説明: ${currentBaseInfo.description || '詳細不明'}
+利用可能施設: ${currentBaseInfo.facilities ? Object.keys(currentBaseInfo.facilities).join(', ') : '不明'}` : '拠点情報なし';
+
+    const userPrompt = `あなたは「${characterName}」というTRPGキャラクターとして、現在の複雑な状況に対して発言してください。
+
+【あなたのキャラクター設定】
+名前: ${characterDetails?.name || characterName}
+職業: ${characterDetails?.profession || '冒険者'}
+性別: ${characterDetails?.gender || '不明'}
+性格・背景: ${characterDetails?.personality || '詳細不明'}
+主なスキル: ${characterDetails?.skills || '不明'}
+
+【セッション全体の状況】
+キャンペーン: ${campaignInfo?.title || sessionContext || '不明'}
+${campaignInfo?.synopsis ? `背景: ${campaignInfo.synopsis}` : ''}
+現在: ${currentDay || '?'}日目 (行動${actionCount || '?'}/${maxActionsPerDay || '?'}回目)
+
+【現在地と環境】
+場所: ${currentLocation}
+${baseInfo}
+
+【パーティー構成】
+メンバー: ${partyInfo}
+操作中: ${playerCharacterName || '不明'}
+
+【現在発生中の事象】
+${eventInfo}
+
+【状況詳細】
+${currentSituation}
+
+【発言指針】
+1. 現在発生している事象(${eventInfo})を踏まえた実用的な発言をする
+2. ${characterName}の職業「${characterDetails?.profession || '冒険者'}」の専門知識を活かした助言をする  
+3. ${playerCharacterName || 'パーティリーダー'}への協力と連携を重視する
+4. 拠点や場所の特性を考慮した戦術的提案をする
+5. パーティー全体の安全と成功を第一に考える
+6. 1-2文の自然な会話口調で、絵文字は使わない
+7. 性別「${characterDetails?.gender || '不明'}」に適した自然な話し方・語尾を使用する
+   ${characterDetails?.gender === '男性' ? '(例: だ/である調、だな/だろう等の男性的な語尾)' : ''}
+   ${characterDetails?.gender === '女性' ? '(例: よ/ね/わ等の女性的な語尾、丁寧で柔らかい口調)' : ''}
+   ${characterDetails?.gender === '不明' ? '(中性的で自然な口調)' : ''}
+
+${characterName}として、この複雑な状況に対する適切な発言をしてください:`;
+
+    const aiRequest: StandardAIRequest = {
+      requestType: 'ai-pc-dialogue-generation',
+      model: model || 'gemini-1.5-pro',
+      systemPrompt: `あなたは汎用的なTRPGセッションでプレイヤーキャラクターを演じるAIです。
+与えられたキャラクター情報と現在の状況に基づいて、そのキャラクターらしい自然な発言をしてください。
+どんなキャンペーン設定、キャラクター名、職業にも対応できる柔軟性を持ってください。
+パーティの協調性を重視し、建設的で前向きな提案を心がけてください。`,
+      userPrompt,
+      context: {
+        characterName,
+        currentSituation,
+        currentLocation,
+        playerCharacterName
+      },
+      options: {
+        temperature: 0.8,
+        maxTokens: 200,
+        responseFormat: 'text',
+      },
+    };
+
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] AI PC会話生成エラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    // 生成されたテキストをクリーンアップ
+    let cleanedDialogue = aiResponse.content;
+    if (typeof cleanedDialogue === 'string') {
+      // 不要な前後の空白や改行を削除
+      cleanedDialogue = cleanedDialogue.trim();
+      // 「」の引用符を削除（もしあれば）
+      cleanedDialogue = cleanedDialogue.replace(/^「|」$/g, '');
+      // その他の不要な記号を削除
+      cleanedDialogue = cleanedDialogue.replace(/^["\']|["\']$/g, '');
+    }
+
+    return res.json({
+      status: 'success',
+      data: {
+        characterName,
+        dialogue: cleanedDialogue,
+        situation: currentSituation,
+        location: currentLocation
+      },
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+      },
+    });
+  } catch (error: any) {
+    console.error('[API] AI PC会話生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'AI PC会話生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
  * TRPG戦闘解決エンドポイント
  * 戦闘の進行を支援します
  */
@@ -3254,5 +3430,205 @@ router.post('/chat', async (req, res) => {
     });
   }
 });
+
+/**
+ * TRPGアクション結果生成エンドポイント
+ * プレイヤーの行動に対して構造化された結果を返します
+ */
+router.post('/trpg-action-result', async (req, res) => {
+  try {
+    const actionRequest = req.body as TRPGActionRequest;
+    
+    console.log('[API] TRPG行動結果生成リクエスト:', {
+      actionText: actionRequest.actionText,
+      characterId: actionRequest.characterId,
+      location: actionRequest.location,
+      dayNumber: actionRequest.dayNumber,
+      partyMembersCount: actionRequest.partyMembers?.length || 0
+    });
+
+    // 必須フィールドの検証
+    if (!actionRequest.actionText || !actionRequest.characterId || !actionRequest.location) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'actionText, characterId, locationは必須です',
+      });
+    }
+
+    // コンテキストリッチなプロンプトを構築
+    const contextPrompt = buildActionContextPrompt(actionRequest);
+
+    // AI リクエストを構築
+    const aiRequest: StandardAIRequest = {
+      requestType: 'trpg-action-result',
+      systemPrompt: TRPG_ACTION_RESULT_GENERATOR,
+      userPrompt: contextPrompt,
+      model: 'gemini-1.5-pro', // 構造化レスポンス用
+      options: {
+        temperature: 0.7,
+        maxTokens: 1500,
+        responseFormat: 'json',
+      },
+    };
+
+    console.log('[API] AI リクエスト構築完了:', {
+      systemPromptLength: aiRequest.systemPrompt?.length,
+      userPromptLength: aiRequest.userPrompt?.length,
+      model: aiRequest.model
+    });
+
+    // AI処理を実行
+    const aiResponse = await processAIRequest(aiRequest);
+
+    if (aiResponse.status === 'error') {
+      console.error('[API] TRPG行動結果生成AIエラー:', aiResponse.error);
+      return res.status(500).json({
+        status: 'error',
+        message: aiResponse.error?.message || 'AI処理中にエラーが発生しました',
+        error: aiResponse.error,
+      });
+    }
+
+    // JSON レスポンスの解析とバリデーション
+    let parsedResult: TRPGActionResult;
+    try {
+      // AIレスポンスをJSONとしてパース
+      const responseContent = typeof aiResponse.content === 'string' 
+        ? JSON.parse(aiResponse.content) 
+        : aiResponse.content;
+      
+      // TRPGActionResult型にマッピング
+      parsedResult = {
+        narrative: responseContent.narrative || '行動が実行されました。',
+        gameEffects: responseContent.gameEffects || [],
+        newOpportunities: responseContent.newOpportunities || [],
+        futureConsequences: responseContent.futureConsequences || [],
+        gmNotes: responseContent.gmNotes || undefined,
+      };
+
+      // 基本的なバリデーション
+      if (!parsedResult.narrative || typeof parsedResult.narrative !== 'string') {
+        throw new Error('Invalid narrative in AI response');
+      }
+
+      console.log('[API] 構造化レスポンス解析成功:', {
+        narrativeLength: parsedResult.narrative.length,
+        gameEffectsCount: parsedResult.gameEffects.length,
+        newOpportunitiesCount: parsedResult.newOpportunities?.length || 0
+      });
+
+    } catch (parseError) {
+      console.error('[API] AIレスポンス解析エラー:', parseError);
+      console.error('[API] 生レスポンス:', aiResponse.content);
+      
+      // フォールバック: 基本的な結果を生成
+      parsedResult = {
+        narrative: `${actionRequest.actionText}を実行しました。`,
+        gameEffects: [],
+        newOpportunities: [],
+      };
+    }
+
+    return res.json({
+      status: 'success',
+      data: parsedResult,
+      metadata: {
+        model: aiResponse.debug?.model,
+        processingTime: aiResponse.debug?.processingTime,
+        requestType: aiRequest.requestType,
+        hasStructuredResponse: aiResponse.content !== null,
+      },
+    });
+
+  } catch (error: any) {
+    console.error('[API] TRPG行動結果生成エラー:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error.message || 'TRPG行動結果生成中にエラーが発生しました',
+    });
+  }
+});
+
+/**
+ * アクションコンテキストプロンプトを構築する
+ */
+function buildActionContextPrompt(request: TRPGActionRequest): string {
+  const {
+    actionText,
+    characterId,
+    location,
+    dayNumber,
+    timeOfDay,
+    partyMembers,
+    availableFacilities,
+    activeQuests,
+    campaignFlags,
+    partyInventory,
+    previousActions,
+    locationDescription,
+    currentEvents
+  } = request;
+
+  let prompt = `## TRPGアクション処理リクエスト
+
+### 基本情報
+- 行動内容: ${actionText}
+- 実行キャラクター: ${characterId}
+- 現在地: ${location}
+- セッション日数: ${dayNumber}日目`;
+
+  if (timeOfDay) {
+    prompt += `\n- 時刻: ${timeOfDay}`;
+  }
+
+  // パーティ情報
+  if (partyMembers && partyMembers.length > 0) {
+    prompt += `\n\n### パーティメンバー`;
+    partyMembers.forEach(member => {
+      prompt += `\n- ${member.name}: HP ${member.currentHP}/${member.maxHP}, Lv.${member.level}`;
+      if (member.gold !== undefined) {
+        prompt += `, 所持金: ${member.gold}G`;
+      }
+    });
+  }
+
+  // 場所情報
+  if (availableFacilities && availableFacilities.length > 0) {
+    prompt += `\n\n### 利用可能施設\n${availableFacilities.join(', ')}`;
+  }
+
+  if (locationDescription) {
+    prompt += `\n\n### 場所の説明\n${locationDescription}`;
+  }
+
+  // クエスト情報
+  if (activeQuests && activeQuests.length > 0) {
+    prompt += `\n\n### アクティブクエスト\n${activeQuests.join(', ')}`;
+  }
+
+  // インベントリ情報
+  if (partyInventory && partyInventory.length > 0) {
+    prompt += `\n\n### パーティアイテム`;
+    partyInventory.forEach(item => {
+      prompt += `\n- ${item.itemName} x${item.quantity}`;
+    });
+  }
+
+  // 前回の行動
+  if (previousActions && previousActions.length > 0) {
+    prompt += `\n\n### 最近の行動\n${previousActions.slice(-3).join(', ')}`;
+  }
+
+  // 現在のイベント
+  if (currentEvents && currentEvents.length > 0) {
+    prompt += `\n\n### 現在の状況\n${currentEvents.join(', ')}`;
+  }
+
+  prompt += `\n\n### 指示
+上記の情報を踏まえて、「${actionText}」の行動結果を生成してください。
+プレイヤーの行動を肯定的に扱い、論理的で面白い結果を提供してください。`;
+
+  return prompt;
+}
 
 export default router;

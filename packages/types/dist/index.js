@@ -1,3 +1,96 @@
+// イベントタイプ変換ヘルパー関数
+export const convertEventType = {
+    // 小説 → TRPG イベントタイプ変換
+    novelToTRPG: (novelType) => {
+        switch (novelType) {
+            case 'battle': return 'combat';
+            case 'dialogue': return 'roleplay';
+            case 'journey': return 'exploration';
+            case 'mystery': return 'puzzle';
+            case 'discovery': return 'discovery';
+            case 'rest': return 'rest';
+            case 'turning_point': return 'social';
+            case 'info': return 'social';
+            case 'setup': return 'social';
+            case 'celebration': return 'social';
+            case 'other': return 'other';
+            default: return 'social';
+        }
+    },
+    // TRPG → 小説 イベントタイプ変換
+    trpgToNovel: (trpgType) => {
+        switch (trpgType) {
+            case 'combat': return 'battle';
+            case 'roleplay': return 'dialogue';
+            case 'exploration': return 'journey';
+            case 'puzzle': return 'mystery';
+            case 'social': return 'info';
+            case 'discovery': return 'discovery';
+            case 'rest': return 'rest';
+            default: return 'other';
+        }
+    }
+};
+// レガシーTimelineEventをUnifiedEventに変換
+export const convertTimelineToUnified = (timeline) => {
+    return {
+        id: timeline.id,
+        title: timeline.title,
+        description: timeline.description,
+        // 時間情報の変換
+        date: timeline.date,
+        dayNumber: timeline.dayNumber,
+        sessionDay: timeline.sessionDay || 1,
+        sessionTime: timeline.sessionTime || timeline.date,
+        // 基本情報
+        relatedCharacters: timeline.relatedCharacters || [],
+        relatedPlaces: timeline.relatedPlaces || [],
+        order: timeline.order || 0,
+        // イベントタイプ変換
+        eventType: timeline.eventType || 'other',
+        // 結果・状態
+        outcome: timeline.outcome,
+        postEventCharacterStatuses: timeline.postEventCharacterStatuses,
+        // 関連要素（plot → quest変換）
+        relatedQuestIds: timeline.relatedQuestIds || timeline.relatedPlotIds || [],
+        placeId: timeline.placeId,
+        // 報酬・結果
+        experienceAwarded: timeline.experienceAwarded,
+        lootGained: timeline.lootGained,
+        results: timeline.results,
+        conditions: timeline.conditions,
+    };
+};
+// レガシーSessionEventをUnifiedEventに変換
+export const convertSessionToUnified = (session) => {
+    return {
+        id: session.id,
+        title: session.title,
+        description: session.description,
+        // 時間情報の変換
+        sessionDay: session.sessionDay || 1,
+        sessionTime: session.sessionTime,
+        date: session.date,
+        dayNumber: session.dayNumber,
+        // 基本情報
+        relatedCharacters: session.relatedCharacters || [],
+        relatedPlaces: session.relatedPlaces || [],
+        order: session.order || 0,
+        // イベントタイプ
+        eventType: session.eventType || 'other',
+        // 結果・状態
+        outcome: session.outcome,
+        postEventCharacterStatuses: session.postEventCharacterStatuses,
+        // 関連要素
+        relatedQuestIds: session.relatedQuestIds || [],
+        placeId: session.placeId,
+        // 報酬・結果
+        experienceAwarded: session.experienceAwarded,
+        lootGained: session.lootGained,
+        results: session.results,
+        conditions: session.conditions,
+    };
+};
 /**
  * 世界観構築要素のタイプのEnum（文字列リテラルユニオンの代替）
  */

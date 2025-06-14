@@ -5,8 +5,6 @@ import {
   Avatar,
   Chip,
   Stack,
-  Tab,
-  Tabs,
   Badge,
   LinearProgress,
   Tooltip,
@@ -17,7 +15,6 @@ import {
 } from "@mui/material";
 import {
   PersonOutline,
-  Groups,
   Favorite,
   Shield,
   Speed,
@@ -31,6 +28,9 @@ import {
   Whatshot,
   AcUnit,
   WbSunny,
+  Male,
+  Female,
+  QuestionMark,
 } from "@mui/icons-material";
 import { TRPGCharacter, NPCCharacter } from "@trpg-ai-gm/types";
 
@@ -40,7 +40,7 @@ interface TabPanelProps {
   value: number;
 }
 
-function TabPanel(props: TabPanelProps) {
+function _TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -69,10 +69,10 @@ interface PartyCharacterDisplayProps {
 
 const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   playerCharacters,
-  npcs,
+  npcs: _npcs,
   selectedCharacter,
-  tabValue,
-  onTabChange,
+  tabValue: _tabValue,
+  onTabChange: _onTabChange,
   onCharacterSelect,
   onEditCharacter,
   isSessionStarted = false,
@@ -142,6 +142,35 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
     };
   };
 
+  // 性別に応じた色とアイコンを取得
+  const getGenderInfo = (character: TRPGCharacter | NPCCharacter) => {
+    const gender = character.gender || '不明';
+    
+    switch (gender) {
+      case '男性':
+        return {
+          color: '#2196F3', // 水色
+          icon: Male,
+          label: '男性',
+          chipColor: 'info' as const
+        };
+      case '女性':
+        return {
+          color: '#E91E63', // ピンク
+          icon: Female,
+          label: '女性',
+          chipColor: 'secondary' as const
+        };
+      default:
+        return {
+          color: '#9E9E9E', // グレー
+          icon: QuestionMark,
+          label: '不明',
+          chipColor: 'default' as const
+        };
+    }
+  };
+
   // 状態異常の視覚的表現
   const getStatusEffects = (
     character: TRPGCharacter | NPCCharacter,
@@ -188,6 +217,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
     const status = getCharacterStatus(character);
     const statusEffects = getStatusEffects(character);
     const { current: hp, max: maxHp } = getCharacterHP(character);
+    const genderInfo = getGenderInfo(character);
 
     return (
       <Card
@@ -245,7 +275,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
                   width: 32,
                   height: 32,
                   bgcolor:
-                    status.status === "dead" ? "grey.500" : "primary.main",
+                    status.status === "dead" ? "grey.500" : genderInfo.color,
                   filter: status.status === "dead" ? "grayscale(1)" : "none",
                 }}
               >
@@ -256,19 +286,42 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Typography variant="subtitle2" noWrap>
                 {character.name}
               </Typography>
-              {"class" in character && (character as any).class && (
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {"race" in character
-                    ? String((character as any).race || "")
-                    : ""}{" "}
-                  {String((character as any).class || "")}
-                </Typography>
-              )}
-              {"role" in character && (character as any).role && (
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {String((character as any).role)}
-                </Typography>
-              )}
+              
+              {/* 性別・基本情報表示 */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                <Chip
+                  icon={<genderInfo.icon sx={{ fontSize: 14 }} />}
+                  label={genderInfo.label}
+                  size="small"
+                  color={genderInfo.chipColor}
+                  variant="outlined"
+                  sx={{ 
+                    height: 20, 
+                    fontSize: '0.65rem',
+                    '& .MuiChip-label': { px: 0.5 },
+                    '& .MuiChip-icon': { mr: 0.5, ml: 0.5 }
+                  }}
+                />
+              </Box>
+
+              {/* 職業・種族・年齢表示 */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, mb: 0.5 }}>
+                {character.profession && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    職業: {character.profession}
+                  </Typography>
+                )}
+                {character.nation && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    種族: {character.nation}
+                  </Typography>
+                )}
+                {character.age && (
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    年齢: {character.age}歳
+                  </Typography>
+                )}
+              </Box>
             </Box>
             {onEditCharacter && (
               <IconButton

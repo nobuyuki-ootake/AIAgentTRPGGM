@@ -62,7 +62,7 @@ export function useHome() {
       createdAt: new Date(),
       updatedAt: new Date(),
       synopsis: "",
-      plot: [],
+      quests: [],
       characters: [],
       worldBuilding: {
         id: uuidv4(),

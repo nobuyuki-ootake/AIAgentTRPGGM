@@ -17,8 +17,8 @@ export const testCampaignData: TRPGCampaign = {
   ],
   synopsis: "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
   
-  // QuestElement[] 形式の plot
-  plot: [
+  // QuestElement[] 形式のクエスト管理
+  quests: [
     {
       id: "quest-forest-bandits",
       title: "森の盗賊団遭遇",
@@ -822,8 +822,108 @@ export const testCampaignData: TRPGCampaign = {
     }
   ],
 
-  // Item[] 形式 - 簡素化されたテストデータ
-  items: [] as any[],
+  // Item[] 形式 - テスト用アイテムデータ
+  items: [
+    {
+      id: "item-ancient-key",
+      name: "古代の鍵",
+      description: "古代竜の宝物庫を開くための神秘的な鍵。光る文字が刻まれている。",
+      type: "key_item",
+      category: "general",
+      rarity: "legendary",
+      value: 0,
+      weight: 0.1,
+      stackable: false,
+      maxStack: 1,
+      usable: false,
+      consumable: false,
+      effects: [],
+      attributes: [
+        {
+          id: "attr-ancient-power",
+          name: "古代の力",
+          value: true,
+          description: "竜の谷の封印を解く力を持つ"
+        }
+      ],
+      requirements: {
+        level: 1,
+        stats: {},
+        skills: [],
+        classes: []
+      },
+      tags: ["key_item", "quest", "dragon_valley"],
+      questRelated: true,
+      tradable: false,
+      destroyable: false
+    },
+    {
+      id: "item-healing-potion",
+      name: "治癒薬",
+      description: "傷を癒す赤い薬液。HP を 20 回復する。",
+      type: "consumable",
+      category: "consumable",
+      rarity: "common",
+      value: 50,
+      weight: 0.3,
+      stackable: true,
+      maxStack: 10,
+      usable: true,
+      consumable: true,
+      effects: [
+        {
+          id: "heal-effect",
+          type: "heal",
+          magnitude: 20,
+          description: "HP を 20 回復"
+        }
+      ],
+      attributes: [],
+      requirements: {
+        level: 1,
+        stats: {},
+        skills: [],
+        classes: []
+      },
+      tags: ["healing", "consumable", "basic"],
+      questRelated: false,
+      tradable: true,
+      destroyable: true
+    },
+    {
+      id: "item-dragon-scale",
+      name: "竜の鱗",
+      description: "古代竜の鱗。非常に硬く、美しい輝きを放つ。貴重な素材。",
+      type: "material",
+      category: "treasure",
+      rarity: "artifact",
+      value: 1000,
+      weight: 0.5,
+      stackable: true,
+      maxStack: 5,
+      usable: false,
+      consumable: false,
+      effects: [],
+      attributes: [
+        {
+          id: "attr-dragon-essence",
+          name: "竜の力",
+          value: true,
+          description: "古代竜の魔力が宿っている"
+        }
+      ],
+      requirements: {
+        level: 1,
+        stats: {},
+        skills: [],
+        classes: []
+      },
+      tags: ["dragon", "rare_material", "treasure"],
+      questRelated: true,
+      tradable: true,
+      destroyable: false
+    }
+  ],
 
   // ItemLocation[] 形式
   itemLocations: [
@@ -968,6 +1068,58 @@ export const testCampaignData: TRPGCampaign = {
     imageUrl: "/images/town-center.jpg",
     setAt: new Date("2024-01-01T00:00:00.000Z"),
     isActive: true
+  },
+
+  // キャンペーンクリア条件
+  clearConditions: [
+    {
+      id: "clear-village-help",
+      title: "村民の信頼を得る",
+      description: "ハーベスト村の村長から感謝の印を受け取る",
+      type: "story_milestone",
+      storyMilestone: "village_elder_trust",
+      priority: "secondary",
+      successDescription: "村人たちに温かく迎えられ、冒険者として認められました"
+    },
+    {
+      id: "clear-collect-key",
+      title: "古代の鍵を入手する",
+      description: "竜の谷への扉を開くための古代の鍵を手に入れる",
+      type: "item_collection",
+      requiredItems: [
+        {
+          itemId: "item-ancient-key",
+          itemName: "古代の鍵",
+          quantity: 1
+        }
+      ],
+      priority: "primary",
+      successDescription: "古代の鍵が輝き、竜の谷への道が開かれました"
+    },
+    {
+      id: "clear-defeat-dragon",
+      title: "竜を討伐する",
+      description: "伝説の古代竜ヴェルダリオンを討伐し、竜の谷の秘宝を入手する",
+      type: "quest_completion",
+      requiredQuests: ["quest-final-dragon"],
+      priority: "primary",
+      successDescription: "竜を討伐し、竜の谷の秘宝を手に入れました！英雄として語り継がれるでしょう"
+    }
+  ],
+
+  // パーティ共通の所持金（初期値）
+  partyGold: 500,
+
+  // パーティ共通のインベントリ（初期は空）
+  partyInventory: [],
+
+  // キャンペーンフラグ（初期状態）
+  campaignFlags: {
+    "tutorial_completed": false,
+    "first_combat": false,
+    "village_visited": false,
+    "bandit_leader_defeated": false,
+    "ancient_ruins_unlocked": false
   },
 
   rules: [],

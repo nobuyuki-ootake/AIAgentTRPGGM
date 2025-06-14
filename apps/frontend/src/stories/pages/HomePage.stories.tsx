@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { RecoilRoot } from "recoil";
 import { MemoryRouter } from "react-router-dom";
@@ -14,7 +13,7 @@ const mockProjects: TRPGCampaign[] = [
     createdAt: new Date("2023-01-01"),
     updatedAt: new Date("2023-01-10"),
     synopsis: "魔法の世界を冒険する若者の物語",
-    plot: [],
+    quests: [],
     characters: [],
     worldBuilding: {
       id: uuidv4(),
@@ -39,7 +38,7 @@ const mockProjects: TRPGCampaign[] = [
     createdAt: new Date("2023-02-01"),
     updatedAt: new Date("2023-02-15"),
     synopsis: "田舎町で起こった連続殺人事件の謎を追う刑事の物語",
-    plot: [],
+    quests: [],
     characters: [],
     worldBuilding: {
       id: uuidv4(),
@@ -64,7 +63,7 @@ const mockProjects: TRPGCampaign[] = [
     createdAt: new Date("2023-03-01"),
     updatedAt: new Date("2023-03-20"),
     synopsis: "未来の宇宙を舞台にした人類と異星人の物語",
-    plot: [],
+    quests: [],
     characters: [],
     worldBuilding: {
       id: uuidv4(),

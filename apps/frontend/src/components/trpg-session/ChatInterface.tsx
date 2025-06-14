@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   Box,
   List,
@@ -14,7 +14,6 @@ import {
   Send,
   Casino,
 } from "@mui/icons-material";
-import ChatSearchFilter, { ChatSearchCriteria } from "./ChatSearchFilter";
 
 export interface DiceRoll {
   dice: string;
@@ -26,7 +25,7 @@ export interface DiceRoll {
 export interface ChatMessage {
   id: string;
   sender: string;
-  senderType: "player" | "gm" | "system";
+  senderType: "player" | "gm" | "system" | "ai_pc";
   message: string;
   timestamp: Date;
   diceRoll?: DiceRoll;
@@ -48,7 +47,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onChatInputChange,
   onSendMessage,
   onOpenDiceDialog,
-  onAddSystemMessage,
+  onAddSystemMessage: _onAddSystemMessage,
   isAwaitingActionSelection = false,
 }) => {
   const chatEndRef = useRef<null | HTMLDivElement>(null);

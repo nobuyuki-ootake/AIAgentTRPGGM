@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Grid } from "@mui/material";
-import { useTRPGSessionUI } from "../hooks/useTRPGSessionUI";
+import { useTRPGSessionUI, useDebugItemListener } from "../hooks/useTRPGSessionUI";
 import SessionHeader from "../components/trpg-session/SessionHeader";
 import PartyPanel from "../components/trpg-session/PartyPanel";
 import MainContentPanel from "../components/trpg-session/MainContentPanel";
@@ -67,7 +67,17 @@ const TRPGSessionPageContent: React.FC = () => {
     // デバッグ機能
     toggleDebugPanel,
     debugActions,
+
+    // フラグ管理機能
+    getCampaignFlag,
+    checkClearConditions,
+    
+    // インベントリ管理
+    addInventoryItem,
   } = useTRPGSessionUI();
+  
+  // デバッグ用のアイテム追加リスナー
+  useDebugItemListener(addInventoryItem);
 
   return (
     <Box
@@ -204,6 +214,9 @@ const TRPGSessionPageContent: React.FC = () => {
             npcs={npcs}
             selectedCharacter={selectedCharacter || undefined}
             bases={bases}
+            currentCampaign={currentCampaign}
+            isSessionStarted={uiState.sessionStatus === "active"}
+            getCampaignFlag={getCampaignFlag}
             onExecuteAction={executeAction}
             onAdvanceDay={advanceDay}
             onFacilityInteract={handleFacilityInteract}
@@ -269,6 +282,7 @@ const TRPGSessionPageContent: React.FC = () => {
           actionCount={actionCount}
           maxActionsPerDay={maxActionsPerDay}
           isSessionStarted={uiState.isSessionStarted}
+          checkClearConditions={checkClearConditions}
           onCheckEncounters={debugActions.checkEncounters}
           onSimulateEnemyMovement={debugActions.simulateEnemyMovement}
           onReloadTestData={debugActions.reloadTestData}

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import {
   Paper,
@@ -39,6 +38,13 @@ interface DebugPanelProps {
   maxActionsPerDay: number;
   isSessionStarted: boolean;
   
+  // GM情報
+  checkClearConditions?: () => {
+    condition: any;
+    isCompleted: boolean;
+    progress: string;
+  }[];
+  
   // アクション
   onCheckEncounters: () => void;
   onSimulateEnemyMovement: () => void;
@@ -56,6 +62,9 @@ interface DebugPanelProps {
     notation: string;
     details: string;
   } | null;
+  
+  // デバッグアイテム追加
+  onDebugAddItem?: (itemId: string, itemName: string, quantity: number) => void;
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
@@ -69,6 +78,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   actionCount,
   maxActionsPerDay,
   isSessionStarted,
+  checkClearConditions,
   onCheckEncounters,
   onSimulateEnemyMovement,
   onReloadTestData,
@@ -289,7 +299,172 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* 5. デバッグアクション */}
+      {/* 5. GM専用情報 */}
+      {checkClearConditions && (
+        <>
+          <Box mb={2}>
+            <Typography variant="subtitle2" color="primary" gutterBottom>
+              🏆 クリア条件進捗 (GM専用)
+            </Typography>
+            {checkClearConditions().length > 0 ? (
+              <List dense sx={{ py: 0 }}>
+                {checkClearConditions().map((conditionStatus, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      py: 0.25,
+                      px: 1,
+                      bgcolor: conditionStatus.isCompleted ? '#E8F5E8' : '#FFF3E0',
+                      borderRadius: 1,
+                      mb: 0.5,
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2">
+                          {conditionStatus.isCompleted ? "✅" : "⭕"} {conditionStatus.condition.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="caption" color="text.secondary">
+                          {conditionStatus.progress}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                クリア条件が設定されていません
+              </Typography>
+            )}
+          </Box>
+          
+          {/* クリア条件達成ガイド */}
+          <Box mb={2}>
+            <Typography variant="subtitle2" color="primary" gutterBottom>
+              📋 クリア条件達成ガイド (GM専用)
+            </Typography>
+            {currentCampaign?.clearConditions && currentCampaign.clearConditions.length > 0 ? (
+              <List dense sx={{ py: 0 }}>
+                {currentCampaign.clearConditions.map((condition, _index) => {
+                  const getConditionIcon = (type: string) => {
+                    switch (type) {
+                      case 'item_collection': return '🔑';
+                      case 'story_milestone': return '👥';
+                      case 'quest_completion': return '🐉';
+                      default: return '📋';
+                    }
+                  };
+                  
+                  const getConditionGuide = (condition: any) => {
+                    switch (condition.type) {
+                      case 'item_collection': {
+                        // キャンペーンデータからアイテムの入手場所を取得
+                        const firstItem = condition.requiredItems?.[0];
+                        if (!firstItem) return 'アイテム情報不明';
+                        
+                        const itemLocation = currentCampaign?.itemLocations?.find(
+                          location => location.itemId === firstItem.itemId
+                        );
+                        
+                        if (itemLocation) {
+                          const locationText = itemLocation.locationName || itemLocation.locationId;
+                          const methodText = itemLocation.locationType === 'event' ? 'イベント完了' :
+                                          itemLocation.locationType === 'shop' ? '購入' :
+                                          itemLocation.locationType === 'loot' ? '戦利品取得' :
+                                          itemLocation.locationType === 'reward' ? 'クエスト報酬' : '取得';
+                          
+                          let requirementText = '';
+                          if (itemLocation.requirements && itemLocation.requirements.length > 0) {
+                            requirementText = ` (${itemLocation.requirements[0].description})`;
+                          }
+                          
+                          return `📍 ${locationText}で${methodText}${requirementText}`;
+                        }
+                        
+                        return `アイテム「${firstItem.itemName}」を入手 (数量: ${firstItem.quantity})`;
+                      }
+                        
+                      case 'story_milestone': {
+                        // ストーリーマイルストーンの達成方法
+                        const milestone = condition.storyMilestone || condition.description;
+                        
+                        // キャンペーンのクエストから関連するものを検索
+                        const relatedQuest = currentCampaign?.plot?.find(
+                          quest => quest.description?.includes('村') || quest.title?.includes('村')
+                        );
+                        
+                        if (relatedQuest) {
+                          return `クエスト「${relatedQuest.title}」を完了 (${relatedQuest.description})`;
+                        }
+                        
+                        return `マイルストーン「${milestone}」を達成`;
+                      }
+                        
+                      case 'quest_completion': {
+                        // クエスト完了の詳細情報
+                        const questId = condition.requiredQuests?.[0];
+                        if (!questId) return 'クエスト情報不明';
+                        
+                        const quest = currentCampaign?.plot?.find(q => q.id === questId);
+                        if (quest) {
+                          const locationText = quest.relatedPlaceIds?.length > 0 
+                            ? ` (場所: ${quest.relatedPlaceIds.join(', ')})`
+                            : '';
+                          return `クエスト「${quest.title}」を完了${locationText}`;
+                        }
+                        
+                        return `クエスト「${questId}」を完了`;
+                      }
+                        
+                      default:
+                        return condition.description || '詳細不明';
+                    }
+                  };
+                  
+                  const getBgColor = (type: string) => {
+                    switch (type) {
+                      case 'item_collection': return '#F3E5F5';
+                      case 'story_milestone': return '#E8F5E8';
+                      case 'quest_completion': return '#FFEBEE';
+                      default: return '#F5F5F5';
+                    }
+                  };
+                  
+                  return (
+                    <ListItem 
+                      key={condition.id} 
+                      sx={{ py: 0.25, px: 1, bgcolor: getBgColor(condition.type), borderRadius: 1, mb: 0.5 }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Typography variant="body2" fontWeight="bold">
+                            {getConditionIcon(condition.type)} {condition.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="caption" color="text.secondary">
+                            {getConditionGuide(condition)}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })}
+              </List>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                クリア条件が設定されていません
+              </Typography>
+            )}
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+        </>
+      )}
+
+      {/* 6. デバッグアクション */}
       <Box>
         <Typography variant="subtitle2" color="primary" gutterBottom>
           🔧 デバッグアクション
@@ -354,12 +529,37 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           >
             🔄 JSONから再ロード
           </Button>
+          
+          {/* クリア条件テスト用のボタンを動的生成 */}
+          {currentCampaign?.clearConditions?.filter(c => c.type === 'item_collection').map(condition => (
+            condition.requiredItems?.map(item => (
+              <Button
+                key={`test-${condition.id}-${item.itemId}`}
+                size="small"
+                variant="outlined"
+                color="success"
+                onClick={() => {
+                  if (window.confirm(`テスト用：${item.itemName}をインベントリに追加しますか？（クリア条件テスト用）`)) {
+                    // テスト用にアイテム追加のイベントを送信
+                    const testEvent = new CustomEvent('debug-add-item', { 
+                      detail: { itemId: item.itemId, quantity: item.quantity } 
+                    });
+                    window.dispatchEvent(testEvent);
+                  }
+                }}
+                fullWidth
+                sx={{ mb: 1 }}
+              >
+                🔑 {item.itemName}を取得(テスト)
+              </Button>
+            ))
+          )).flat()}
         </Stack>
       </Box>
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* 6. ダイス機能 */}
+      {/* 7. ダイス機能 */}
       <Box>
         <Typography variant="subtitle2" color="primary" gutterBottom>
           🎲 ダイス機能

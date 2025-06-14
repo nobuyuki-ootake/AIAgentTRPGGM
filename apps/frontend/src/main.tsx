@@ -32,7 +32,7 @@ const dummyProject: TRPGCampaign = {
   updatedAt: new Date(),
   synopsis:
     "主人公が思ったことが現実になる能力を手に入れ、その力を使って世界を変えていく物語。",
-  plot: [
+  quests: [
     {
       id: uuidv4(),
       title: "能力の発見",

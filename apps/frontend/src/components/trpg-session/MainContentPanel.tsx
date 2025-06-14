@@ -30,6 +30,7 @@ import {
   TRPGCharacter,
   BaseLocation,
   NPCCharacter,
+  TRPGCampaign,
 } from "@trpg-ai-gm/types";
 
 // タブパネルコンポーネント
@@ -98,6 +99,9 @@ interface MainContentPanelProps {
   npcs?: NPCCharacter[];
   selectedCharacter?: TRPGCharacter;
   bases?: BaseLocation[];
+  currentCampaign?: TRPGCampaign;
+  isSessionStarted?: boolean;
+  getCampaignFlag?: (flagKey: string, defaultValue?: any) => any;
   onExecuteAction: (action: ActionChoice) => void;
   onAdvanceDay: () => void;
   onFacilityInteract: (facility: any) => void;
@@ -116,6 +120,9 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
   npcs = [],
   selectedCharacter,
   bases = [],
+  currentCampaign,
+  isSessionStarted = false,
+  getCampaignFlag: _getCampaignFlag,
   onExecuteAction,
   onAdvanceDay,
   onFacilityInteract,
@@ -198,15 +205,6 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
 
   const currentLocationInfo = getCurrentLocationType();
 
-  // デバッグ用ログ
-  console.log("[MainContentPanel] Debug Info:", {
-    currentLocation,
-    currentBase,
-    bases,
-    currentLocationInfo,
-    hasAvailableActions: currentLocationInfo?.data?.availableActions?.length,
-    tabValue: tabValue,
-  });
 
   return (
     <Paper
@@ -222,8 +220,12 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
       }}
     >
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-          <Tab label="探索" icon={<DungeonIcon />} />
+        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
+          <Tab 
+            label="探索" 
+            icon={<DungeonIcon />} 
+            disabled={!isSessionStarted}
+          />
           <Tab
             label={currentLocationInfo?.type === "base" ? "拠点" : "場所"}
             icon={
@@ -233,9 +235,14 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                 <LocationOn />
               )
             }
+            disabled={!isSessionStarted}
           />
           <Tab label="ステータス" icon={<CheckCircle />} />
-          <Tab label="クエスト" icon={<QuestScrollIcon />} />
+          <Tab 
+            label="クエスト" 
+            icon={<QuestScrollIcon />} 
+            disabled={!isSessionStarted}
+          />
         </Tabs>
       </Box>
 
@@ -268,7 +275,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
               <EnemySelectionPanel
                 enemies={enemies}
                 selectedEnemies={selectedEnemies}
-                onEnemySelect={(enemy) => console.log("Selected enemy:", enemy)}
+                onEnemySelect={() => {/* Enemy selection handler - not implemented yet */}}
                 onEnemyToggle={handleEnemyToggle}
                 onConfirmAttack={handleConfirmAttack}
                 onCancel={handleCancelAttack}
@@ -707,6 +714,34 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                     <Typography variant="body2">
                       RES (抵抗値): {selectedCharacter.derived.RES}
                     </Typography>
+                  </Box>
+                )}
+
+                {/* パーティ所持金表示 */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    パーティ情報
+                  </Typography>
+                  <Typography variant="body2">
+                    💰 所持金: {currentCampaign?.partyGold ?? 500}G
+                  </Typography>
+                </Box>
+
+
+                {/* キャンペーンフラグ表示 */}
+                {currentCampaign?.campaignFlags && Object.keys(currentCampaign.campaignFlags).length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      ストーリーフラグ
+                    </Typography>
+                    {Object.entries(currentCampaign.campaignFlags)
+                      .filter(([_, value]) => value !== null)
+                      .slice(0, 5) // 最新5つのみ表示
+                      .map(([key, value]) => (
+                        <Typography key={key} variant="body2" sx={{ fontSize: '0.75rem' }}>
+                          🚩 {key}: {String(value)}
+                        </Typography>
+                      ))}
                   </Box>
                 )}
 

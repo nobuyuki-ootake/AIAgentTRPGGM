@@ -153,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
     },
     {
       mode: "worldbuilding" as AppMode,
-      text: "場所・拠点設定",
+      text: "場所管理",
       icon: <WorldIcon />,
       developerOnly: true,
     },

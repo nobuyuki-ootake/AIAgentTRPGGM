@@ -90,7 +90,7 @@ const CharactersPageContent: React.FC = () => {
     try {
       console.log("=== CharactersPage: AIアシスト開始 ===");
       console.log("currentProject:", currentProject);
-      console.log("プロット数:", currentProject?.plot?.length || 0);
+      console.log("クエスト数:", currentProject?.quests?.length || 0);
       console.log(
         "既存キャラクター数:",
         currentProject?.characters?.length || 0

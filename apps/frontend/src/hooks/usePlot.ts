@@ -144,7 +144,7 @@ export function usePlot() {
     if (currentCampaign) {
       setCurrentCampaign({
         ...currentCampaign,
-        plot: plotItems,
+        quests: plotItems,
         updatedAt: new Date(),
       });
       setHasUnsavedChanges(false);
@@ -159,7 +159,7 @@ export function usePlot() {
             p.id === currentCampaign.id
               ? {
                   ...p,
-                  plot: plotItems,
+                  quests: plotItems,
                   updatedAt: new Date(),
                 }
               : p

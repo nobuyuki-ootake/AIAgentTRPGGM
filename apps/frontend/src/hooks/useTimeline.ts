@@ -47,7 +47,7 @@ export function useTimeline() {
   const [characters, setCharacters] = useState<TRPGCharacter[]>([]);
   const [places, setPlaces] = useState<PlaceElement[]>([]);
   const [bases, setBases] = useState<BaseLocation[]>([]);
-  const [allPlots, setAllPlots] = useState<QuestElement[]>([]);
+  const [allQuests, setAllQuests] = useState<QuestElement[]>([]);
 
   // グラフ表示用のデータ
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
@@ -92,7 +92,7 @@ export function useTimeline() {
     order: 0,
     eventType: "other" as const,
     postEventCharacterStatuses: {},
-    relatedPlotIds: [],
+    relatedQuestIds: [],
   });
 
   // ダイアログの状態
@@ -130,7 +130,7 @@ export function useTimeline() {
           }
         })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
-        relatedPlotIds: sessionEvent.relatedQuestIds || [], // relatedQuestIdsをrelatedPlotIdsにマップ
+        relatedQuestIds: sessionEvent.relatedQuestIds || [], // relatedQuestIdsをrelatedQuestIdsにマップ
         placeId: sessionEvent.placeId,
       }));
       
@@ -165,9 +165,6 @@ export function useTimeline() {
         )
       );
       setHasUnsavedChanges(true);
-      console.log(
-        `[useTimeline] Event ${eventId} updated via D&D: placeId=${newPlaceId}, date=${newDate}`
-      );
     },
     []
   );
@@ -244,7 +241,7 @@ export function useTimeline() {
   const handleRelatedPlotsChange = useCallback((selectedPlotIds: string[]) => {
     setNewEvent((prev) => ({
       ...prev,
-      relatedPlotIds: selectedPlotIds,
+      relatedQuestIds: selectedPlotIds,
     }));
     setHasUnsavedChanges(true);
   }, []);
@@ -385,10 +382,6 @@ export function useTimeline() {
   // 初期データのロード
   useEffect(() => {
     if (currentCampaign) {
-      console.log(
-        "[useTimeline] useEffect - START - currentCampaign.id:",
-        currentCampaign.id
-      );
 
       let campaignDataToUse = { ...currentCampaign };
 
@@ -403,10 +396,6 @@ export function useTimeline() {
           );
 
           if (latestProjectFromLocalStorage) {
-            console.log(
-              "[useTimeline] Found project in localStorage:",
-              latestProjectFromLocalStorage.id
-            );
             if (
               latestProjectFromLocalStorage.updatedAt >
                 campaignDataToUse.updatedAt ||
@@ -416,15 +405,11 @@ export function useTimeline() {
                 (!campaignDataToUse.definedCharacterStatuses ||
                   campaignDataToUse.definedCharacterStatuses.length === 0))
             ) {
-              console.log(
-                "[useTimeline] Using campaign data from localStorage as it seems newer or more complete for statuses."
-              );
               campaignDataToUse = { ...latestProjectFromLocalStorage };
               setCurrentCampaign(campaignDataToUse);
             }
           }
         } catch (error) {
-          console.error("[useTimeline] LocalStorage parsing error:", error);
         }
       }
 
@@ -450,7 +435,7 @@ export function useTimeline() {
           }
         })(),
         postEventCharacterStatuses: sessionEvent.postEventCharacterStatuses,
-        relatedPlotIds: sessionEvent.relatedQuestIds || [],
+        relatedQuestIds: sessionEvent.relatedQuestIds || [],
         placeId: sessionEvent.placeId,
       }));
       setTimelineEvents(convertedEvents);
@@ -469,7 +454,6 @@ export function useTimeline() {
         });
       }
     } else {
-      console.log("[useTimeline] useEffect - currentCampaign is null");
     }
   }, [currentCampaign, setCurrentCampaign]);
 
@@ -488,12 +472,6 @@ export function useTimeline() {
     setSafeMinY(1);
     setSafeMaxY(maxDays);
     
-    console.log("[useTimeline] Day-based timeline:", {
-      maxDays,
-      dayLabels,
-      minY: 1,
-      maxY: maxDays,
-    });
   }, [timelineSettings.maxDays]);
 
   // 地名（グループ）の更新 - 場所と拠点の両方を含める
@@ -544,9 +522,9 @@ export function useTimeline() {
       const getFirstValidPlotId = (
         event: TimelineEvent
       ): string | undefined => {
-        if (!event.relatedPlotIds || event.relatedPlotIds.length === 0)
+        if (!event.relatedQuestIds || event.relatedQuestIds.length === 0)
           return undefined;
-        return event.relatedPlotIds.find((pid) => plotOrderMap.has(pid));
+        return event.relatedQuestIds.find((pid) => plotOrderMap.has(pid));
       };
 
       const plotIdA = getFirstValidPlotId(a);
@@ -656,7 +634,7 @@ export function useTimeline() {
         order: event.order,
         eventType: event.eventType as SessionEvent["eventType"],
         postEventCharacterStatuses: event.postEventCharacterStatuses,
-        relatedQuestIds: event.relatedPlotIds,
+        relatedQuestIds: event.relatedQuestIds,
         placeId: event.placeId,
       }));
       
@@ -671,7 +649,7 @@ export function useTimeline() {
           places: places,
         },
         characters: characters,
-        plot: allPlots,
+        quests: allQuests,
         bases: bases,
         definedCharacterStatuses: definedCharacterStatuses,
         updatedAt: new Date(),
@@ -684,12 +662,7 @@ export function useTimeline() {
         setHasUnsavedChanges(false);
         setSnackbarMessage("セッション履歴が保存されました。");
         setSnackbarOpen(true);
-        console.log("[useTimeline] Campaign saved:", updatedCampaign);
       } catch (error) {
-        console.error(
-          "[useTimeline] Error saving campaign:",
-          error
-        );
         setSnackbarMessage("保存中にエラーが発生しました。");
         setSnackbarOpen(true);
       }
@@ -702,7 +675,7 @@ export function useTimeline() {
     characters,
     places,
     bases,
-    allPlots,
+    allQuests,
     definedCharacterStatuses,
   ]);
 
@@ -721,7 +694,7 @@ export function useTimeline() {
       order: timelineEvents.length,
       eventType: "other" as const,
       postEventCharacterStatuses: {},
-      relatedPlotIds: [],
+      relatedQuestIds: [],
     });
   }, [timelineEvents.length]);
 
@@ -747,9 +720,6 @@ export function useTimeline() {
         setCurrentEventId(id);
         setDialogOpen(true);
       } else {
-        console.warn(
-          `[useTimeline] Event with id ${id} not found for editing.`
-        );
         handleOpenDialog();
       }
     },
@@ -775,7 +745,7 @@ export function useTimeline() {
     snackbarMessage,
     hasUnsavedChanges,
     definedCharacterStatuses,
-    allPlots,
+    allQuests,
     safeMinY,
     safeMaxY,
     dateArray,

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PC会話テスト</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-result {
+            background: #f0f7ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #fff5f5;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .loading {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI PC会話生成テスト</h1>
+    
+    <div class="test-container">
+        <h2>テスト設定</h2>
+        <div>
+            <label>キャラクター名: 
+                <input type="text" id="characterName" value="エルフィン・シルバーリーフ" style="padding: 5px; width: 200px;" placeholder="任意のキャラクター名">
+            </label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>職業: 
+                <input type="text" id="characterProfession" value="レンジャー" style="padding: 5px; width: 150px;" placeholder="戦士、魔法使い、盗賊など">
+            </label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>キャラクター説明: 
+                <input type="text" id="characterDescription" value="警戒心が強く、弓の名手。仲間思いで慎重な性格。" style="padding: 5px; width: 300px;" placeholder="性格や特徴">
+            </label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>現在地: 
+                <input type="text" id="currentLocation" value="リバーベント街" style="padding: 5px; width: 200px;" placeholder="任意の場所名">
+            </label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>キャンペーン: 
+                <input type="text" id="campaignTitle" value="竜の谷の秘宝" style="padding: 5px; width: 200px;" placeholder="任意のキャンペーン名">
+            </label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>操作キャラクター: 
+                <input type="text" id="playerCharacter" value="アレックス・ブレイブハート" style="padding: 5px;">
+            </label>
+        </div>
+        
+        <button onclick="testAIDialogue()" id="testButton">AI会話生成テスト</button>
+        <button onclick="clearResults()">結果クリア</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        async function testAIDialogue() {
+            const button = document.getElementById('testButton');
+            const results = document.getElementById('results');
+            
+            // UI更新
+            button.disabled = true;
+            button.textContent = '生成中...';
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'test-result loading';
+            loadingDiv.innerHTML = '🤖 AI PC会話を生成中...';
+            results.appendChild(loadingDiv);
+
+            try {
+                const characterName = document.getElementById('characterSelect').value;
+                const currentLocation = document.getElementById('locationSelect').value;
+                const playerCharacterName = document.getElementById('playerCharacter').value;
+
+                const requestData = {
+                    characterName: characterName,
+                    characterInfo: {
+                        name: characterName,
+                        profession: characterName.includes('エルフィン') ? 'レンジャー' : 'ローグ',
+                        description: characterName.includes('エルフィン') ? 
+                            '警戒心が強く、弓の名手。仲間思いで慎重な性格。' : 
+                            '情報収集が得意で、機敏な動きができる。チームワークを重視する。'
+                    },
+                    currentSituation: `${currentLocation}での行動選択待ち`,
+                    currentLocation: currentLocation,
+                    sessionContext: '竜の谷の秘宝キャンペーン進行中',
+                    playerCharacterName: playerCharacterName,
+                    model: 'gemini-1.5-pro'
+                };
+
+                console.log('リクエストデータ:', requestData);
+
+                const response = await fetch('http://localhost:4001/api/ai-agent/ai-pc-dialogue-generation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+                
+                // ローディング表示を削除
+                loadingDiv.remove();
+
+                // 結果表示
+                const resultDiv = document.createElement('div');
+                resultDiv.className = response.ok ? 'test-result success' : 'test-result error';
+                
+                if (response.ok && data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <h3>✅ AI生成成功</h3>
+                        <p><strong>キャラクター:</strong> ${data.data.characterName}</p>
+                        <p><strong>生成会話:</strong> "${data.data.dialogue}"</p>
+                        <p><strong>場所:</strong> ${data.data.location}</p>
+                        <p><strong>処理時間:</strong> ${data.metadata?.processingTime}ms</p>
+                        <p><strong>使用モデル:</strong> ${data.metadata?.model}</p>
+                        <details>
+                            <summary>詳細データ</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ エラー発生</h3>
+                        <p><strong>ステータス:</strong> ${response.status}</p>
+                        <p><strong>メッセージ:</strong> ${data.message || 'エラーメッセージなし'}</p>
+                        <details>
+                            <summary>エラー詳細</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                }
+                
+                results.appendChild(resultDiv);
+
+            } catch (error) {
+                // ローディング表示を削除
+                loadingDiv.remove();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'test-result error';
+                errorDiv.innerHTML = `
+                    <h3>❌ 接続エラー</h3>
+                    <p><strong>エラー:</strong> ${error.message}</p>
+                    <p>プロキシサーバーが起動していることを確認してください。</p>
+                `;
+                results.appendChild(errorDiv);
+                console.error('テストエラー:', error);
+            } finally {
+                // UI復元
+                button.disabled = false;
+                button.textContent = 'AI会話生成テスト';
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // ページ読み込み時の情報表示
+        window.addEventListener('load', () => {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result';
+            infoDiv.innerHTML = `
+                <h3>📋 テスト情報</h3>
+                <p>このページは AI PC会話生成機能の動作確認用です。</p>
+                <p><strong>前提条件:</strong></p>
+                <ul>
+                    <li>プロキシサーバーが localhost:4001 で稼働中</li>
+                    <li>Gemini API キーが設定済み</li>
+                    <li>CORS が許可されている</li>
+                </ul>
+                <p><strong>テスト内容:</strong> 固定パターンではなく、AI が状況に応じて生成した会話</p>
+            `;
+            document.getElementById('results').appendChild(infoDiv);
+        });
+    </script>
+</body>
+</html>

@@ -86,7 +86,7 @@ const convertSeedToTimelineEvent = (
       undefined,
     order: maxOrder + 1 + indexInBatch,
     eventType: undefined,
-    relatedPlotIds: targetRelatedPlotIds || seed.relatedPlotIds || [],
+    relatedQuestIds: targetRelatedPlotIds || seed.relatedQuestIds || [],
   };
 };
 
@@ -131,7 +131,7 @@ const TimelinePage: React.FC = () => {
     getPlaceName,
     handlePostEventStatusChange,
     addTimelineEventsBatch,
-    allPlots,
+    allQuests,
     handleRelatedPlotsChange,
     handleUpdateEventLocationAndDate,
   } = useTimeline();
@@ -171,15 +171,15 @@ const TimelinePage: React.FC = () => {
       let prompt = "例: ";
       let targetPlot = null;
 
-      if (selectedPlotId && allPlots) {
-        targetPlot = allPlots.find((p) => p.id === selectedPlotId);
+      if (selectedPlotId && allQuests) {
+        targetPlot = allQuests.find((p) => p.id === selectedPlotId);
       }
 
       if (targetPlot) {
         prompt += `クエスト「${targetPlot.title}」において、`;
-      } else if (allPlots && allPlots.length > 0) {
+      } else if (allQuests && allQuests.length > 0) {
         // フォールバック: selectedPlotId がない場合や見つからなかった場合
-        const fallbackPlot = allPlots.find((p) => p.title) || allPlots[0];
+        const fallbackPlot = allQuests.find((p) => p.title) || allQuests[0];
         prompt += `クエスト「${fallbackPlot.title}」において、`;
       } else {
         prompt += "TRPGセッションの次の展開として、";
@@ -201,7 +201,7 @@ const TimelinePage: React.FC = () => {
       }
       return prompt;
     },
-    [allPlots, characters]
+    [allQuests, characters]
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -223,7 +223,7 @@ const TimelinePage: React.FC = () => {
             : undefined,
         order: 0,
         eventType: undefined,
-        relatedPlotIds: seed.relatedPlotIds || [],
+        relatedQuestIds: seed.relatedQuestIds || [],
       };
       setActiveDragItem(tempEventFromSeed);
     } else {
@@ -458,10 +458,10 @@ const TimelinePage: React.FC = () => {
         seed.estimatedTime ||
         new Date().toISOString();
       const targetRelatedPlotIds =
-        seed.relatedPlotIds && seed.relatedPlotIds.length > 0
-          ? seed.relatedPlotIds
-          : allPlots && allPlots.length > 0
-          ? [allPlots[0].id]
+        seed.relatedQuestIds && seed.relatedQuestIds.length > 0
+          ? seed.relatedQuestIds
+          : allQuests && allQuests.length > 0
+          ? [allQuests[0].id]
           : [];
 
       // 日付ドロップの場合、場所IDをseedから取得するか、デフォルト場所を使用
@@ -631,7 +631,7 @@ const TimelinePage: React.FC = () => {
 
   // 🧪 **タイムラインクエスト・イベント表示コンポーネント**
   const QuestTimelineView: React.FC = () => {
-    const quests = currentCampaign?.plot || []; // plotを使用、questは存在しない
+    const quests = currentCampaign?.quests || [];
     const questsByDay = quests.reduce((acc: Record<number, typeof quests>, quest: any) => {
       const day = quest.scheduledDay || 1;
       if (!acc[day]) acc[day] = [];
@@ -1035,7 +1035,7 @@ const TimelinePage: React.FC = () => {
                     <TimelineDayList
                       timelineEvents={timelineEvents}
                       places={[...(places || []), ...(bases || [])]} // placesとbasesを統合
-                      plots={allPlots}
+                      plots={allQuests}
                       dateArray={dateArray}
                       onEventClick={handleEventClick}
                       onDeleteEvent={handleDeleteEvent}
@@ -1052,7 +1052,7 @@ const TimelinePage: React.FC = () => {
                 <TimelineChart
                   timelineEvents={timelineEvents}
                   places={[...(places || []), ...(bases || [])]} // placesとbasesを統合
-                  plots={allPlots}
+                  plots={allQuests}
                   dateArray={dateArray}
                   safeMinY={safeMinY}
                   safeMaxY={safeMaxY}
@@ -1101,7 +1101,7 @@ const TimelinePage: React.FC = () => {
                   getCharacterName={getCharacterName}
                   getPlaceName={getPlaceName}
                   onPostEventStatusChange={handlePostEventStatusChange}
-                  allPlots={allPlots}
+                  allQuests={allQuests}
                   onRelatedPlotsChange={handleRelatedPlotsChange}
                 />
               )}
@@ -1125,7 +1125,7 @@ const TimelinePage: React.FC = () => {
                     (item) => item.type === "key_item"
                   ) || []
                 }
-                availableQuests={allPlots || []}
+                availableQuests={allQuests || []}
                 availableCharacters={
                   characters?.map((c) => ({ id: c.id, name: c.name })) || []
                 }

@@ -68,7 +68,7 @@ export const useCreateProject = () => {
           },
         },
         timeline: [],
-        plot: [],
+        quests: [],
         // chapters: [
         //   {
         //     id: uuidv4(),

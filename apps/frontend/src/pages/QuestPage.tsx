@@ -39,55 +39,20 @@ import {
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { currentCampaignState } from "../store/atoms";
-import { TRPGCampaign, QuestElement, NPCCharacter } from "@trpg-ai-gm/types";
+import { TRPGCampaign, QuestElement, QuestObjective, NPCCharacter } from "@trpg-ai-gm/types";
 
-// QuestStatusの型定義（QuestElementのstatusと同等）
-type QuestStatus = "未開始" | "進行中" | "完了" | "失敗" | "保留";
-
-interface QuestObjective {
-  id: string;
-  description: string;
-  completed: boolean;
-  hidden: boolean; // プレイヤーに見えるかどうか
-}
-
-interface EnhancedQuest extends QuestElement {
-  // QuestElementから継承される基本プロパティ
-  // difficulty: 1 | 2 | 3 | 4 | 5 (継承)
-  // prerequisites?: string[] (継承)
-  
-  // 拡張プロパティ
-  objectives: QuestObjective[];
-  detailedRewards: {
-    experience: number;
-    items: string[];
-    gold: number;
-    reputation?: string;
-  };
-  discoveryConditions: {
-    npcId?: string;
-    location?: string;
-    itemRequired?: string;
-    questboardAvailable: boolean;
-  };
-  timeLimit?: {
-    days: number;
-    consequences?: string;
-  };
-  priority: "low" | "medium" | "high";
-  giver: string;
-  notes: string;
-}
+// QuestObjective型は既にpackages/types/index.tsで定義済み
+// EnhancedQuest型は削除 - QuestElementを直接使用
 
 const QuestPage: React.FC = () => {
   const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
-  const [quests, setQuests] = useState<EnhancedQuest[]>([]);
+  const [quests, setQuests] = useState<QuestElement[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingQuest, setEditingQuest] = useState<EnhancedQuest | null>(null);
+  const [editingQuest, setEditingQuest] = useState<QuestElement | null>(null);
   const [questFilter, setQuestFilter] = useState<"all" | "available" | "active" | "completed">("all");
 
   // 新規クエストフォームデータ
-  const [formData, setFormData] = useState<Partial<EnhancedQuest>>({
+  const [formData, setFormData] = useState<Partial<QuestElement>>({
     title: "",
     description: "",
     status: "未開始",
@@ -105,41 +70,35 @@ const QuestPage: React.FC = () => {
 
   // クエストの読み込み
   useEffect(() => {
-    if (currentCampaign?.plot) {
-      const enhancedQuests: EnhancedQuest[] = currentCampaign.plot.map((quest: any) => ({
+    if (currentCampaign?.quests) {
+      // QuestElementのオプション属性にデフォルト値を設定
+      const questsWithDefaults: QuestElement[] = currentCampaign.quests.map((quest: QuestElement) => ({
         ...quest,
         prerequisites: quest.prerequisites || [],
-        detailedRewards: { experience: 100, items: [], gold: 50 },
-        objectives: [],
-        discoveryConditions: { questboardAvailable: true },
-        priority: "medium" as const,
-        giver: "",
-        notes: "",
+        objectives: quest.objectives || [],
+        detailedRewards: quest.detailedRewards || { 
+          experience: 100, 
+          items: [], 
+          gold: 50
+        },
+        discoveryConditions: quest.discoveryConditions || { 
+          questboardAvailable: true
+        },
+        priority: quest.priority || "medium",
+        giver: quest.giver || "",
+        notes: quest.notes || "",
       }));
-      setQuests(enhancedQuests);
+      setQuests(questsWithDefaults);
     }
   }, [currentCampaign]);
 
   // クエストの保存
-  const saveQuests = (updatedQuests: EnhancedQuest[]) => {
+  const saveQuests = (updatedQuests: QuestElement[]) => {
     if (!currentCampaign) return;
 
     const updatedCampaign: TRPGCampaign = {
       ...currentCampaign,
-      plot: updatedQuests.map(quest => ({
-        id: quest.id,
-        title: quest.title,
-        description: quest.description,
-        order: quest.order,
-        status: quest.status,
-        questType: quest.questType,
-        difficulty: quest.difficulty,
-        rewards: quest.rewards,
-        prerequisites: quest.prerequisites,
-        sessionId: quest.sessionId,
-        relatedCharacterIds: quest.relatedCharacterIds,
-        relatedPlaceIds: quest.relatedPlaceIds,
-      })),
+      quests: updatedQuests, // QuestElementをそのまま保存
       updatedAt: new Date(),
     };
 
@@ -151,7 +110,7 @@ const QuestPage: React.FC = () => {
   const handleCreateQuest = () => {
     if (!formData.title || !formData.description) return;
 
-    const newQuest: EnhancedQuest = {
+    const newQuest: QuestElement = {
       id: `quest-${Date.now()}`,
       title: formData.title || "",
       description: formData.description || "",
@@ -164,7 +123,7 @@ const QuestPage: React.FC = () => {
       sessionId: undefined,
       relatedCharacterIds: [],
       relatedPlaceIds: [],
-      // Enhanced properties
+      // QuestElement拡張プロパティ
       objectives: formData.objectives || [],
       detailedRewards: formData.detailedRewards || { experience: 100, items: [], gold: 50 },
       discoveryConditions: formData.discoveryConditions || { questboardAvailable: true },
@@ -183,10 +142,10 @@ const QuestPage: React.FC = () => {
   const handleUpdateQuest = () => {
     if (!editingQuest || !formData.title || !formData.description) return;
 
-    const updatedQuest: EnhancedQuest = {
+    const updatedQuest: QuestElement = {
       ...editingQuest,
       ...formData,
-    } as EnhancedQuest;
+    } as QuestElement;
 
     const updatedQuests = quests.map(q => q.id === editingQuest.id ? updatedQuest : q);
     saveQuests(updatedQuests);
@@ -202,7 +161,7 @@ const QuestPage: React.FC = () => {
   };
 
   // クエスト状態変更
-  const handleStatusChange = (questId: string, status: QuestStatus) => {
+  const handleStatusChange = (questId: string, status: QuestElement['status']) => {
     const updatedQuests = quests.map(q =>
       q.id === questId ? { ...q, status } : q
     );
@@ -243,7 +202,7 @@ const QuestPage: React.FC = () => {
   };
 
   // 編集ダイアログを開く
-  const openEditDialog = (quest: EnhancedQuest) => {
+  const openEditDialog = (quest: QuestElement) => {
     setEditingQuest(quest);
     setFormData(quest);
     setDialogOpen(true);

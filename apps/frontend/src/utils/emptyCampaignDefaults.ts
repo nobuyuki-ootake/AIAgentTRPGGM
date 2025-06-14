@@ -41,7 +41,7 @@ export const createEmptyCampaign = (title: string = "新しいキャンペーン
     },
     
     // ストーリー関連
-    plot: [],
+    quests: [],
     
     // タイムライン関連
     timeline: [],

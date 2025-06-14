@@ -280,6 +280,21 @@ pnpm start
 - [TRPG セッションテストガイド](docs/TRPG_SESSION_TEST_GUIDE.md) - セッション機能のテスト手順
 - [プロジェクト状態まとめ](docs/プロジェクト状態まとめ.md) - 実装状況の概要
 
+### 型定義使用状況
+
+フロントエンドの各機能画面で使用されている型定義の詳細調査：
+
+- [SynopsisPage 型使用状況](docs/frontend-type-usage/01-synopsis-page.md) - キャンペーン背景画面の型使用
+- [QuestPage 型使用状況](docs/frontend-type-usage/02-quest-page.md) - クエスト管理画面の型使用
+- [CharactersPage 型使用状況](docs/frontend-type-usage/03-characters-page.md) - キャラクター管理画面の型使用
+- [EnemyPage 型使用状況](docs/frontend-type-usage/04-enemy-page.md) - エネミー管理画面の型使用
+- [NPCPage 型使用状況](docs/frontend-type-usage/05-npc-page.md) - NPC管理画面の型使用
+- [WorldBuildingPage 型使用状況](docs/frontend-type-usage/06-worldbuilding-page.md) - 場所・拠点設定画面の型使用
+- [ItemManagementPage 型使用状況](docs/frontend-type-usage/07-item-management-page.md) - アイテム管理画面の型使用
+- [TimelinePage 型使用状況](docs/frontend-type-usage/08-timeline-page.md) - イベント管理画面の型使用
+- [SessionNotes 型使用状況](docs/frontend-type-usage/09-session-notes.md) - セッションノート機能の型使用
+- [TRPGSessionPage 型使用状況](docs/frontend-type-usage/10-trpg-session-page.md) - TRPGセッション画面の型使用
+
 ### 機能仕様
 
 - [TRPG AI エージェント GM 仕様書](docs/TRPG-AIエージェントGM-プロジェクト仕様書.md) - プロジェクト全体仕様

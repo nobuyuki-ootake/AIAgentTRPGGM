@@ -3,7 +3,7 @@
  */
 
 import {
-  WorldBuildingElement,
+  UnifiedLocationElement,
   WorldBuildingElementData,
 } from "@trpg-ai-gm/types";
 
@@ -24,7 +24,7 @@ export interface ApiResponse<T> {
 // 世界観要素のAPIレスポンス型
 export interface WorldBuildingApiResponse {
   status: string;
-  data: WorldBuildingElement; // Record<string, unknown>からWorldBuildingElementに変更
+  data: UnifiedLocationElement; // WorldBuildingElementからUnifiedLocationElementに変更
   rawContent?: string; // オプショナルに変更
   response?: string;
   agentUsed?: Record<string, unknown>;

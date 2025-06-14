@@ -263,7 +263,7 @@ const HomePage: React.FC = () => {
                       title: processedTestData.title,
                       charactersCount: processedTestData.characters?.length,
                       npcsCount: processedTestData.npcs?.length,
-                      questsCount: processedTestData.plot?.length
+                      questsCount: processedTestData.quests?.length
                     });
                   }}
                 >

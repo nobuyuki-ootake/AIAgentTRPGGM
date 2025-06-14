@@ -5,12 +5,16 @@ import {
 } from '@trpg-ai-gm/types';
 
 /**
- * TRPG世界観要素のスキーマと型定義
+ * TRPG場所生成要素のスキーマと型定義
  * フロントエンドとバックエンドで共有する型定義
+ * 互換性のためWorldBuildingElementTypeを使用しているが、
+ * 内部的には場所管理システムとして扱う
  */
 
 /**
- * 各エレメントのスキーマ定義を修正
+ * 各要素のスキーマ定義
+ * 互換性のために名前はWorldBuildingElementSchemasのまま
+ * 内部的には場所管理システムとして使用
  */
 export const WorldBuildingElementSchemas: Record<
   string,
@@ -89,9 +93,10 @@ export const WorldBuildingElementSchemas: Record<
 };
 
 /**
- * 世界観要素タイプに応じたプロンプトテンプレートを生成
+ * 場所要素タイプに応じたプロンプトテンプレートを生成
+ * 互換性のため関数名はgenerateElementPromptのまま
  *
- * @param elementType 世界観要素の種類
+ * @param elementType 要素の種類
  * @param elementName 要素の名前
  * @returns 指定した要素タイプに対応するプロンプト
  */

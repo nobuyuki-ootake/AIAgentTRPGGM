@@ -21,31 +21,6 @@ export const applyTestDataToLocalStorage = (): void => {
   // TRPGLocalStorageManagerを使って正しく保存
   TRPGLocalStorageManager.saveCampaign(processedTestData);
   TRPGLocalStorageManager.setCurrentCampaignId(processedTestData.id);
-  
-  
-  console.log('✅ テストデータを適用しました:', {
-    id: processedTestData.id,
-    title: processedTestData.title,
-    characters: processedTestData.characters?.length,
-    npcs: processedTestData.npcs?.length,
-    enemies: processedTestData.enemies?.length,
-    plot: processedTestData.plot?.length,
-    bases: processedTestData.bases?.length,
-    worldBuilding: processedTestData.worldBuilding ? 'present' : 'missing'
-  });
-  
-  // 詳細ログを出力してデータ内容を確認
-  console.log('📝 キャラクターデータ詳細:', processedTestData.characters?.map(c => ({ 
-    id: c.id, 
-    name: c.name, 
-    characterType: c.characterType 
-  })));
-  
-  console.log('🏢 拠点データ詳細:', processedTestData.bases?.map(b => ({ 
-    id: b.id, 
-    name: b.name, 
-    type: b.type 
-  })));
 };
 
 /**
@@ -64,9 +39,6 @@ export const clearTestData = (): void => {
   
   // TRPGLocalStorageManagerを使って正しく削除
   TRPGLocalStorageManager.deleteCampaign(testData.id);
-  
-  
-  console.log('✅ テストデータをクリアしました');
 };
 
 /**
@@ -77,7 +49,6 @@ export const updateTestDataTemporary = (updates: Partial<TRPGCampaign>): void =>
   const currentCampaign = JSON.parse(localStorage.getItem('currentCampaign') || '{}');
   
   if (!isTestCampaign(currentCampaign.id)) {
-    console.warn('⚠️ 現在のキャンペーンはテストデータではありません');
     return;
   }
   
@@ -87,7 +58,6 @@ export const updateTestDataTemporary = (updates: Partial<TRPGCampaign>): void =>
   };
   
   localStorage.setItem('currentCampaign', JSON.stringify(updatedCampaign));
-  console.log('📝 テストデータを一時的に更新しました（リロードで元に戻ります）');
 };
 
 /**
@@ -102,7 +72,7 @@ export const getTestDataSummary = () => {
     characters: testData.characters?.map(c => ({ id: c.id, name: c.name, profession: c.profession })),
     npcs: testData.npcs?.map(n => ({ id: n.id, name: n.name, occupation: n.occupation })),
     enemies: testData.enemies?.map(e => ({ id: e.id, name: e.name, rank: e.rank })),
-    plot: testData.plot?.map(q => ({ id: q.id, title: q.title, order: q.order })),
+    quests: testData.quests?.map(q => ({ id: q.id, title: q.title, order: q.order })),
     locations: testData.bases?.map(b => ({ id: b.id, name: b.name }))
   };
 };
