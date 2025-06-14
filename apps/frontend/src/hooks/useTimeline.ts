@@ -97,6 +97,7 @@ export function useTimeline() {
     eventType: "other" as const,
     postEventCharacterStatuses: {},
     relatedQuestIds: [],
+    explorationActions: [],
   });
 
   // ダイアログの状態
@@ -723,6 +724,7 @@ export function useTimeline() {
       eventType: "other" as const,
       postEventCharacterStatuses: {},
       relatedQuestIds: [],
+      explorationActions: [],
     });
   }, [timelineEvents.length]);
 

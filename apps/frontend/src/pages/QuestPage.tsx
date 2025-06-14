@@ -39,17 +39,28 @@ import {
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { currentCampaignState } from "../store/atoms";
-import { TRPGCampaign, QuestElement, QuestObjective, NPCCharacter } from "@trpg-ai-gm/types";
+import {
+  TRPGCampaign,
+  QuestElement,
+  QuestObjective,
+  NPCCharacter,
+  ExplorationAction,
+  ExplorationActionType,
+  ExplorationDifficulty,
+} from "@trpg-ai-gm/types";
 
 // QuestObjective型は既にpackages/types/index.tsで定義済み
 // EnhancedQuest型は削除 - QuestElementを直接使用
 
 const QuestPage: React.FC = () => {
-  const [currentCampaign, setCurrentCampaign] = useRecoilState(currentCampaignState);
+  const [currentCampaign, setCurrentCampaign] =
+    useRecoilState(currentCampaignState);
   const [quests, setQuests] = useState<QuestElement[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQuest, setEditingQuest] = useState<QuestElement | null>(null);
-  const [questFilter, setQuestFilter] = useState<"all" | "available" | "active" | "completed">("all");
+  const [questFilter, setQuestFilter] = useState<
+    "all" | "available" | "active" | "completed"
+  >("all");
 
   // 新規クエストフォームデータ
   const [formData, setFormData] = useState<Partial<QuestElement>>({
@@ -66,28 +77,32 @@ const QuestPage: React.FC = () => {
     detailedRewards: { experience: 0, items: [], gold: 0 },
     discoveryConditions: { questboardAvailable: false },
     prerequisites: [],
+    explorationActions: [],
   });
 
   // クエストの読み込み
   useEffect(() => {
     if (currentCampaign?.quests) {
       // QuestElementのオプション属性にデフォルト値を設定
-      const questsWithDefaults: QuestElement[] = currentCampaign.quests.map((quest: QuestElement) => ({
-        ...quest,
-        prerequisites: quest.prerequisites || [],
-        objectives: quest.objectives || [],
-        detailedRewards: quest.detailedRewards || { 
-          experience: 100, 
-          items: [], 
-          gold: 50
-        },
-        discoveryConditions: quest.discoveryConditions || { 
-          questboardAvailable: true
-        },
-        priority: quest.priority || "medium",
-        giver: quest.giver || "",
-        notes: quest.notes || "",
-      }));
+      const questsWithDefaults: QuestElement[] = currentCampaign.quests.map(
+        (quest: QuestElement) => ({
+          ...quest,
+          prerequisites: quest.prerequisites || [],
+          objectives: quest.objectives || [],
+          detailedRewards: quest.detailedRewards || {
+            experience: 100,
+            items: [],
+            gold: 50,
+          },
+          discoveryConditions: quest.discoveryConditions || {
+            questboardAvailable: true,
+          },
+          priority: quest.priority || "medium",
+          giver: quest.giver || "",
+          notes: quest.notes || "",
+          explorationActions: quest.explorationActions || [],
+        }),
+      );
       setQuests(questsWithDefaults);
     }
   }, [currentCampaign]);
@@ -125,11 +140,18 @@ const QuestPage: React.FC = () => {
       relatedPlaceIds: [],
       // QuestElement拡張プロパティ
       objectives: formData.objectives || [],
-      detailedRewards: formData.detailedRewards || { experience: 100, items: [], gold: 50 },
-      discoveryConditions: formData.discoveryConditions || { questboardAvailable: true },
+      detailedRewards: formData.detailedRewards || {
+        experience: 100,
+        items: [],
+        gold: 50,
+      },
+      discoveryConditions: formData.discoveryConditions || {
+        questboardAvailable: true,
+      },
       priority: formData.priority || "medium",
       giver: formData.giver || "",
       notes: formData.notes || "",
+      explorationActions: formData.explorationActions || [],
     };
 
     const updatedQuests = [...quests, newQuest];
@@ -147,7 +169,9 @@ const QuestPage: React.FC = () => {
       ...formData,
     } as QuestElement;
 
-    const updatedQuests = quests.map(q => q.id === editingQuest.id ? updatedQuest : q);
+    const updatedQuests = quests.map((q) =>
+      q.id === editingQuest.id ? updatedQuest : q,
+    );
     saveQuests(updatedQuests);
     setDialogOpen(false);
     setEditingQuest(null);
@@ -156,30 +180,84 @@ const QuestPage: React.FC = () => {
 
   // クエスト削除
   const handleDeleteQuest = (questId: string) => {
-    const updatedQuests = quests.filter(q => q.id !== questId);
+    const updatedQuests = quests.filter((q) => q.id !== questId);
     saveQuests(updatedQuests);
   };
 
   // クエスト状態変更
-  const handleStatusChange = (questId: string, status: QuestElement['status']) => {
-    const updatedQuests = quests.map(q =>
-      q.id === questId ? { ...q, status } : q
+  const handleStatusChange = (
+    questId: string,
+    status: QuestElement["status"],
+  ) => {
+    const updatedQuests = quests.map((q) =>
+      q.id === questId ? { ...q, status } : q,
     );
     saveQuests(updatedQuests);
   };
 
   // 目標の完了/未完了切り替え
   const toggleObjective = (questId: string, objectiveId: string) => {
-    const updatedQuests = quests.map(q => {
+    const updatedQuests = quests.map((q) => {
       if (q.id === questId) {
-        const updatedObjectives = q.objectives.map(obj =>
-          obj.id === objectiveId ? { ...obj, completed: !obj.completed } : obj
+        const updatedObjectives = q.objectives.map((obj) =>
+          obj.id === objectiveId ? { ...obj, completed: !obj.completed } : obj,
         );
         return { ...q, objectives: updatedObjectives };
       }
       return q;
     });
     saveQuests(updatedQuests);
+  };
+
+  // 探索行動管理関数
+  const addExplorationAction = () => {
+    const newAction: ExplorationAction = {
+      id: `exploration-${Date.now()}`,
+      title: "新しい探索行動",
+      description: "",
+      actionType: "investigate",
+      difficulty: "normal",
+      prerequisites: {},
+      outcomes: {
+        success: {
+          description: "成功時の結果",
+          rewards: {},
+          consequences: [],
+        },
+        failure: {
+          description: "失敗時の結果",
+          consequences: [],
+        },
+      },
+    };
+
+    setFormData({
+      ...formData,
+      explorationActions: [...(formData.explorationActions || []), newAction],
+    });
+  };
+
+  const updateExplorationAction = (
+    actionId: string,
+    updates: Partial<ExplorationAction>,
+  ) => {
+    const updatedActions = (formData.explorationActions || []).map((action) =>
+      action.id === actionId ? { ...action, ...updates } : action,
+    );
+    setFormData({
+      ...formData,
+      explorationActions: updatedActions,
+    });
+  };
+
+  const removeExplorationAction = (actionId: string) => {
+    const updatedActions = (formData.explorationActions || []).filter(
+      (action) => action.id !== actionId,
+    );
+    setFormData({
+      ...formData,
+      explorationActions: updatedActions,
+    });
   };
 
   // フォームリセット
@@ -198,6 +276,7 @@ const QuestPage: React.FC = () => {
       detailedRewards: { experience: 100, items: [], gold: 50 },
       discoveryConditions: { questboardAvailable: false },
       prerequisites: [],
+      explorationActions: [],
     });
   };
 
@@ -209,7 +288,7 @@ const QuestPage: React.FC = () => {
   };
 
   // フィルター済みクエスト
-  const filteredQuests = quests.filter(quest => {
+  const filteredQuests = quests.filter((quest) => {
     if (questFilter === "all") return true;
     if (questFilter === "available") return quest.status === "未開始";
     if (questFilter === "active") return quest.status === "進行中";
@@ -220,24 +299,36 @@ const QuestPage: React.FC = () => {
   // ステータス色の取得
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "未開始": return "default";
-      case "進行中": return "warning";
-      case "完了": return "success";
-      case "失敗": return "error";
-      case "保留": return "info";
-      default: return "default";
+      case "未開始":
+        return "default";
+      case "進行中":
+        return "warning";
+      case "完了":
+        return "success";
+      case "失敗":
+        return "error";
+      case "保留":
+        return "info";
+      default:
+        return "default";
     }
   };
 
   // 難易度色の取得
   const getDifficultyColor = (difficulty: number) => {
     switch (difficulty) {
-      case 1: return "success"; // 簡単
-      case 2: return "info";    // 普通
-      case 3: return "warning"; // 中程度
-      case 4: return "error";   // 困難
-      case 5: return "secondary"; // 非常に困難
-      default: return "default";
+      case 1:
+        return "success"; // 簡単
+      case 2:
+        return "info"; // 普通
+      case 3:
+        return "warning"; // 中程度
+      case 4:
+        return "error"; // 困難
+      case 5:
+        return "secondary"; // 非常に困難
+      default:
+        return "default";
     }
   };
 
@@ -284,7 +375,14 @@ const QuestPage: React.FC = () => {
         {filteredQuests.map((quest) => (
           <Grid size={{ xs: 12, md: 6 }} key={quest.id}>
             <Paper sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  mb: 2,
+                }}
+              >
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     {quest.title}
@@ -302,15 +400,27 @@ const QuestPage: React.FC = () => {
                       variant="outlined"
                     />
                     {quest.priority === "high" && (
-                      <Chip icon={<Flag />} label="高優先度" size="small" color="error" />
+                      <Chip
+                        icon={<Flag />}
+                        label="高優先度"
+                        size="small"
+                        color="error"
+                      />
                     )}
                   </Stack>
                 </Box>
                 <Box>
-                  <IconButton size="small" onClick={() => openEditDialog(quest)}>
+                  <IconButton
+                    size="small"
+                    onClick={() => openEditDialog(quest)}
+                  >
                     <EditIcon />
                   </IconButton>
-                  <IconButton size="small" color="error" onClick={() => handleDeleteQuest(quest.id)}>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleDeleteQuest(quest.id)}
+                  >
                     <DeleteIcon />
                   </IconButton>
                 </Box>
@@ -332,10 +442,19 @@ const QuestPage: React.FC = () => {
                   <strong>報酬:</strong>
                 </Typography>
                 <Stack direction="row" spacing={1}>
-                  <Chip label={`EXP: ${quest.detailedRewards.experience}`} size="small" />
-                  <Chip label={`ゴールド: ${quest.detailedRewards.gold}`} size="small" />
+                  <Chip
+                    label={`EXP: ${quest.detailedRewards.experience}`}
+                    size="small"
+                  />
+                  <Chip
+                    label={`ゴールド: ${quest.detailedRewards.gold}`}
+                    size="small"
+                  />
                   {quest.detailedRewards.items.length > 0 && (
-                    <Chip label={`アイテム: ${quest.detailedRewards.items.length}個`} size="small" />
+                    <Chip
+                      label={`アイテム: ${quest.detailedRewards.items.length}個`}
+                      size="small"
+                    />
                   )}
                 </Stack>
               </Box>
@@ -345,7 +464,9 @@ const QuestPage: React.FC = () => {
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     <Typography variant="body2">
-                      目標 ({quest.objectives.filter(obj => obj.completed).length}/{quest.objectives.length})
+                      目標 (
+                      {quest.objectives.filter((obj) => obj.completed).length}/
+                      {quest.objectives.length})
                     </Typography>
                   </AccordionSummary>
                   <AccordionDetails>
@@ -354,7 +475,9 @@ const QuestPage: React.FC = () => {
                         <ListItem key={objective.id} sx={{ pl: 0 }}>
                           <IconButton
                             size="small"
-                            onClick={() => toggleObjective(quest.id, objective.id)}
+                            onClick={() =>
+                              toggleObjective(quest.id, objective.id)
+                            }
                           >
                             {objective.completed ? (
                               <CheckCircle color="success" />
@@ -365,7 +488,9 @@ const QuestPage: React.FC = () => {
                           <ListItemText
                             primary={objective.description}
                             sx={{
-                              textDecoration: objective.completed ? "line-through" : "none",
+                              textDecoration: objective.completed
+                                ? "line-through"
+                                : "none",
                               opacity: objective.completed ? 0.7 : 1,
                             }}
                           />
@@ -384,14 +509,18 @@ const QuestPage: React.FC = () => {
                 <Stack direction="row" spacing={1}>
                   <Button
                     size="small"
-                    variant={quest.status === "未開始" ? "contained" : "outlined"}
+                    variant={
+                      quest.status === "未開始" ? "contained" : "outlined"
+                    }
                     onClick={() => handleStatusChange(quest.id, "未開始")}
                   >
                     利用可能
                   </Button>
                   <Button
                     size="small"
-                    variant={quest.status === "進行中" ? "contained" : "outlined"}
+                    variant={
+                      quest.status === "進行中" ? "contained" : "outlined"
+                    }
                     onClick={() => handleStatusChange(quest.id, "進行中")}
                   >
                     進行中
@@ -412,15 +541,19 @@ const QuestPage: React.FC = () => {
 
       {filteredQuests.length === 0 && (
         <Alert severity="info" sx={{ mt: 4 }}>
-          {questFilter === "all" 
+          {questFilter === "all"
             ? "まだクエストが作成されていません。新規作成ボタンからクエストを追加してください。"
-            : `${questFilter === "available" ? "利用可能な" : questFilter === "active" ? "進行中の" : "完了した"}クエストがありません。`
-          }
+            : `${questFilter === "available" ? "利用可能な" : questFilter === "active" ? "進行中の" : "完了した"}クエストがありません。`}
         </Alert>
       )}
 
       {/* クエスト作成/編集ダイアログ */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           {editingQuest ? "クエスト編集" : "新規クエスト作成"}
         </DialogTitle>
@@ -430,16 +563,20 @@ const QuestPage: React.FC = () => {
               fullWidth
               label="クエストタイトル"
               value={formData.title || ""}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
             />
-            
+
             <TextField
               fullWidth
               label="クエスト説明"
               multiline
               rows={3}
               value={formData.description || ""}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
             />
 
             <Grid container spacing={2}>
@@ -449,7 +586,12 @@ const QuestPage: React.FC = () => {
                   <Select
                     value={formData.status || "未開始"}
                     label="初期ステータス"
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        status: e.target.value as any,
+                      })
+                    }
                   >
                     <MenuItem value="未開始">未開始</MenuItem>
                     <MenuItem value="進行中">進行中</MenuItem>
@@ -465,7 +607,12 @@ const QuestPage: React.FC = () => {
                   <Select
                     value={formData.difficulty || 2}
                     label="難易度"
-                    onChange={(e) => setFormData({ ...formData, difficulty: Number(e.target.value) as 1 | 2 | 3 | 4 | 5 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        difficulty: Number(e.target.value) as 1 | 2 | 3 | 4 | 5,
+                      })
+                    }
                   >
                     <MenuItem value={1}>簡単 (1)</MenuItem>
                     <MenuItem value={2}>普通 (2)</MenuItem>
@@ -481,7 +628,9 @@ const QuestPage: React.FC = () => {
               fullWidth
               label="クエスト発行者 (NPC名)"
               value={formData.giver || ""}
-              onChange={(e) => setFormData({ ...formData, giver: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, giver: e.target.value })
+              }
               helperText="このクエストを提供するNPCの名前"
             />
 
@@ -494,10 +643,15 @@ const QuestPage: React.FC = () => {
                   label="経験値"
                   type="number"
                   value={formData.detailedRewards?.experience || 0}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    detailedRewards: { ...formData.detailedRewards!, experience: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      detailedRewards: {
+                        ...formData.detailedRewards!,
+                        experience: parseInt(e.target.value) || 0,
+                      },
+                    })
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -506,10 +660,15 @@ const QuestPage: React.FC = () => {
                   label="ゴールド"
                   type="number"
                   value={formData.detailedRewards?.gold || 0}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    detailedRewards: { ...formData.detailedRewards!, gold: parseInt(e.target.value) || 0 }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      detailedRewards: {
+                        ...formData.detailedRewards!,
+                        gold: parseInt(e.target.value) || 0,
+                      },
+                    })
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 4 }}>
@@ -517,22 +676,177 @@ const QuestPage: React.FC = () => {
                   fullWidth
                   label="アイテム (カンマ区切り)"
                   value={formData.detailedRewards?.items?.join(", ") || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    detailedRewards: { 
-                      ...formData.detailedRewards!, 
-                      items: e.target.value.split(",").map(item => item.trim()).filter(item => item)
-                    }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      detailedRewards: {
+                        ...formData.detailedRewards!,
+                        items: e.target.value
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter((item) => item),
+                      },
+                    })
+                  }
                 />
               </Grid>
             </Grid>
+
+            {/* 探索行動設定セクション */}
+            <Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6">探索行動設定</Typography>
+                <Button
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={addExplorationAction}
+                >
+                  探索行動を追加
+                </Button>
+              </Box>
+
+              {formData.explorationActions &&
+              formData.explorationActions.length > 0 ? (
+                <Stack spacing={2}>
+                  {formData.explorationActions.map((action, index) => (
+                    <Accordion key={action.id}>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography variant="body2">
+                          {action.title || `探索行動 ${index + 1}`}
+                          <Chip
+                            label={action.actionType}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                          <Chip
+                            label={action.difficulty}
+                            size="small"
+                            color={
+                              action.difficulty === "easy"
+                                ? "success"
+                                : action.difficulty === "hard"
+                                  ? "warning"
+                                  : action.difficulty === "extreme"
+                                    ? "error"
+                                    : "default"
+                            }
+                            sx={{ ml: 1 }}
+                          />
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Stack spacing={2}>
+                          <TextField
+                            fullWidth
+                            label="行動タイトル"
+                            value={action.title}
+                            onChange={(e) =>
+                              updateExplorationAction(action.id, {
+                                title: e.target.value,
+                              })
+                            }
+                          />
+
+                          <TextField
+                            fullWidth
+                            label="行動説明"
+                            multiline
+                            rows={2}
+                            value={action.description}
+                            onChange={(e) =>
+                              updateExplorationAction(action.id, {
+                                description: e.target.value,
+                              })
+                            }
+                          />
+
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 6 }}>
+                              <FormControl fullWidth>
+                                <InputLabel>行動タイプ</InputLabel>
+                                <Select
+                                  value={action.actionType}
+                                  onChange={(e) =>
+                                    updateExplorationAction(action.id, {
+                                      actionType: e.target
+                                        .value as ExplorationActionType,
+                                    })
+                                  }
+                                >
+                                  <MenuItem value="investigate">
+                                    調査・探索
+                                  </MenuItem>
+                                  <MenuItem value="search">捜索・発見</MenuItem>
+                                  <MenuItem value="interact">
+                                    交流・会話
+                                  </MenuItem>
+                                  <MenuItem value="combat">戦闘・討伐</MenuItem>
+                                  <MenuItem value="collect">
+                                    収集・取得
+                                  </MenuItem>
+                                  <MenuItem value="travel">移動・探検</MenuItem>
+                                  <MenuItem value="rest">休息・準備</MenuItem>
+                                  <MenuItem value="other">その他</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                              <FormControl fullWidth>
+                                <InputLabel>難易度</InputLabel>
+                                <Select
+                                  value={action.difficulty}
+                                  onChange={(e) =>
+                                    updateExplorationAction(action.id, {
+                                      difficulty: e.target
+                                        .value as ExplorationDifficulty,
+                                    })
+                                  }
+                                >
+                                  <MenuItem value="easy">簡単</MenuItem>
+                                  <MenuItem value="normal">普通</MenuItem>
+                                  <MenuItem value="hard">困難</MenuItem>
+                                  <MenuItem value="extreme">極限</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Grid>
+
+                          <Box
+                            sx={{ display: "flex", justifyContent: "flex-end" }}
+                          >
+                            <Button
+                              size="small"
+                              color="error"
+                              startIcon={<DeleteIcon />}
+                              onClick={() => removeExplorationAction(action.id)}
+                            >
+                              削除
+                            </Button>
+                          </Box>
+                        </Stack>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Stack>
+              ) : (
+                <Alert severity="info">
+                  このクエストに関連する探索行動を追加できます。探索行動はマイルストーンシステムで使用され、プレイヤーがTRPGセッションで実行できる行動として表示されます。
+                </Alert>
+              )}
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>キャンセル</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={editingQuest ? handleUpdateQuest : handleCreateQuest}
             disabled={!formData.title || !formData.description}
           >

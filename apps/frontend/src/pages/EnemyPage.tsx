@@ -25,6 +25,10 @@ import {
   CardContent,
   Grid,
   Avatar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -37,19 +41,25 @@ import {
   Bolt,
   Shield,
   Speed,
+  ExpandMore,
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { currentCampaignState } from "../store/atoms";
 import { v4 as uuidv4 } from "uuid";
 import { AIAssistButton } from "../components/ui/AIAssistButton";
 import { useAIChatIntegration } from "../hooks/useAIChatIntegration";
-import { EnemyCharacter } from "@trpg-ai-gm/types";
+import {
+  EnemyCharacter,
+  ExplorationAction,
+  ExplorationActionType,
+  ExplorationDifficulty,
+} from "@trpg-ai-gm/types";
 
 const EnemyPage: React.FC = () => {
   const [currentCampaign, setCurrentCampaign] =
     useRecoilState(currentCampaignState);
   const [enemies, setEnemies] = useState<EnemyCharacter[]>(
-    currentCampaign?.enemies || []
+    currentCampaign?.enemies || [],
   );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEnemy, setEditingEnemy] = useState<EnemyCharacter | null>(null);
@@ -101,6 +111,7 @@ const EnemyPage: React.FC = () => {
       location: "",
     },
     imageUrl: "",
+    explorationActions: [],
   });
 
   const { openAIAssist } = useAIChatIntegration();
@@ -160,6 +171,7 @@ const EnemyPage: React.FC = () => {
           location: "",
         },
         imageUrl: "",
+        explorationActions: [],
       });
     }
     setDialogOpen(true);
@@ -178,7 +190,7 @@ const EnemyPage: React.FC = () => {
     let newEnemies: EnemyCharacter[];
     if (editingEnemy) {
       newEnemies = enemies.map((e) =>
-        e.id === editingEnemy.id ? formData : e
+        e.id === editingEnemy.id ? formData : e,
       );
     } else {
       newEnemies = [...enemies, formData];
@@ -241,6 +253,58 @@ const EnemyPage: React.FC = () => {
     });
   };
 
+  // 探索行動管理関数
+  const addExplorationAction = () => {
+    const newAction: ExplorationAction = {
+      id: `exploration-${Date.now()}`,
+      title: "新しい探索行動",
+      description: "",
+      actionType: "investigate",
+      difficulty: "normal",
+      prerequisites: {},
+      successOutcomes: {
+        experience: 0,
+        items: [],
+        information: [],
+        flagChanges: {},
+        nextActions: [],
+      },
+      failureOutcomes: {
+        consequences: [],
+        retryable: true,
+        penaltyDays: 0,
+      },
+    };
+
+    setFormData({
+      ...formData,
+      explorationActions: [...(formData.explorationActions || []), newAction],
+    });
+  };
+
+  const updateExplorationAction = (
+    actionId: string,
+    updates: Partial<ExplorationAction>,
+  ) => {
+    const updatedActions = (formData.explorationActions || []).map((action) =>
+      action.id === actionId ? { ...action, ...updates } : action,
+    );
+    setFormData({
+      ...formData,
+      explorationActions: updatedActions,
+    });
+  };
+
+  const removeExplorationAction = (actionId: string) => {
+    const updatedActions = (formData.explorationActions || []).filter(
+      (action) => action.id !== actionId,
+    );
+    setFormData({
+      ...formData,
+      explorationActions: updatedActions,
+    });
+  };
+
   // AIアシスト機能
   const handleOpenAIAssist = async () => {
     openAIAssist(
@@ -277,6 +341,7 @@ const EnemyPage: React.FC = () => {
                       location: "",
                     },
                     imageUrl: enemy.imageUrl || "",
+                    explorationActions: enemy.explorationActions || [],
                   };
 
                   const updatedEnemies = [...enemies, newEnemy];
@@ -297,7 +362,7 @@ const EnemyPage: React.FC = () => {
           }
         },
       },
-      currentCampaign
+      currentCampaign,
     );
   };
 
@@ -534,7 +599,7 @@ const EnemyPage: React.FC = () => {
                     onChange={(e) =>
                       handleStatChange(
                         "strength",
-                        parseInt(e.target.value) || 10
+                        parseInt(e.target.value) || 10,
                       )
                     }
                     fullWidth
@@ -549,7 +614,7 @@ const EnemyPage: React.FC = () => {
                     onChange={(e) =>
                       handleStatChange(
                         "dexterity",
-                        parseInt(e.target.value) || 10
+                        parseInt(e.target.value) || 10,
                       )
                     }
                     fullWidth
@@ -564,7 +629,7 @@ const EnemyPage: React.FC = () => {
                     onChange={(e) =>
                       handleStatChange(
                         "constitution",
-                        parseInt(e.target.value) || 10
+                        parseInt(e.target.value) || 10,
                       )
                     }
                     fullWidth
@@ -579,7 +644,7 @@ const EnemyPage: React.FC = () => {
                     onChange={(e) =>
                       handleStatChange(
                         "intelligence",
-                        parseInt(e.target.value) || 10
+                        parseInt(e.target.value) || 10,
                       )
                     }
                     fullWidth
@@ -722,6 +787,156 @@ const EnemyPage: React.FC = () => {
               fullWidth
               placeholder="基本攻撃の説明"
             />
+
+            {/* 探索行動設定セクション */}
+            <Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6">探索行動設定</Typography>
+                <Button
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={addExplorationAction}
+                >
+                  探索行動を追加
+                </Button>
+              </Box>
+
+              {formData.explorationActions &&
+              formData.explorationActions.length > 0 ? (
+                <Stack spacing={2}>
+                  {formData.explorationActions.map((action, index) => (
+                    <Accordion key={action.id}>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography variant="body2">
+                          {action.title || `探索行動 ${index + 1}`}
+                          <Chip
+                            label={action.actionType}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                          <Chip
+                            label={action.difficulty}
+                            size="small"
+                            color={
+                              action.difficulty === "easy"
+                                ? "success"
+                                : action.difficulty === "hard"
+                                  ? "warning"
+                                  : action.difficulty === "extreme"
+                                    ? "error"
+                                    : "default"
+                            }
+                            sx={{ ml: 1 }}
+                          />
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Stack spacing={2}>
+                          <TextField
+                            fullWidth
+                            label="行動タイトル"
+                            value={action.title}
+                            onChange={(e) =>
+                              updateExplorationAction(action.id, {
+                                title: e.target.value,
+                              })
+                            }
+                          />
+
+                          <TextField
+                            fullWidth
+                            label="行動説明"
+                            multiline
+                            rows={2}
+                            value={action.description}
+                            onChange={(e) =>
+                              updateExplorationAction(action.id, {
+                                description: e.target.value,
+                              })
+                            }
+                          />
+
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 6 }}>
+                              <FormControl fullWidth>
+                                <InputLabel>行動タイプ</InputLabel>
+                                <Select
+                                  value={action.actionType}
+                                  onChange={(e) =>
+                                    updateExplorationAction(action.id, {
+                                      actionType: e.target
+                                        .value as ExplorationActionType,
+                                    })
+                                  }
+                                >
+                                  <MenuItem value="investigate">
+                                    調査・探索
+                                  </MenuItem>
+                                  <MenuItem value="search">捜索・発見</MenuItem>
+                                  <MenuItem value="interact">
+                                    交流・会話
+                                  </MenuItem>
+                                  <MenuItem value="combat">戦闘・討伐</MenuItem>
+                                  <MenuItem value="collect">
+                                    収集・取得
+                                  </MenuItem>
+                                  <MenuItem value="travel">移動・探検</MenuItem>
+                                  <MenuItem value="rest">休息・準備</MenuItem>
+                                  <MenuItem value="other">その他</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                              <FormControl fullWidth>
+                                <InputLabel>難易度</InputLabel>
+                                <Select
+                                  value={action.difficulty}
+                                  onChange={(e) =>
+                                    updateExplorationAction(action.id, {
+                                      difficulty: e.target
+                                        .value as ExplorationDifficulty,
+                                    })
+                                  }
+                                >
+                                  <MenuItem value="easy">簡単</MenuItem>
+                                  <MenuItem value="normal">普通</MenuItem>
+                                  <MenuItem value="hard">困難</MenuItem>
+                                  <MenuItem value="extreme">極限</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Grid>
+
+                          <Box
+                            sx={{ display: "flex", justifyContent: "flex-end" }}
+                          >
+                            <Button
+                              size="small"
+                              color="error"
+                              startIcon={<DeleteIcon />}
+                              onClick={() => removeExplorationAction(action.id)}
+                            >
+                              削除
+                            </Button>
+                          </Box>
+                        </Stack>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Stack>
+              ) : (
+                <Alert severity="info">
+                  このエネミーに関連する探索行動を追加できます。探索行動はマイルストーンシステムで使用され、プレイヤーがTRPGセッションで実行できる行動として表示されます。エネミーに関連する探索行動の例：「痕跡を追跡する」「狩猟を行う」「生息地を調査する」など。
+                </Alert>
+              )}
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -731,7 +946,7 @@ const EnemyPage: React.FC = () => {
             variant="contained"
             disabled={!formData.name.trim()}
           >
-            保存
+            {editingEnemy ? "更新" : "保存"}
           </Button>
         </DialogActions>
       </Dialog>

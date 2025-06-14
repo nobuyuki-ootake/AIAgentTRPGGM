@@ -19,8 +19,12 @@ import {
   Divider,
   Autocomplete,
   Paper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, ExpandMore } from "@mui/icons-material";
 import {
   TRPGCharacter,
   TimelineEvent,
@@ -30,6 +34,9 @@ import {
   EventResult,
   Item,
   EventCondition,
+  ExplorationAction,
+  ExplorationActionType,
+  ExplorationDifficulty,
 } from "@trpg-ai-gm/types";
 import { getCharacterIcon, eventTypes } from "./TimelineUtils";
 import moment from "moment";
@@ -70,7 +77,7 @@ interface TimelineEventDialogProps {
     e:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | SelectChangeEvent<string>,
-    field?: string
+    field?: string,
   ) => void;
   onCharactersChange: (event: SelectChangeEvent<string[]>) => void;
   onEventResultsChange: (results: EventResult[]) => void;
@@ -79,7 +86,7 @@ interface TimelineEventDialogProps {
   getPlaceName: (id: string) => string;
   onPostEventStatusChange: (
     characterId: string,
-    newStatuses: CharacterStatus[]
+    newStatuses: CharacterStatus[],
   ) => void;
   definedCharacterStatuses?: CharacterStatus[];
   allPlots: any[];
@@ -106,17 +113,120 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
   allPlots,
   onRelatedPlotsChange,
 }) => {
+  // 探索行動管理の関数
+  const addExplorationAction = () => {
+    const newAction: ExplorationAction = {
+      id: crypto.randomUUID(),
+      title: "",
+      description: "",
+      actionType: "investigate",
+      difficulty: "normal",
+      prerequisites: {},
+      successOutcomes: {
+        experience: 0,
+        items: [],
+        information: [],
+        flagChanges: {},
+        nextActions: [],
+      },
+      failureOutcomes: {
+        consequences: [],
+        retryable: true,
+        penaltyDays: 0,
+      },
+    };
+    const updatedActions = [...(newEvent.explorationActions || []), newAction];
+    onEventChange(
+      { target: { value: updatedActions } } as any,
+      "explorationActions",
+    );
+  };
+
+  const updateExplorationAction = (
+    index: number,
+    updates: Partial<ExplorationAction>,
+  ) => {
+    const updatedActions = [...(newEvent.explorationActions || [])];
+    updatedActions[index] = { ...updatedActions[index], ...updates };
+    onEventChange(
+      { target: { value: updatedActions } } as any,
+      "explorationActions",
+    );
+  };
+
+  const removeExplorationAction = (index: number) => {
+    const updatedActions = (newEvent.explorationActions || []).filter(
+      (_, i) => i !== index,
+    );
+    onEventChange(
+      { target: { value: updatedActions } } as any,
+      "explorationActions",
+    );
+  };
+
+  const getDifficultyColor = (difficulty: ExplorationDifficulty) => {
+    switch (difficulty) {
+      case "easy":
+        return "success";
+      case "normal":
+        return "info";
+      case "hard":
+        return "warning";
+      case "extreme":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  const getDifficultyLabel = (difficulty: ExplorationDifficulty) => {
+    switch (difficulty) {
+      case "easy":
+        return "簡単";
+      case "normal":
+        return "普通";
+      case "hard":
+        return "困難";
+      case "extreme":
+        return "極度";
+      default:
+        return "不明";
+    }
+  };
+
+  const getActionTypeLabel = (actionType: ExplorationActionType) => {
+    switch (actionType) {
+      case "investigate":
+        return "調査";
+      case "search":
+        return "探索";
+      case "interact":
+        return "交流";
+      case "combat":
+        return "戦闘";
+      case "collect":
+        return "収集";
+      case "travel":
+        return "移動";
+      case "rest":
+        return "休息";
+      case "other":
+        return "その他";
+      default:
+        return "不明";
+    }
+  };
   console.log(
     "[TimelineEventDialog] definedCharacterStatuses (from props):",
-    definedCharacterStatuses
+    definedCharacterStatuses,
   );
 
   const availableStatuses = useMemo(() => {
     const userDefinedIds = new Set(
-      (definedCharacterStatuses || []).map((s) => s.id)
+      (definedCharacterStatuses || []).map((s) => s.id),
     );
     const uniqueDefaultStatuses = defaultStatuses.filter(
-      (ds) => !userDefinedIds.has(ds.id)
+      (ds) => !userDefinedIds.has(ds.id),
     );
     const combined = [
       ...uniqueDefaultStatuses,
@@ -124,7 +234,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
     ];
     console.log(
       "[TimelineEventDialog] availableStatuses (combined):",
-      combined
+      combined,
     );
     return combined;
   }, [definedCharacterStatuses]);
@@ -156,10 +266,10 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               status.mobility === "normal"
                 ? "success"
                 : status.mobility === "slow"
-                ? "warning"
-                : status.mobility === "impossible"
-                ? "error"
-                : "default"
+                  ? "warning"
+                  : status.mobility === "impossible"
+                    ? "error"
+                    : "default"
             }
             sx={{ mb: 0.5 }}
           />
@@ -258,7 +368,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                           // キャラクターを削除
                           const newCharacters =
                             newEvent.relatedCharacters.filter(
-                              (id) => id !== value
+                              (id) => id !== value,
                             );
                           onCharactersChange({
                             target: { value: newCharacters },
@@ -340,7 +450,8 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         width: 12,
                         height: 12,
                         borderRadius: "50%",
-                        backgroundColor: 'type' in place ? "primary.main" : "secondary.main",
+                        backgroundColor:
+                          "type" in place ? "primary.main" : "secondary.main",
                         mr: 1,
                         flexShrink: 0,
                       }}
@@ -351,7 +462,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                       color="text.secondary"
                       sx={{ ml: 1 }}
                     >
-                      {'type' in place ? '(場所)' : '(拠点)'}
+                      {"type" in place ? "(場所)" : "(拠点)"}
                     </Typography>
                   </Box>
                 </MenuItem>
@@ -367,7 +478,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               options={allPlots}
               getOptionLabel={(option) => option.title}
               value={allPlots.filter((plot) =>
-                newEvent.relatedPlotIds?.includes(plot.id)
+                newEvent.relatedQuestIds?.includes(plot.id),
               )}
               onChange={(_, newValue) => {
                 onRelatedPlotsChange(newValue.map((plot) => plot.id));
@@ -408,7 +519,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               このイベントが発生するために必要な条件を設定します
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            
+
             <Stack spacing={2}>
               {newEvent.conditions && newEvent.conditions.length > 0 ? (
                 newEvent.conditions.map((condition, index) => (
@@ -422,7 +533,14 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                       bgcolor: "grey.50",
                     }}
                   >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="subtitle2" fontWeight="medium">
                         条件 #{index + 1}
                       </Typography>
@@ -430,31 +548,47 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         size="small"
                         color="error"
                         onClick={() => {
-                          const newConditions = newEvent.conditions?.filter((_, i) => i !== index) || [];
+                          const newConditions =
+                            newEvent.conditions?.filter(
+                              (_, i) => i !== index,
+                            ) || [];
                           onEventConditionsChange(newConditions);
                         }}
                       >
                         削除
                       </Button>
                     </Box>
-                    
+
                     <Stack spacing={2}>
                       <FormControl fullWidth>
                         <InputLabel>条件タイプ</InputLabel>
                         <Select
                           value={condition.type}
                           onChange={(e) => {
-                            const newConditions = [...(newEvent.conditions || [])];
-                            newConditions[index] = { ...condition, type: e.target.value as EventCondition['type'] };
+                            const newConditions = [
+                              ...(newEvent.conditions || []),
+                            ];
+                            newConditions[index] = {
+                              ...condition,
+                              type: e.target.value as EventCondition["type"],
+                            };
                             onEventConditionsChange(newConditions);
                           }}
                           label="条件タイプ"
                         >
-                          <MenuItem value="item_required">アイテム所持</MenuItem>
+                          <MenuItem value="item_required">
+                            アイテム所持
+                          </MenuItem>
                           <MenuItem value="flag_required">フラグ条件</MenuItem>
-                          <MenuItem value="character_status">キャラクター状態</MenuItem>
-                          <MenuItem value="location_required">場所条件</MenuItem>
-                          <MenuItem value="quest_completed">クエスト完了</MenuItem>
+                          <MenuItem value="character_status">
+                            キャラクター状態
+                          </MenuItem>
+                          <MenuItem value="location_required">
+                            場所条件
+                          </MenuItem>
+                          <MenuItem value="quest_completed">
+                            クエスト完了
+                          </MenuItem>
                           <MenuItem value="day_range">日数範囲</MenuItem>
                           <MenuItem value="custom">カスタム条件</MenuItem>
                         </Select>
@@ -465,8 +599,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         fullWidth
                         value={condition.description}
                         onChange={(e) => {
-                          const newConditions = [...(newEvent.conditions || [])];
-                          newConditions[index] = { ...condition, description: e.target.value };
+                          const newConditions = [
+                            ...(newEvent.conditions || []),
+                          ];
+                          newConditions[index] = {
+                            ...condition,
+                            description: e.target.value,
+                          };
                           onEventConditionsChange(newConditions);
                         }}
                         placeholder="例：「魔法のカギを所持している」「村を救済済み」"
@@ -479,8 +618,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             <Select
                               value={condition.itemId || ""}
                               onChange={(e) => {
-                                const newConditions = [...(newEvent.conditions || [])];
-                                newConditions[index] = { ...condition, itemId: e.target.value };
+                                const newConditions = [
+                                  ...(newEvent.conditions || []),
+                                ];
+                                newConditions[index] = {
+                                  ...condition,
+                                  itemId: e.target.value,
+                                };
                                 onEventConditionsChange(newConditions);
                               }}
                               label="必要アイテム"
@@ -488,30 +632,42 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                               <MenuItem value="">
                                 <em>アイテムを選択</em>
                               </MenuItem>
-                              {items.filter(item => item.type === 'key_item').map((item) => (
-                                <MenuItem key={item.id} value={item.id}>
-                                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                                    <Chip
-                                      label="キーアイテム"
-                                      size="small"
-                                      color="primary"
-                                      sx={{ mr: 1, minWidth: 80 }}
-                                    />
-                                    {item.name}
-                                  </Box>
-                                </MenuItem>
-                              ))}
+                              {items
+                                .filter((item) => item.type === "key_item")
+                                .map((item) => (
+                                  <MenuItem key={item.id} value={item.id}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <Chip
+                                        label="キーアイテム"
+                                        size="small"
+                                        color="primary"
+                                        sx={{ mr: 1, minWidth: 80 }}
+                                      />
+                                      {item.name}
+                                    </Box>
+                                  </MenuItem>
+                                ))}
                             </Select>
                           </FormControl>
-                          
+
                           <TextField
                             label="必要数量"
                             type="number"
                             fullWidth
                             value={condition.itemQuantity || 1}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, itemQuantity: parseInt(e.target.value) || 1 };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                itemQuantity: parseInt(e.target.value) || 1,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             inputProps={{ min: 1 }}
@@ -526,20 +682,30 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             fullWidth
                             value={condition.flagKey || ""}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, flagKey: e.target.value };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                flagKey: e.target.value,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             placeholder="例：village_saved, boss_defeated"
                           />
-                          
+
                           <TextField
                             label="期待値"
                             fullWidth
                             value={condition.flagValue || ""}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, flagValue: e.target.value };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                flagValue: e.target.value,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             placeholder="例：true, completed, 3"
@@ -553,8 +719,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                           <Select
                             value={condition.questId || ""}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, questId: e.target.value };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                questId: e.target.value,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             label="完了必須クエスト"
@@ -564,11 +735,17 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             </MenuItem>
                             {allPlots.map((plot) => (
                               <MenuItem key={plot.id} value={plot.id}>
-                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Box
+                                  sx={{ display: "flex", alignItems: "center" }}
+                                >
                                   <Chip
                                     label={plot.questType}
                                     size="small"
-                                    color={plot.questType === 'メイン' ? 'primary' : 'secondary'}
+                                    color={
+                                      plot.questType === "メイン"
+                                        ? "primary"
+                                        : "secondary"
+                                    }
                                     sx={{ mr: 1, minWidth: 60 }}
                                   />
                                   {plot.title}
@@ -580,14 +757,19 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                       )}
 
                       {condition.type === "day_range" && (
-                        <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Box sx={{ display: "flex", gap: 2 }}>
                           <TextField
                             label="最小日数"
                             type="number"
                             value={condition.dayMin || 1}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, dayMin: parseInt(e.target.value) || 1 };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                dayMin: parseInt(e.target.value) || 1,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             inputProps={{ min: 1 }}
@@ -598,8 +780,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             type="number"
                             value={condition.dayMax || 999}
                             onChange={(e) => {
-                              const newConditions = [...(newEvent.conditions || [])];
-                              newConditions[index] = { ...condition, dayMax: parseInt(e.target.value) || 999 };
+                              const newConditions = [
+                                ...(newEvent.conditions || []),
+                              ];
+                              newConditions[index] = {
+                                ...condition,
+                                dayMax: parseInt(e.target.value) || 999,
+                              };
                               onEventConditionsChange(newConditions);
                             }}
                             inputProps={{ min: 1 }}
@@ -616,8 +803,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                           rows={2}
                           value={condition.customCondition || ""}
                           onChange={(e) => {
-                            const newConditions = [...(newEvent.conditions || [])];
-                            newConditions[index] = { ...condition, customCondition: e.target.value };
+                            const newConditions = [
+                              ...(newEvent.conditions || []),
+                            ];
+                            newConditions[index] = {
+                              ...condition,
+                              customCondition: e.target.value,
+                            };
                             onEventConditionsChange(newConditions);
                           }}
                           placeholder="詳細な条件を記述してください"
@@ -627,11 +819,15 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                   </Box>
                 ))
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 2 }}
+                >
                   イベント発生条件が設定されていません
                 </Typography>
               )}
-              
+
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
@@ -641,7 +837,10 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                     type: "item_required",
                     description: "",
                   };
-                  const newConditions = [...(newEvent.conditions || []), newCondition];
+                  const newConditions = [
+                    ...(newEvent.conditions || []),
+                    newCondition,
+                  ];
                   onEventConditionsChange(newConditions);
                 }}
                 sx={{ alignSelf: "flex-start" }}
@@ -660,7 +859,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
               このイベントで得られるアイテムや設定されるフラグを管理します
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            
+
             <Stack spacing={2}>
               {newEvent.results && newEvent.results.length > 0 ? (
                 newEvent.results.map((result, index) => (
@@ -674,7 +873,14 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                       bgcolor: "grey.50",
                     }}
                   >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
                       <Typography variant="subtitle2" fontWeight="medium">
                         結果 #{index + 1}
                       </Typography>
@@ -682,14 +888,16 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         size="small"
                         color="error"
                         onClick={() => {
-                          const newResults = newEvent.results?.filter((_, i) => i !== index) || [];
+                          const newResults =
+                            newEvent.results?.filter((_, i) => i !== index) ||
+                            [];
                           onEventResultsChange(newResults);
                         }}
                       >
                         削除
                       </Button>
                     </Box>
-                    
+
                     <Stack spacing={2}>
                       <FormControl fullWidth>
                         <InputLabel>結果タイプ</InputLabel>
@@ -697,7 +905,10 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                           value={result.type}
                           onChange={(e) => {
                             const newResults = [...(newEvent.results || [])];
-                            newResults[index] = { ...result, type: e.target.value as EventResult['type'] };
+                            newResults[index] = {
+                              ...result,
+                              type: e.target.value as EventResult["type"],
+                            };
                             onEventResultsChange(newResults);
                           }}
                           label="結果タイプ"
@@ -707,8 +918,12 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                           <MenuItem value="flag_set">フラグ設定</MenuItem>
                           <MenuItem value="flag_unset">フラグ解除</MenuItem>
                           <MenuItem value="condition_met">条件達成</MenuItem>
-                          <MenuItem value="story_progress">ストーリー進行</MenuItem>
-                          <MenuItem value="character_change">キャラクター変化</MenuItem>
+                          <MenuItem value="story_progress">
+                            ストーリー進行
+                          </MenuItem>
+                          <MenuItem value="character_change">
+                            キャラクター変化
+                          </MenuItem>
                         </Select>
                       </FormControl>
 
@@ -718,21 +933,30 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         value={result.description}
                         onChange={(e) => {
                           const newResults = [...(newEvent.results || [])];
-                          newResults[index] = { ...result, description: e.target.value };
+                          newResults[index] = {
+                            ...result,
+                            description: e.target.value,
+                          };
                           onEventResultsChange(newResults);
                         }}
                         placeholder="例：「魔法の剣を取得」「村の救済フラグを設定」"
                       />
 
-                      {(result.type === "item_gained" || result.type === "item_lost") && (
+                      {(result.type === "item_gained" ||
+                        result.type === "item_lost") && (
                         <>
                           <FormControl fullWidth>
                             <InputLabel>アイテム</InputLabel>
                             <Select
                               value={result.itemId || ""}
                               onChange={(e) => {
-                                const newResults = [...(newEvent.results || [])];
-                                newResults[index] = { ...result, itemId: e.target.value };
+                                const newResults = [
+                                  ...(newEvent.results || []),
+                                ];
+                                newResults[index] = {
+                                  ...result,
+                                  itemId: e.target.value,
+                                };
                                 onEventResultsChange(newResults);
                               }}
                               label="アイテム"
@@ -742,13 +966,21 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                               </MenuItem>
                               {items.map((item) => (
                                 <MenuItem key={item.id} value={item.id}>
-                                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
                                     <Chip
                                       label={item.type}
                                       size="small"
                                       color={
-                                        item.type === "key_item" ? "primary" :
-                                        item.type === "equipment" ? "secondary" : "default"
+                                        item.type === "key_item"
+                                          ? "primary"
+                                          : item.type === "equipment"
+                                            ? "secondary"
+                                            : "default"
                                       }
                                       sx={{ mr: 1, minWidth: 80 }}
                                     />
@@ -758,7 +990,7 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                               ))}
                             </Select>
                           </FormControl>
-                          
+
                           <TextField
                             label="数量"
                             type="number"
@@ -766,7 +998,10 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             value={result.itemQuantity || 1}
                             onChange={(e) => {
                               const newResults = [...(newEvent.results || [])];
-                              newResults[index] = { ...result, itemQuantity: parseInt(e.target.value) || 1 };
+                              newResults[index] = {
+                                ...result,
+                                itemQuantity: parseInt(e.target.value) || 1,
+                              };
                               onEventResultsChange(newResults);
                             }}
                             inputProps={{ min: 1 }}
@@ -774,7 +1009,8 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                         </>
                       )}
 
-                      {(result.type === "flag_set" || result.type === "flag_unset") && (
+                      {(result.type === "flag_set" ||
+                        result.type === "flag_unset") && (
                         <>
                           <TextField
                             label="フラグキー"
@@ -782,19 +1018,25 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             value={result.flagKey || ""}
                             onChange={(e) => {
                               const newResults = [...(newEvent.results || [])];
-                              newResults[index] = { ...result, flagKey: e.target.value };
+                              newResults[index] = {
+                                ...result,
+                                flagKey: e.target.value,
+                              };
                               onEventResultsChange(newResults);
                             }}
                             placeholder="例：village_saved, boss_defeated"
                           />
-                          
+
                           <TextField
                             label="フラグ値"
                             fullWidth
                             value={result.flagValue || ""}
                             onChange={(e) => {
                               const newResults = [...(newEvent.results || [])];
-                              newResults[index] = { ...result, flagValue: e.target.value };
+                              newResults[index] = {
+                                ...result,
+                                flagValue: e.target.value,
+                              };
                               onEventResultsChange(newResults);
                             }}
                             placeholder="例：true, completed, 3"
@@ -805,11 +1047,15 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                   </Box>
                 ))
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 2 }}
+                >
                   イベント結果が設定されていません
                 </Typography>
               )}
-              
+
               <Button
                 variant="outlined"
                 startIcon={<AddIcon />}
@@ -827,6 +1073,153 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                 結果を追加
               </Button>
             </Stack>
+          </Box>
+
+          {/* 探索行動設定セクション */}
+          <Box component={Paper} variant="outlined" sx={{ p: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="subtitle1" gutterBottom sx={{ mb: 0 }}>
+                探索行動設定
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={addExplorationAction}
+              >
+                探索行動を追加
+              </Button>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              このイベントで実行可能な探索行動を設定します
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            {newEvent.explorationActions &&
+            newEvent.explorationActions.length > 0 ? (
+              <Stack spacing={2}>
+                {newEvent.explorationActions.map((action, index) => (
+                  <Accordion key={action.id} defaultExpanded={index === 0}>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          flex: 1,
+                        }}
+                      >
+                        <Typography variant="subtitle2">
+                          {action.title || `探索行動 ${index + 1}`}
+                        </Typography>
+                        <Chip
+                          label={getActionTypeLabel(action.actionType)}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={getDifficultyLabel(action.difficulty)}
+                          size="small"
+                          color={getDifficultyColor(action.difficulty) as any}
+                          variant="outlined"
+                        />
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Stack spacing={2}>
+                        <TextField
+                          label="行動名"
+                          fullWidth
+                          value={action.title}
+                          onChange={(e) =>
+                            updateExplorationAction(index, {
+                              title: e.target.value,
+                            })
+                          }
+                          placeholder="例：痕跡を追跡する"
+                        />
+                        <TextField
+                          label="説明"
+                          fullWidth
+                          multiline
+                          rows={2}
+                          value={action.description}
+                          onChange={(e) =>
+                            updateExplorationAction(index, {
+                              description: e.target.value,
+                            })
+                          }
+                          placeholder="行動の詳細を記入"
+                        />
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                          <FormControl sx={{ flex: 1 }}>
+                            <InputLabel>行動タイプ</InputLabel>
+                            <Select
+                              value={action.actionType}
+                              onChange={(e) =>
+                                updateExplorationAction(index, {
+                                  actionType: e.target
+                                    .value as ExplorationActionType,
+                                })
+                              }
+                              label="行動タイプ"
+                            >
+                              <MenuItem value="investigate">調査</MenuItem>
+                              <MenuItem value="search">探索</MenuItem>
+                              <MenuItem value="interact">交流</MenuItem>
+                              <MenuItem value="combat">戦闘</MenuItem>
+                              <MenuItem value="collect">収集</MenuItem>
+                              <MenuItem value="travel">移動</MenuItem>
+                              <MenuItem value="rest">休息</MenuItem>
+                              <MenuItem value="other">その他</MenuItem>
+                            </Select>
+                          </FormControl>
+                          <FormControl sx={{ flex: 1 }}>
+                            <InputLabel>難易度</InputLabel>
+                            <Select
+                              value={action.difficulty}
+                              onChange={(e) =>
+                                updateExplorationAction(index, {
+                                  difficulty: e.target
+                                    .value as ExplorationDifficulty,
+                                })
+                              }
+                              label="難易度"
+                            >
+                              <MenuItem value="easy">簡単</MenuItem>
+                              <MenuItem value="normal">普通</MenuItem>
+                              <MenuItem value="hard">困難</MenuItem>
+                              <MenuItem value="extreme">極度</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Box>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => removeExplorationAction(index)}
+                          sx={{ alignSelf: "flex-start" }}
+                        >
+                          この行動を削除
+                        </Button>
+                      </Stack>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </Stack>
+            ) : (
+              <Alert severity="info" sx={{ textAlign: "center" }}>
+                探索行動が設定されていません。「探索行動を追加」ボタンから追加してください。
+              </Alert>
+            )}
           </Box>
 
           {newEvent.relatedCharacters &&
@@ -884,13 +1277,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                             getOptionLabel={(option) => option?.name || ""}
                             value={availableStatuses.filter((opt) =>
                               postEventStatusesForChar.some(
-                                (s) => s.id === opt?.id
-                              )
+                                (s) => s.id === opt?.id,
+                              ),
                             )}
                             onChange={(_, selectedOptions) => {
                               onPostEventStatusChange(
                                 charId,
-                                selectedOptions || []
+                                selectedOptions || [],
                               );
                             }}
                             isOptionEqualToValue={(option, value) =>
@@ -916,13 +1309,13 @@ const TimelineEventDialog: React.FC<TimelineEventDialogProps> = ({
                                       option.mobility === "normal"
                                         ? "success"
                                         : option.mobility === "slow"
-                                        ? "warning"
-                                        : option.mobility === "impossible"
-                                        ? "error"
-                                        : "default"
+                                          ? "warning"
+                                          : option.mobility === "impossible"
+                                            ? "error"
+                                            : "default"
                                     }
                                   />
-                                ) : null
+                                ) : null,
                               )
                             }
                           />
