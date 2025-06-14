@@ -1,6 +1,9 @@
 import React from "react";
 import { Box, Grid } from "@mui/material";
-import { useTRPGSessionUI, useDebugItemListener } from "../hooks/useTRPGSessionUI";
+import {
+  useTRPGSessionUI,
+  useDebugItemListener,
+} from "../hooks/useTRPGSessionUI";
 import SessionHeader from "../components/trpg-session/SessionHeader";
 import PartyPanel from "../components/trpg-session/PartyPanel";
 import MainContentPanel from "../components/trpg-session/MainContentPanel";
@@ -9,7 +12,6 @@ import SessionDialogManager from "../components/trpg-session/SessionDialogManage
 import StartingLocationDialog from "../components/trpg-session/StartingLocationDialog";
 import DebugPanel from "../components/debug/DebugPanel";
 import TRPGSessionErrorBoundary from "../components/error/TRPGErrorBoundary";
-import { CurrentStartingLocationDisplay } from "../components/worldbuilding/StartingLocationSelect";
 
 const TRPGSessionPageContent: React.FC = () => {
   // カスタムフックでビジネスロジックとUI状態を管理
@@ -71,11 +73,11 @@ const TRPGSessionPageContent: React.FC = () => {
     // フラグ管理機能
     getCampaignFlag,
     checkClearConditions,
-    
+
     // インベントリ管理
     addInventoryItem,
   } = useTRPGSessionUI();
-  
+
   // デバッグ用のアイテム追加リスナー
   useDebugItemListener(addInventoryItem);
 
@@ -112,10 +114,22 @@ const TRPGSessionPageContent: React.FC = () => {
 
       {/* 開始場所表示 - セッション開始前または未設定時に表示 */}
       {(!uiState.isSessionStarted || !currentCampaign?.startingLocation) && (
-        <CurrentStartingLocationDisplay
-          currentStartingLocation={currentCampaign?.startingLocation}
-          compact={true}
-        />
+        <Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 1, mb: 2 }}>
+          {currentCampaign?.startingLocation ? (
+            <Box>
+              <strong>開始場所:</strong> {currentCampaign.startingLocation.name}
+              {currentCampaign.startingLocation.description && (
+                <Box component="span" sx={{ ml: 1, color: "text.secondary" }}>
+                  - {currentCampaign.startingLocation.description}
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ color: "warning.main" }}>
+              開始場所が設定されていません
+            </Box>
+          )}
+        </Box>
       )}
 
       <Box

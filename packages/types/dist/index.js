@@ -94,6 +94,9 @@ export const convertSessionToUnified = (session) => {
 /**
  * 世界観構築要素のタイプのEnum（文字列リテラルユニオンの代替）
  */
+/**
+ * @deprecated PlaceManagementCategoryを使用してください
+ */
 export var WorldBuildingElementType;
 (function (WorldBuildingElementType) {
     WorldBuildingElementType["WORLDMAP"] = "worldmap";
@@ -164,6 +167,9 @@ export const getCategoryTabIndex = (categoryId) => {
  * @param data 要素のデータ (WorldBuildingElementData)
  * @returns 型付けされた世界観構築要素オブジェクト
  * @throws 無効なタイプが指定された場合にエラーをスロー
+ */
+/**
+ * @deprecated PlaceManagement系の関数を使用してください
  */
 export function createTypedWorldBuildingElement(type, // ここは WorldBuildingElementType の方がより厳密ですが、呼び出し元での柔軟性を考慮
 data) {

@@ -23,7 +23,6 @@ import {
   LocationOn,
 } from "@mui/icons-material";
 import { DungeonIcon, BaseIcon, QuestScrollIcon } from "../icons/TRPGIcons";
-import FacilityInteractionPanel from "../worldbuilding/FacilityInteractionPanel";
 import EnemySelectionPanel from "./EnemySelectionPanel";
 import {
   EnemyCharacter,
@@ -205,7 +204,6 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
 
   const currentLocationInfo = getCurrentLocationType();
 
-
   return (
     <Paper
       elevation={2}
@@ -221,9 +219,9 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
     >
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
-          <Tab 
-            label="探索" 
-            icon={<DungeonIcon />} 
+          <Tab
+            label="探索"
+            icon={<DungeonIcon />}
             disabled={!isSessionStarted}
           />
           <Tab
@@ -238,9 +236,9 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
             disabled={!isSessionStarted}
           />
           <Tab label="ステータス" icon={<CheckCircle />} />
-          <Tab 
-            label="クエスト" 
-            icon={<QuestScrollIcon />} 
+          <Tab
+            label="クエスト"
+            icon={<QuestScrollIcon />}
             disabled={!isSessionStarted}
           />
         </Tabs>
@@ -275,7 +273,9 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
               <EnemySelectionPanel
                 enemies={enemies}
                 selectedEnemies={selectedEnemies}
-                onEnemySelect={() => {/* Enemy selection handler - not implemented yet */}}
+                onEnemySelect={() => {
+                  /* Enemy selection handler - not implemented yet */
+                }}
                 onEnemyToggle={handleEnemyToggle}
                 onConfirmAttack={handleConfirmAttack}
                 onCancel={handleCancelAttack}
@@ -442,10 +442,26 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
             ) : currentLocationInfo?.type === "base" ? (
               <>
                 {/* 拠点の場合: 施設情報 + 行動選択肢 */}
-                <FacilityInteractionPanel
-                  base={currentBase}
-                  onInteract={onFacilityInteract}
-                />
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: "background.paper",
+                    borderRadius: 1,
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    🏛️ 拠点施設
+                  </Typography>
+                  {currentBase && (
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {currentBase.description}
+                      </Typography>
+                      {/* TODO: 施設インタラクション機能の実装 */}
+                    </Box>
+                  )}
+                </Box>
 
                 {/* この場所にいるNPC */}
                 {currentLocationNPCs.length > 0 && (
@@ -727,23 +743,27 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                   </Typography>
                 </Box>
 
-
                 {/* キャンペーンフラグ表示 */}
-                {currentCampaign?.campaignFlags && Object.keys(currentCampaign.campaignFlags).length > 0 && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      ストーリーフラグ
-                    </Typography>
-                    {Object.entries(currentCampaign.campaignFlags)
-                      .filter(([_, value]) => value !== null)
-                      .slice(0, 5) // 最新5つのみ表示
-                      .map(([key, value]) => (
-                        <Typography key={key} variant="body2" sx={{ fontSize: '0.75rem' }}>
-                          🚩 {key}: {String(value)}
-                        </Typography>
-                      ))}
-                  </Box>
-                )}
+                {currentCampaign?.campaignFlags &&
+                  Object.keys(currentCampaign.campaignFlags).length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        ストーリーフラグ
+                      </Typography>
+                      {Object.entries(currentCampaign.campaignFlags)
+                        .filter(([_, value]) => value !== null)
+                        .slice(0, 5) // 最新5つのみ表示
+                        .map(([key, value]) => (
+                          <Typography
+                            key={key}
+                            variant="body2"
+                            sx={{ fontSize: "0.75rem" }}
+                          >
+                            🚩 {key}: {String(value)}
+                          </Typography>
+                        ))}
+                    </Box>
+                  )}
 
                 {selectedCharacter.weapons &&
                   selectedCharacter.weapons.length > 0 && (
