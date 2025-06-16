@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -36,9 +36,9 @@ const PartyPanel: React.FC<PartyPanelProps> = ({
     setTabValue(newValue);
   };
 
-  const handleCharacterSelect = (character: TRPGCharacter | NPCCharacter) => {
+  const handleCharacterSelect = useCallback((character: TRPGCharacter | NPCCharacter) => {
     onSelectCharacter(character);
-  };
+  }, [onSelectCharacter]);
 
   return (
     <Paper

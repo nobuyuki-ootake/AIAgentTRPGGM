@@ -45,10 +45,15 @@
   "lint-staged": {
     "apps/frontend/**/*.{ts,tsx}": [
       "bash -c 'cd apps/frontend && eslint --fix \"$@\"' --",
-      "prettier --write"
+      "prettier --write",
+      "./scripts/check-any-types.sh"
     ],
     "packages/types/**/*.ts": [
-      "bash -c 'cd packages/types && prettier --write \"$@\"' --"
+      "bash -c 'cd packages/types && prettier --write \"$@\"' --",
+      "./scripts/check-any-types.sh"
+    ],
+    "apps/proxy-server/**/*.ts": [
+      "./scripts/check-any-types.sh"
     ]
   }
 }

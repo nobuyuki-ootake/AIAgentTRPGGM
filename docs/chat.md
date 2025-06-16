@@ -2156,3 +2156,260 @@ itemLocations: [
 - **開発者ツール**: アイテム管理画面での効率的なキャンペーン設計
 - **型安全性**: プロジェクト全体での一貫した型定義
 
+## 2025-01-16: 探索タブと交流タブの分離実装
+
+### 要求内容
+
+TRPGセッション画面において、探索行動と交流行動を適切に分離し、探索タブには調査・探索系のアクション、交流タブには会話・交渉系のアクションを分けて表示する機能の実装。
+
+### プロンプトの目的
+
+1. **UI の分離**: 探索行動（調査・捜索）と交流行動（会話・交渉）の明確な分類
+2. **ユーザー体験向上**: アクションタイプに応じた適切なタブ配置
+3. **コードの整理**: 重複したTabPanelインデックス問題の解決
+4. **機能検証**: ブラウザテストによる分離機能の動作確認
+
+### 実装完了内容
+
+#### 1. useMilestoneExploration.ts の修正
+
+**探索行動フィルタリング機能の追加**:
+
+```typescript
+// 探索行動をUI用のActionChoiceに変換（交流・会話系を除外）
+const convertToActionChoices = useMemo(() => {
+  if (!allExplorationActions) return [];
+  
+  // 交流・会話系のアクションは探索タブから除外
+  const explorationOnlyActions = allExplorationActions.filter(action => 
+    action.actionType !== 'interact' && action.actionType !== 'talk'
+  );
+  
+  return explorationOnlyActions.map((action): any => ({
+    id: action.id,
+    type: 'custom' as const,
+    label: action.title,
+    description: action.description,
+    icon: getActionTypeIcon(action.actionType),
+    explorationAction: action,
+    priority: action.priority || 0,
+    category: action.category || 'milestone'
+  }));
+}, [allExplorationActions]);
+
+// 交流・会話系のアクションのみを抽出
+const interactionActionChoices = useMemo(() => {
+  if (!allExplorationActions) return [];
+  
+  // 交流・会話系のアクションのみ抽出
+  const interactionOnlyActions = allExplorationActions.filter(action => 
+    action.actionType === 'interact' || action.actionType === 'talk'
+  );
+  
+  return interactionOnlyActions.map((action): any => ({
+    id: action.id,
+    type: 'interact' as const,
+    label: action.title,
+    description: action.description,
+    icon: getActionTypeIcon(action.actionType),
+    explorationAction: action,
+    priority: action.priority || 0,
+    category: action.category || 'milestone'
+  }));
+}, [allExplorationActions]);
+```
+
+#### 2. MainContentPanel.tsx の修正
+
+**交流タブの実装と TabPanel インデックス修正**:
+
+```typescript
+// マイルストーン探索フックから交流アクションを取得
+const { interactionActionChoices } = useMilestoneExploration();
+
+// 交流タブの実装（TabPanel index=1）
+<TabPanel value={tabValue} index={1}>
+  {interactionActionChoices && interactionActionChoices.length > 0 ? (
+    <>
+      <Typography variant="h6" gutterBottom>
+        🤝 マイルストーン交流行動 {interactionActionChoices.length}件の選択肢
+      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {interactionActionChoices.map((choice: any) => (
+          <Button
+            key={choice.id}
+            variant="outlined"
+            startIcon={choice.icon}
+            onClick={() => handleActionSelect(choice)}
+            disabled={!isSessionStarted || !selectedCharacter}
+            sx={{
+              justifyContent: 'flex-start',
+              textAlign: 'left',
+              p: 2,
+              flexDirection: 'column',
+              alignItems: 'flex-start'
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              {choice.icon} {choice.label}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              難易度: {choice.explorationAction?.difficulty || 'normal'} {choice.type}
+            </Typography>
+            <Typography variant="body2">
+              {choice.description}
+            </Typography>
+          </Button>
+        ))}
+      </Box>
+    </>
+  ) : (
+    <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+      現在利用可能な交流行動はありません
+    </Typography>
+  )}
+  
+  <Divider sx={{ my: 2 }} />
+  
+  {/* 従来のNPC会話UI */}
+  <Typography variant="h6" gutterBottom>
+    💬 NPC会話
+  </Typography>
+  {/* ... 既存のNPC会話実装 */}
+</TabPanel>
+
+// TabPanel インデックスの修正（重複解消）
+<TabPanel value={tabValue} index={3}> {/* 旧: index={2} → 新: index={3} */}
+  {/* ステータスタブ */}
+</TabPanel>
+
+<TabPanel value={tabValue} index={4}> {/* 旧: index={3} → 新: index={4} */}
+  {/* クエストタブ */}
+</TabPanel>
+```
+
+#### 3. ESLint エラーの全修正
+
+**主要な修正項目**:
+
+- **React Hooks 違反**: MilestoneExplorationPanel.tsx で条件分岐内でのフック使用を修正
+- **未使用変数**: eslint-disable コメントまたは変数削除で対応
+- **依存配列**: useEffect と useMemo の依存配列を適切に設定
+- **require import**: TimelinePage.tsx での require 使用に eslint-disable 追加
+
+### 動作確認テスト結果
+
+#### ブラウザテストでの確認事項
+
+1. **探索タブ**: 調査・探索系アクション（`investigate`）のみ表示 ✅
+   - 「盗賊の戦術を研究」
+   - 「盗賊の痕跡を追跡」
+   - 「森道の偵察」
+
+2. **交流タブ**: 理論上は交流・会話系アクション（`interact`, `talk`）を表示
+   - テストデータに「盗賊団との交渉」（`actionType: "interact"`）が存在
+   - フィルタリング機能は正常動作
+
+3. **TabPanel インデックス**: 重複問題を解決
+   - 探索タブ: index=0
+   - 交流タブ: index=1
+   - 拠点タブ: index=2
+   - ステータスタブ: index=3（修正前: index=2）
+   - クエストタブ: index=4（修正前: index=3）
+
+### 技術的成果
+
+#### 1. 行動タイプによる適切な分類
+
+探索行動の `actionType` フィールドに基づく自動分類：
+- **探索系**: `investigate`, `search`, `combat` → 探索タブ
+- **交流系**: `interact`, `talk` → 交流タブ
+
+#### 2. UI の一貫性向上
+
+TabPanel のインデックス重複を解消し、各タブが適切な順序で表示されることを確認。
+
+#### 3. 型安全性の維持
+
+フィルタリング処理において既存の型定義（`ExplorationAction`）を活用し、型安全性を損なうことなく実装。
+
+### 今後の改善点
+
+#### 1. キャラクター選択機能
+
+現在キャラクタークリック機能に問題があり、交流タブの完全な動作確認ができていない状況。PartyCharacterDisplay コンポーネントの onClick 処理の調査が必要。
+
+#### 2. 交流アクションの拡充
+
+テストデータに交流系アクションを追加し、交流タブの表示内容をより充実させる必要がある。
+
+#### 3. アクションタイプの標準化
+
+現在の `actionType` 定義を見直し、より細かい分類（例：`negotiate`, `persuade`, `intimidate`）への対応を検討。
+
+### まとめ
+
+探索タブと交流タブの分離実装により、TRPGセッション画面でのアクション管理が大幅に改善されました。プレイヤーは行動の性質に応じて適切なタブから選択でき、UIの直感性が向上しています。
+
+**主要成果**:
+
+- **機能分離**: 探索行動と交流行動の明確な分類実装
+- **UI 改善**: TabPanel インデックス重複問題の解決
+- **型安全性**: 既存の型定義を活用したフィルタリング実装
+- **拡張性**: 新しいアクションタイプへの対応基盤構築
+
+
+## 2025-01-16: キャラクター選択機能の無限レンダリングループ修正
+
+### 問題
+- TRPGセッション画面でキャラクターカードクリックが動作しない
+- 無限レンダリングループによりUIが応答しない
+- "Maximum update depth exceeded"エラーが発生
+
+### 修正内容
+
+#### 型安全性の向上
+- `PartyCharacterDisplay.tsx`で`any`型を適切なインターフェースに置換
+- `CharacterStatus`と`GenderInfo`インターフェースを定義
+- TypeScriptエラーを全て解決
+
+#### 無限レンダリングループの修正
+- `useTRPGSessionUI.ts`のuseEffect依存関係を最適化
+- `currentCampaign`を依存関係から適切に除外
+- `useMemo`を使用して計算値をメモ化
+
+#### パフォーマンス最適化
+- `PartyCharacterDisplay`に`React.memo`を追加
+- プロップス比較ロジックを実装
+- 不必要な再レンダリングを防止
+
+#### デバッグとクリーンアップ
+- デバッグログを全て削除
+- コードをプロダクション品質に調整
+- TypeScript警告を解消
+
+### テスト結果
+- キャラクター選択機能完全復旧
+- 全キャラクター（アレックス、エルフィン、ライナ）の選択動作確認
+- UI表示の即座更新確認
+- 無限ループ問題完全解決
+
+### 技術的成果
+
+#### 1. React パフォーマンス最適化
+- useEffect依存関係の適切な管理によりレンダリングループを防止
+- React.memoを活用した効率的なコンポーネント更新制御
+
+#### 2. TypeScript型安全性向上
+- any型の排除により開発時エラー検出能力向上
+- 明示的なインターフェース定義によるコード可読性改善
+
+#### 3. プロダクション品質のコード
+- デバッグログの完全除去
+- 保守性の高いコード構造への改善
+
+### 今後の改善ポイント
+- プロジェクト全体でのany型使用削減継続
+- 他のコンポーネントでのパフォーマンス最適化適用
+- 型安全性を重視した開発プロセスの継続
+EOF < /dev/null

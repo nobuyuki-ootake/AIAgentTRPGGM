@@ -41,7 +41,7 @@ interface ChatInterfaceProps {
   isAwaitingActionSelection?: boolean;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({
+const ChatInterface: React.FC<ChatInterfaceProps> = React.memo(({
   messages,
   chatInput,
   onChatInputChange,
@@ -193,10 +193,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           fullWidth
           placeholder="メッセージを入力... (Shift+Enterで改行)"
           value={chatInput || ""}
-          onChange={(e) => {
-            e.preventDefault();
-            onChatInputChange(e.target.value);
-          }}
+          onChange={(e) => onChatInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
           size="small"
           multiline
@@ -227,6 +224,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </Box>
     </Box>
   );
-};
+});
 
 export default ChatInterface;

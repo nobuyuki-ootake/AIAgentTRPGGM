@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { currentCampaignState, developerModeState } from "../store/atoms";
 import { useAIChatIntegration } from "./useAIChatIntegration";
@@ -31,7 +31,7 @@ import {
 import { createTrulyEmptyCampaign } from "../utils/emptyCampaignDefaults";
 import { EnemyCharacter } from "@trpg-ai-gm/types";
 import { aiAgentApi } from "../api/aiAgent";
-import { TRPGActionRequest, TRPGActionResult, EventResult, PartyInventoryItem, ClearCondition, PlayerCharacter, TimeOfDay } from "@trpg-ai-gm/types";
+import { TRPGActionRequest, TRPGActionResult, EventResult, PartyInventoryItem, ClearCondition, PlayerCharacter } from "@trpg-ai-gm/types";
 import { useTRPGSessionWithMilestone } from "./useTRPGSessionWithMilestone";
 
 // ターンベース行動管理
@@ -132,14 +132,14 @@ interface TRPGSessionUIState {
 export const useTRPGSessionUI = () => {
   const [currentCampaign, setCurrentCampaign] =
     useRecoilState(currentCampaignState);
-  const [developerMode, setDeveloperMode] = useRecoilState(developerModeState);
-  const { openAIAssist } = useAIChatIntegration();
+  const [developerMode, _setDeveloperMode] = useRecoilState(developerModeState);
+  const { openAIAssist: _openAIAssist } = useAIChatIntegration();
 
   // TRPGセッションのコアロジック
   const sessionHookData = useTRPGSession();
   const {
-    sessionState,
-    sessionMessages,
+    sessionState: _sessionState,
+    sessionMessages: _sessionMessages,
     selectedCharacter,
     setSelectedCharacter,
     currentDay,
@@ -150,7 +150,7 @@ export const useTRPGSessionUI = () => {
     setCurrentLocation,
     combatMode,
     aiDiceRequest,
-    initializeSession,
+    initializeSession: _initializeSession,
     getAvailableActions,
     executeAction,
     advanceDay,
@@ -251,7 +251,7 @@ export const useTRPGSessionUI = () => {
     milestoneNotificationQueue: [],
   });
 
-  // TRPGセッションページでのテストデータ自動読み込み
+  // TRPGセッションページでのテストデータ自動読み込み - 初回のみ実行
   useEffect(() => {
     // キャンペーンデータが存在しない場合、テストデータを自動読み込み
     if (!currentCampaign || !currentCampaign.id) {
@@ -272,28 +272,18 @@ export const useTRPGSessionUI = () => {
         console.error("[TRPGSession] テストデータ読み込みエラー:", error);
       }
     }
-  }, [currentCampaign, setCurrentCampaign]);
+  }, [setCurrentCampaign]);
 
-  // currentCampaignの変更を監視
-  useEffect(() => {
-    console.log("[Debug] currentCampaign変更検知:", {
-      campaign: currentCampaign
-        ? {
-            id: currentCampaign.id,
-            title: currentCampaign.title,
-            charactersCount: currentCampaign.characters?.length || 0,
-            basesCount: currentCampaign.bases?.length || 0,
-          }
-        : null,
-    });
-  }, [currentCampaign]);
 
-  // データ取得（計算プロパティ）
-  const playerCharacters =
-    currentCampaign?.characters?.filter((c) => c.characterType === "PC") || [];
-  const npcs = currentCampaign?.npcs || [];
-  const enemies = currentCampaign?.enemies || [];
-  const bases = currentCampaign?.bases || [];
+  // データ取得（計算プロパティ）- IDのみに依存してレンダリング無限ループを防ぐ
+  const playerCharacters = useMemo(
+    () => currentCampaign?.characters?.filter((c) => c.characterType === "PC") || [],
+    [currentCampaign?.id]
+  );
+  
+  const npcs = useMemo(() => currentCampaign?.npcs || [], [currentCampaign?.id]);
+  const enemies = useMemo(() => currentCampaign?.enemies || [], [currentCampaign?.id]);
+  const bases = useMemo(() => currentCampaign?.bases || [], [currentCampaign?.id]);
 
   // デバッグ用ログ（currentCampaignの変更時のみ実行）
   useEffect(() => {
@@ -619,7 +609,7 @@ export const useTRPGSessionUI = () => {
         console.warn("日次マイルストーンチェックエラー:", error);
       });
     }
-  }, [currentDay, currentCampaign?.milestones, performDailyMilestoneCheck]);
+  }, [currentDay, currentCampaign?.milestones]);
 
   // マイルストーン警告の監視
   useEffect(() => {
@@ -637,7 +627,7 @@ export const useTRPGSessionUI = () => {
         milestoneWarningMessage: null
       }));
     }
-  }, [currentMilestone, currentDay, getMilestoneWarnings]);
+  }, [currentMilestone, currentDay]);
 
   // セッション自動開始は削除 - ユーザーが明示的に「AIにセッションを始めてもらう」ボタンを押した時のみ開始
 
@@ -1048,7 +1038,7 @@ export const useTRPGSessionUI = () => {
         parseAndUpdateActionsFromMessage(latestMessage.message);
       }, 100);
     }
-  }, [uiState.chatMessages, parseAndUpdateActionsFromMessage]);
+  }, [uiState.chatMessages]);
 
   // ターン管理機能（プレイヤーキャラクターのみ）
   const initializeTurn = useCallback(() => {

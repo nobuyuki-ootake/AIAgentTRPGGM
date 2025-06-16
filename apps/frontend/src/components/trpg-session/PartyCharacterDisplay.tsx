@@ -6,55 +6,42 @@ import {
   Chip,
   Stack,
   Badge,
-  LinearProgress,
   Tooltip,
   Card,
   CardContent,
   IconButton,
-  Fade,
 } from "@mui/material";
 import {
   PersonOutline,
-  Favorite,
-  Shield,
-  Speed,
-  Bolt,
   Edit,
   Warning,
   CheckCircle,
   LocalHospital,
   SentimentVeryDissatisfied,
   SentimentSatisfied,
-  Whatshot,
-  AcUnit,
-  WbSunny,
   Male,
   Female,
   QuestionMark,
 } from "@mui/icons-material";
 import { TRPGCharacter, NPCCharacter } from "@trpg-ai-gm/types";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+// キャラクター状態の型定義
+interface CharacterStatus {
+  status: "dead" | "critical" | "wounded" | "injured" | "healthy";
+  icon: React.ComponentType<any>;
+  color: "error" | "warning" | "success";
+  label: string;
 }
 
-function _TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`party-tabpanel-${index}`}
-      aria-labelledby={`party-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ pt: 1 }}>{children}</Box>}
-    </div>
-  );
+// 性別情報の型定義
+interface GenderInfo {
+  color: string;
+  icon: React.ComponentType<any>;
+  label: string;
+  chipColor: "info" | "secondary" | "default";
 }
+
+
 
 interface PartyCharacterDisplayProps {
   playerCharacters: TRPGCharacter[];
@@ -67,7 +54,7 @@ interface PartyCharacterDisplayProps {
   isSessionStarted?: boolean;
 }
 
-const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
+const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = React.memo(({
   playerCharacters,
   npcs: _npcs,
   selectedCharacter,
@@ -77,14 +64,6 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   onEditCharacter,
   isSessionStarted = false,
 }) => {
-  // HPの色を取得
-  const getHPColor = (current: number, max: number) => {
-    const percentage = (current / max) * 100;
-    if (percentage > 75) return "success";
-    if (percentage > 50) return "warning";
-    if (percentage > 25) return "error";
-    return "error";
-  };
 
   // 安全にHPの値を取得（TRPGCharacter用）
   const getCharacterHP = (
@@ -92,7 +71,9 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   ): { current: number; max: number } => {
     // TRPGCharacterとNPCCharacterの場合はderived.HPを使用
     if ("derived" in character && character.derived) {
-      const currentHP = (character as any).currentHP ?? character.derived.HP;
+      // 型安全にcurrentHPを取得
+      const characterWithCurrentHP = character as TRPGCharacter & { currentHP?: number };
+      const currentHP = characterWithCurrentHP.currentHP ?? character.derived.HP;
       const maxHP = character.derived.HP;
       return { current: currentHP, max: maxHP };
     }
@@ -102,7 +83,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   };
 
   // キャラクターの状態を判定
-  const getCharacterStatus = (character: TRPGCharacter | NPCCharacter) => {
+  const getCharacterStatus = (character: TRPGCharacter | NPCCharacter): CharacterStatus => {
     const { current: hp, max: maxHp } = getCharacterHP(character);
     const percentage = maxHp > 0 ? (hp / maxHp) * 100 : 0;
 
@@ -143,7 +124,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
   };
 
   // 性別に応じた色とアイコンを取得
-  const getGenderInfo = (character: TRPGCharacter | NPCCharacter) => {
+  const getGenderInfo = (character: TRPGCharacter | NPCCharacter): GenderInfo => {
     const gender = character.gender || "不明";
 
     switch (gender) {
@@ -171,51 +152,12 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
     }
   };
 
-  // 状態異常の視覚的表現
-  const getStatusEffects = (
-    character: TRPGCharacter | NPCCharacter,
-  ): Array<{ icon: any; color: string; label: string }> => {
-    const effects: Array<{ icon: any; color: string; label: string }> = [];
-
-    // キャラクターのstatusEffectsがある場合
-    if (
-      "statusEffects" in character &&
-      character.statusEffects &&
-      Array.isArray(character.statusEffects)
-    ) {
-      character.statusEffects.forEach((effect: any) => {
-        switch (effect.type) {
-          case "poison":
-            effects.push({ icon: Whatshot, color: "success", label: "毒" });
-            break;
-          case "fire":
-            effects.push({ icon: Whatshot, color: "error", label: "炎上" });
-            break;
-          case "ice":
-            effects.push({ icon: AcUnit, color: "info", label: "氷結" });
-            break;
-          case "blessing":
-            effects.push({ icon: WbSunny, color: "warning", label: "祝福" });
-            break;
-          default:
-            effects.push({
-              icon: CheckCircle,
-              color: "primary",
-              label: effect.name,
-            });
-        }
-      });
-    }
-
-    return effects;
-  };
 
   // キャラクターカードの共通部分（パーティメンバー専用）
   const PartyCharacterCard: React.FC<{
     character: TRPGCharacter | NPCCharacter;
   }> = ({ character }) => {
     const status = getCharacterStatus(character);
-    const statusEffects = getStatusEffects(character);
     const { current: hp, max: maxHp } = getCharacterHP(character);
     const genderInfo = getGenderInfo(character);
 
@@ -241,7 +183,11 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               ? 0.7
               : 1,
         }}
-        onClick={() => onCharacterSelect && onCharacterSelect(character)}
+        onClick={() => {
+          if (onCharacterSelect) {
+            onCharacterSelect(character);
+          }
+        }}
         data-testid={`character-card-${character.name.replace(/\s+/g, "-").toLowerCase()}`}
       >
         <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
@@ -348,149 +294,18 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
             )}
           </Box>
 
-          {/* ステータス表示 */}
-          {(() => {
-            return (
-              <Stack spacing={0.5}>
-                {/* HP */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Favorite
-                    fontSize="small"
-                    color={getHPColor(hp, maxHp)}
-                    sx={{
-                      animation:
-                        status.status === "critical"
-                          ? "heartbeat 1.5s infinite"
-                          : "none",
-                      "@keyframes heartbeat": {
-                        "0%": { transform: "scale(1)" },
-                        "50%": { transform: "scale(1.2)" },
-                        "100%": { transform: "scale(1)" },
-                      },
-                    }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight:
-                          status.status === "critical" ? "bold" : "normal",
-                        color:
-                          status.status === "dead"
-                            ? "error.main"
-                            : "text.primary",
-                      }}
-                    >
-                      HP: {hp}/{maxHp}
-                      {status.status === "dead" && " (死亡)"}
-                      {status.status === "critical" && " (危険)"}
-                    </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={(hp / maxHp) * 100}
-                      color={getHPColor(hp, maxHp)}
-                      sx={{
-                        height: 6,
-                        borderRadius: 3,
-                        transition: "all 0.3s ease-in-out",
-                        "& .MuiLinearProgress-bar": {
-                          transition: "transform 0.5s ease-in-out",
-                          animation:
-                            status.status === "critical"
-                              ? "pulse 2s infinite"
-                              : "none",
-                        },
-                      }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* 状態異常表示 */}
-                {statusEffects.length > 0 && (
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      状態異常:
-                    </Typography>
-                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                      {statusEffects.map((effect, index) => (
-                        <Fade in key={index}>
-                          <Tooltip title={effect.label}>
-                            <Chip
-                              icon={<effect.icon />}
-                              label={effect.label}
-                              size="small"
-                              color={effect.color as any}
-                              variant="filled"
-                              sx={{
-                                fontSize: "0.6rem",
-                                height: 20,
-                                animation: "fadeIn 0.5s ease-in-out",
-                                "@keyframes fadeIn": {
-                                  "0%": { opacity: 0, transform: "scale(0.8)" },
-                                  "100%": { opacity: 1, transform: "scale(1)" },
-                                },
-                              }}
-                            />
-                          </Tooltip>
-                        </Fade>
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
-
-                {/* その他のステータス */}
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Tooltip title="アーマークラス">
-                    <Chip
-                      icon={<Shield />}
-                      label={`AC:${(() => {
-                        // TRPGCharacterの場合はarmorからACを計算、または固定値10
-                        if ("armor" in character && character.armor) {
-                          // 簡易AC計算（胴体装甲値 + 10）
-                          return character.armor.body + 10;
-                        }
-                        return 10;
-                      })()}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Tooltip>
-                  <Tooltip title="移動速度">
-                    <Chip
-                      icon={<Speed />}
-                      label={`速度:${(() => {
-                        // TRPGCharacterの場合
-                        if ("derived" in character && character.derived) {
-                          return character.derived.SW || 30; // Strike Rankを移動速度として使用
-                        }
-                        return 30;
-                      })()}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Tooltip>
-                  <Tooltip title="レベル">
-                    <Chip
-                      icon={<Bolt />}
-                      label={`Lv.1`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Tooltip>
-                </Stack>
-              </Stack>
-            );
-          })()}
+          {/* ステータス表示 - 一時的に簡素化 */}
+          <Box>
+            <Typography variant="caption">
+              HP: {hp}/{maxHp}
+            </Typography>
+          </Box>
 
           {/* 状態異常表示 */}
-          {"statuses" in character &&
+          {("statuses" in character &&
             character.statuses &&
             Array.isArray(character.statuses) &&
-            character.statuses.length > 0 && (
+            character.statuses.length > 0) ? (
               <Stack
                 direction="row"
                 spacing={0.5}
@@ -506,7 +321,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
                   />
                 ))}
               </Stack>
-            )}
+            ) : null}
         </CardContent>
       </Card>
     );
@@ -521,7 +336,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
           sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <PersonOutline />
-          プレイヤーキャラクター
+          パーティのキャラクター
           <Badge badgeContent={playerCharacters.length} color="primary" />
         </Typography>
       </Box>
@@ -573,6 +388,14 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
       )}
     </Box>
   );
-};
+}, (prevProps, nextProps) => {
+  // 基本的なpropsの比較で再レンダリングを制御
+  return (
+    prevProps.playerCharacters === nextProps.playerCharacters &&
+    prevProps.selectedCharacter === nextProps.selectedCharacter &&
+    prevProps.onCharacterSelect === nextProps.onCharacterSelect &&
+    prevProps.isSessionStarted === nextProps.isSessionStarted
+  );
+});
 
 export default PartyCharacterDisplay;

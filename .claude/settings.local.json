@@ -91,7 +91,9 @@
       "Bash(/mnt/c/Users/irure/git/AIAgentTRPGGM/scripts/check-docker.sh:*)",
       "Bash(sed:*)",
       "Bash(/home/irure/.nvm/versions/node/v18.20.8/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \":\\s*Function\" --type ts --type tsx /mnt/c/Users/irure/git/AIAgentTRPGGM/apps/frontend)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx lint-staged:*)"
     ],
     "deny": []
   }

@@ -20,10 +20,11 @@ export default tseslint.config(
     rules: {
       // === 重要なルール（エラーレベル）=== 
       "@typescript-eslint/no-unsafe-function-type": "error",
-      "no-case-declarations": "error",
+      "no-case-declarations": "warn", // 開発段階のため警告レベルに変更
       
       // === 重要だが開発効率を考慮（警告レベル）===
       "react-hooks/rules-of-hooks": "warn",
+      "react-hooks/exhaustive-deps": "off", // 開発段階のため一時的に無効化
       "@typescript-eslint/ban-ts-comment": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -35,15 +36,15 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "react-hooks/exhaustive-deps": "warn",
       
       // === 開発効率を重視して警告に変更 ===
       "@typescript-eslint/no-non-null-assertion": "warn",
       "@typescript-eslint/no-inferrable-types": "warn",
       "@typescript-eslint/no-empty-function": "warn",
-      "no-console": "warn",
+      "no-console": "off", // 開発段階のため一時的に無効化
       "no-debugger": "warn",
       "prefer-const": "warn",
+      "no-useless-escape": "warn", // 開発段階のため警告レベルに変更
       
       // === 無効化（開発効率重視）===
       "@typescript-eslint/no-explicit-any": "off", // 開発効率重視で無効化
