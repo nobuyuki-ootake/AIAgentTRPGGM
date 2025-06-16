@@ -1,4 +1,15 @@
 
-> @trpg-ai-gm/types@0.1.0 lint /mnt/c/Users/irure/git/AIAgentTRPGGM/packages/types
+> @trpg-ai-gm/types@0.1.0 lint /home/irure/AIAgentTRPGGM/packages/types
 > eslint . --ext .ts,.tsx
 
+
+/home/irure/AIAgentTRPGGM/packages/types/index.ts
+    41:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   916:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   947:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  2353:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  2419:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 5 problems (5 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.

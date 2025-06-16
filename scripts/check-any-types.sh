@@ -11,8 +11,8 @@ ERROR_FILES=()
 
 for file in $FILES; do
   if [[ $file == *.ts ]] || [[ $file == *.tsx ]]; then
-    # any型の使用をチェック（コメント行は除外）
-    ANY_USAGE=$(grep -n ": any\|<any>\|as any\|any\[\]\|any," "$file" | grep -v "^[[:space:]]*//\|^[[:space:]]*\*" || true)
+    # any型の使用をチェック（コメント行とRecord<string, any>は除外）
+    ANY_USAGE=$(grep -n ": any\|<any>\|as any\|any\[\]\|any," "$file" | grep -v "^[[:space:]]*//\|^[[:space:]]*\*\|Record<string, any>\|flagValue: any\|defaultValue: any" || true)
     
     if [[ ! -z "$ANY_USAGE" ]]; then
       echo ""

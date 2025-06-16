@@ -207,6 +207,7 @@ export interface TRPGCharacter {
 
   // 身体的特徴と記述
   description: string; // 外見や特徴の記述
+  personality?: string; // 性格・人格の記述
   scars?: string; // 傷跡などの自由記述
 
   // 能力値（Stormbringer）
@@ -254,6 +255,7 @@ export interface TRPGCharacter {
   };
 
   // その他
+  notes?: string; // 備考・メモ
   imageUrl?: string;
   campaignId?: string;
   created_at?: string;
@@ -911,11 +913,13 @@ export const convertEventType = {
 };
 
 // レガシーTimelineEventをUnifiedEventに変換
-export const convertTimelineToUnified = (timeline: any): UnifiedEvent => {
+export const convertTimelineToUnified = (
+  timeline: Partial<UnifiedEvent> & { id: string },
+): UnifiedEvent => {
   return {
     id: timeline.id,
-    title: timeline.title,
-    description: timeline.description,
+    title: timeline.title || "",
+    description: timeline.description || "",
     // 時間情報の変換
     date: timeline.date,
     dayNumber: timeline.dayNumber,
@@ -931,7 +935,7 @@ export const convertTimelineToUnified = (timeline: any): UnifiedEvent => {
     outcome: timeline.outcome,
     postEventCharacterStatuses: timeline.postEventCharacterStatuses,
     // 関連要素（plot → quest変換）
-    relatedQuestIds: timeline.relatedQuestIds || timeline.relatedPlotIds || [],
+    relatedQuestIds: timeline.relatedQuestIds || [],
     placeId: timeline.placeId,
     // 報酬・結果
     experienceAwarded: timeline.experienceAwarded,
@@ -942,11 +946,13 @@ export const convertTimelineToUnified = (timeline: any): UnifiedEvent => {
 };
 
 // レガシーSessionEventをUnifiedEventに変換
-export const convertSessionToUnified = (session: any): UnifiedEvent => {
+export const convertSessionToUnified = (
+  session: Partial<UnifiedEvent> & { id: string },
+): UnifiedEvent => {
   return {
     id: session.id,
-    title: session.title,
-    description: session.description,
+    title: session.title || "",
+    description: session.description || "",
     // 時間情報の変換
     sessionDay: session.sessionDay || 1,
     sessionTime: session.sessionTime,
