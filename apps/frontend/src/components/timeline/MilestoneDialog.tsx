@@ -19,7 +19,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   Divider,
   Alert,
   Accordion,
@@ -32,14 +31,14 @@ import {
   ExpandMore as ExpandMoreIcon,
   Flag as FlagIcon,
 } from "@mui/icons-material";
-import { 
-  CampaignMilestone, 
+import {
+  CampaignMilestone,
   MilestoneRequirement,
   EnemyCharacter,
   QuestElement,
   Item,
   ExplorationAction,
-  UnifiedEvent 
+  UnifiedEvent,
 } from "@trpg-ai-gm/types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -151,9 +150,12 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     });
   };
 
-  const updateRequirement = (index: number, updates: Partial<MilestoneRequirement>) => {
+  const updateRequirement = (
+    index: number,
+    updates: Partial<MilestoneRequirement>,
+  ) => {
     const newRequirements = formData.requirements.map((req, i) =>
-      i === index ? { ...req, ...updates } : req
+      i === index ? { ...req, ...updates } : req,
     );
     setFormData({
       ...formData,
@@ -171,9 +173,13 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     });
   };
 
-  const updateGuidanceHint = (type: "onTimeHints" | "delayedHints", index: number, value: string) => {
+  const updateGuidanceHint = (
+    type: "onTimeHints" | "delayedHints",
+    index: number,
+    value: string,
+  ) => {
     const newHints = formData.gmGuidance[type].map((hint, i) =>
-      i === index ? value : hint
+      i === index ? value : hint,
     );
     setFormData({
       ...formData,
@@ -184,7 +190,10 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     });
   };
 
-  const removeGuidanceHint = (type: "onTimeHints" | "delayedHints", index: number) => {
+  const removeGuidanceHint = (
+    type: "onTimeHints" | "delayedHints",
+    index: number,
+  ) => {
     const newHints = formData.gmGuidance[type].filter((_, i) => i !== index);
     setFormData({
       ...formData,
@@ -197,32 +206,35 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
   // 探索行動プレビューを生成
   // TODO: この関数は将来的に探索行動プレビュー機能で使用予定
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateExplorationPreview = (): ExplorationAction[] => {
     const explorationActions: ExplorationAction[] = [];
-    
+
     formData.requirements.forEach((requirement) => {
       switch (requirement.type) {
         case "events":
-          requirement.eventIds?.forEach(eventId => {
-            const event = timelineEvents?.find(e => e.id === eventId);
+          requirement.eventIds?.forEach((eventId) => {
+            const event = timelineEvents?.find((e) => e.id === eventId);
             if (event?.explorationActions) {
               explorationActions.push(...event.explorationActions);
             }
           });
           break;
-          
+
         case "quests":
-          requirement.questIds?.forEach(questId => {
-            const quest = availableQuests?.find(q => q.id === questId);
+          requirement.questIds?.forEach((questId) => {
+            const quest = availableQuests?.find((q) => q.id === questId);
             if (quest?.explorationActions) {
               explorationActions.push(...quest.explorationActions);
             }
           });
           break;
-          
+
         case "enemies":
-          requirement.enemyRequirements?.forEach(enemyReq => {
-            const enemy = availableEnemies?.find(e => e.id === enemyReq.enemyId);
+          requirement.enemyRequirements?.forEach((enemyReq) => {
+            const enemy = availableEnemies?.find(
+              (e) => e.id === enemyReq.enemyId,
+            );
             if (enemy?.explorationActions) {
               explorationActions.push(...enemy.explorationActions);
             }
@@ -230,21 +242,22 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           break;
       }
     });
-    
+
     // 重複を除去してユニークな探索行動のみ返す
-    return explorationActions.filter((action, index, self) => 
-      self.findIndex(a => a.id === action.id) === index
+    return explorationActions.filter(
+      (action, index, self) =>
+        self.findIndex((a) => a.id === action.id) === index,
     );
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { minHeight: "70vh" }
+        sx: { minHeight: "70vh" },
       }}
     >
       <DialogTitle>
@@ -253,69 +266,92 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           {milestone ? "マイルストーン編集" : "マイルストーン作成"}
         </Box>
       </DialogTitle>
-      
+
       <DialogContent dividers>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* 基本情報 */}
           <Box>
-            <Typography variant="h6" gutterBottom>基本情報</Typography>
+            <Typography variant="h6" gutterBottom>
+              基本情報
+            </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <TextField
                 label="タイトル"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 fullWidth
                 required
               />
-              
+
               <TextField
                 label="説明"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 fullWidth
                 multiline
                 rows={2}
               />
-              
+
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   label="目標達成日"
                   type="number"
                   value={formData.targetDay}
-                  onChange={(e) => setFormData({ ...formData, targetDay: parseInt(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      targetDay: parseInt(e.target.value) || 1,
+                    })
+                  }
                   inputProps={{ min: 1 }}
                   sx={{ width: 150 }}
                 />
-                
+
                 <FormControl sx={{ width: 150 }}>
                   <InputLabel>優先度</InputLabel>
                   <Select
                     value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        priority: e.target.value as any,
+                      })
+                    }
                   >
                     <MenuItem value="optional">任意</MenuItem>
                     <MenuItem value="important">重要</MenuItem>
                     <MenuItem value="critical">最重要</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 <FormControl sx={{ width: 150 }}>
                   <InputLabel>完了モード</InputLabel>
                   <Select
                     value={formData.completionMode}
-                    onChange={(e) => setFormData({ ...formData, completionMode: e.target.value as any })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        completionMode: e.target.value as any,
+                      })
+                    }
                   >
                     <MenuItem value="all">全条件達成</MenuItem>
                     <MenuItem value="partial">部分達成</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
-              
+
               <FormControlLabel
                 control={
                   <Switch
                     checked={formData.deadline}
-                    onChange={(e) => setFormData({ ...formData, deadline: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, deadline: e.target.checked })
+                    }
                   />
                 }
                 label={
@@ -334,7 +370,14 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
           {/* 達成条件 */}
           <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
               <Typography variant="h6">達成条件</Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
                 <Button
@@ -345,7 +388,7 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                   クエスト
                 </Button>
                 <Button
-                  size="small" 
+                  size="small"
                   startIcon={<AddIcon />}
                   onClick={() => addRequirement("enemies")}
                 >
@@ -367,21 +410,31 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                 </Button>
               </Box>
             </Box>
-            
+
             {formData.requirements.length === 0 && (
               <Alert severity="info">
                 達成条件を追加してください。上のボタンから条件タイプを選択できます。
               </Alert>
             )}
-            
+
             <List>
               {formData.requirements.map((requirement, index) => (
-                <ListItem key={index} sx={{ flexDirection: "column", alignItems: "stretch" }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                    <Chip 
-                      label={requirement.type} 
-                      size="small" 
-                      color="primary" 
+                <ListItem
+                  key={index}
+                  sx={{ flexDirection: "column", alignItems: "stretch" }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
+                    <Chip
+                      label={requirement.type}
+                      size="small"
+                      color="primary"
                     />
                     <IconButton
                       size="small"
@@ -394,12 +447,234 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                   <TextField
                     label="条件の説明"
                     value={requirement.description}
-                    onChange={(e) => updateRequirement(index, { description: e.target.value })}
+                    onChange={(e) =>
+                      updateRequirement(index, { description: e.target.value })
+                    }
                     fullWidth
                     size="small"
                     sx={{ mt: 1 }}
                   />
-                  {/* TODO: 各タイプ別の詳細設定UI */}
+
+                  {/* 各タイプ別の詳細設定UI */}
+                  {requirement.type === "quests" && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        達成必要クエスト
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>クエストを選択</InputLabel>
+                        <Select
+                          multiple
+                          value={requirement.questIds || []}
+                          onChange={(e) =>
+                            updateRequirement(index, {
+                              questIds:
+                                typeof e.target.value === "string"
+                                  ? [e.target.value]
+                                  : e.target.value,
+                            })
+                          }
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {selected.map((value) => {
+                                const quest = availableQuests.find(
+                                  (q) => q.id === value,
+                                );
+                                return (
+                                  <Chip
+                                    key={value}
+                                    label={quest?.title || value}
+                                    size="small"
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
+                        >
+                          {availableQuests.map((quest) => (
+                            <MenuItem key={quest.id} value={quest.id}>
+                              {quest.title} ({quest.questType})
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
+
+                  {requirement.type === "enemies" && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        討伐必要エネミー
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>エネミーを選択</InputLabel>
+                        <Select
+                          multiple
+                          value={(requirement.enemyRequirements || []).map(
+                            (req) => req.enemyId,
+                          )}
+                          onChange={(e) => {
+                            const selectedEnemyIds =
+                              typeof e.target.value === "string"
+                                ? [e.target.value]
+                                : e.target.value;
+                            const enemyRequirements = selectedEnemyIds.map(
+                              (enemyId) => ({
+                                enemyId,
+                                count: 1,
+                                mustDefeat: true,
+                              }),
+                            );
+                            updateRequirement(index, { enemyRequirements });
+                          }}
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {selected.map((enemyId) => {
+                                const enemy = availableEnemies.find(
+                                  (e) => e.id === enemyId,
+                                );
+                                return (
+                                  <Chip
+                                    key={enemyId}
+                                    label={enemy?.name || enemyId}
+                                    size="small"
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
+                        >
+                          {availableEnemies.map((enemy) => (
+                            <MenuItem key={enemy.id} value={enemy.id}>
+                              {enemy.name} ({enemy.rank}, Lv.{enemy.level})
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
+
+                  {requirement.type === "items" && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        必要アイテム
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>アイテムを選択</InputLabel>
+                        <Select
+                          multiple
+                          value={(requirement.itemRequirements || []).map(
+                            (req) => req.itemId,
+                          )}
+                          onChange={(e) => {
+                            const selectedItemIds =
+                              typeof e.target.value === "string"
+                                ? [e.target.value]
+                                : e.target.value;
+                            const itemRequirements = selectedItemIds.map(
+                              (itemId) => ({
+                                itemId,
+                                quantity: 1,
+                              }),
+                            );
+                            updateRequirement(index, { itemRequirements });
+                          }}
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {selected.map((itemId) => {
+                                const item = availableItems.find(
+                                  (i) => i.id === itemId,
+                                );
+                                return (
+                                  <Chip
+                                    key={itemId}
+                                    label={item?.name || itemId}
+                                    size="small"
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
+                        >
+                          {availableItems.map((item) => (
+                            <MenuItem key={item.id} value={item.id}>
+                              {item.name} ({item.category})
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
+
+                  {requirement.type === "events" && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        完了必要イベント
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>イベントを選択</InputLabel>
+                        <Select
+                          multiple
+                          value={requirement.eventIds || []}
+                          onChange={(e) =>
+                            updateRequirement(index, {
+                              eventIds:
+                                typeof e.target.value === "string"
+                                  ? [e.target.value]
+                                  : e.target.value,
+                            })
+                          }
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 0.5,
+                              }}
+                            >
+                              {selected.map((value) => {
+                                const event = timelineEvents.find(
+                                  (e) => e.id === value,
+                                );
+                                return (
+                                  <Chip
+                                    key={value}
+                                    label={event?.title || value}
+                                    size="small"
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
+                        >
+                          {timelineEvents.map((event) => (
+                            <MenuItem key={event.id} value={event.id}>
+                              {event.title} (Day {event.day})
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
+
                   <Divider sx={{ mt: 2 }} />
                 </ListItem>
               ))}
@@ -418,21 +693,21 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                     <Alert severity="info">
                       このマイルストーンに関連する探索行動の概要です。TRPGセッション画面の探索タブで実際の行動を選択できます。
                     </Alert>
-                    
+
                     {/* プレビュー統計 */}
                     <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                      <Chip 
-                        label={`総行動数: ${formData.requirements.length}件関連`} 
-                        color="primary" 
-                        variant="outlined" 
+                      <Chip
+                        label={`総行動数: ${formData.requirements.length}件関連`}
+                        color="primary"
+                        variant="outlined"
                       />
-                      <Chip 
-                        label="推定完了: 設定後計算" 
-                        color="secondary" 
-                        variant="outlined" 
+                      <Chip
+                        label="推定完了: 設定後計算"
+                        color="secondary"
+                        variant="outlined"
                       />
                     </Box>
-                    
+
                     {/* 要件別の行動例 */}
                     <Box>
                       <Typography variant="subtitle2" gutterBottom>
@@ -443,11 +718,17 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                           <ListItem key={index}>
                             <ListItemText
                               primary={
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                  <Chip 
-                                    label={req.type} 
-                                    size="small" 
-                                    color="primary" 
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <Chip
+                                    label={req.type}
+                                    size="small"
+                                    color="primary"
                                   />
                                   {req.description || `${req.type}の達成が必要`}
                                 </Box>
@@ -477,8 +758,17 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* 期限内達成時のヒント */}
                 <Box>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                    <Typography variant="subtitle2">期限内達成時のヒント</Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
+                    <Typography variant="subtitle2">
+                      期限内達成時のヒント
+                    </Typography>
                     <Button
                       size="small"
                       startIcon={<AddIcon />}
@@ -491,7 +781,13 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                     <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
                       <TextField
                         value={hint}
-                        onChange={(e) => updateGuidanceHint("onTimeHints", index, e.target.value)}
+                        onChange={(e) =>
+                          updateGuidanceHint(
+                            "onTimeHints",
+                            index,
+                            e.target.value,
+                          )
+                        }
                         placeholder="期限内に達成した場合のGMアナウンス案"
                         fullWidth
                         size="small"
@@ -509,7 +805,14 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
                 {/* 遅延時のヒント */}
                 <Box>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 1,
+                    }}
+                  >
                     <Typography variant="subtitle2">遅延時のヒント</Typography>
                     <Button
                       size="small"
@@ -523,14 +826,22 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                     <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
                       <TextField
                         value={hint}
-                        onChange={(e) => updateGuidanceHint("delayedHints", index, e.target.value)}
+                        onChange={(e) =>
+                          updateGuidanceHint(
+                            "delayedHints",
+                            index,
+                            e.target.value,
+                          )
+                        }
                         placeholder="遅延した場合のGMアナウンス案"
                         fullWidth
                         size="small"
                       />
                       <IconButton
                         size="small"
-                        onClick={() => removeGuidanceHint("delayedHints", index)}
+                        onClick={() =>
+                          removeGuidanceHint("delayedHints", index)
+                        }
                         color="error"
                       >
                         <DeleteIcon />
@@ -544,13 +855,15 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                   <TextField
                     label="ゲームオーバー時メッセージ"
                     value={formData.gmGuidance.failureMessage || ""}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      gmGuidance: {
-                        ...formData.gmGuidance,
-                        failureMessage: e.target.value,
-                      },
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        gmGuidance: {
+                          ...formData.gmGuidance,
+                          failureMessage: e.target.value,
+                        },
+                      })
+                    }
                     fullWidth
                     multiline
                     rows={2}
@@ -562,11 +875,11 @@ const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           </Accordion>
         </Box>
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={onClose}>キャンセル</Button>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           onClick={handleSave}
           disabled={!formData.title.trim()}
         >

@@ -144,29 +144,29 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
 
   // 性別に応じた色とアイコンを取得
   const getGenderInfo = (character: TRPGCharacter | NPCCharacter) => {
-    const gender = character.gender || '不明';
-    
+    const gender = character.gender || "不明";
+
     switch (gender) {
-      case '男性':
+      case "男性":
         return {
-          color: '#2196F3', // 水色
+          color: "#2196F3", // 水色
           icon: Male,
-          label: '男性',
-          chipColor: 'info' as const
+          label: "男性",
+          chipColor: "info" as const,
         };
-      case '女性':
+      case "女性":
         return {
-          color: '#E91E63', // ピンク
+          color: "#E91E63", // ピンク
           icon: Female,
-          label: '女性',
-          chipColor: 'secondary' as const
+          label: "女性",
+          chipColor: "secondary" as const,
         };
       default:
         return {
-          color: '#9E9E9E', // グレー
+          color: "#9E9E9E", // グレー
           icon: QuestionMark,
-          label: '不明',
-          chipColor: 'default' as const
+          label: "不明",
+          chipColor: "default" as const,
         };
     }
   };
@@ -223,7 +223,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
       <Card
         sx={{
           mb: 1,
-          cursor: isSessionStarted ? "default" : "pointer",
+          cursor: "pointer",
           bgcolor:
             selectedCharacter?.id === character.id
               ? "action.selected"
@@ -241,9 +241,7 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               ? 0.7
               : 1,
         }}
-        onClick={() =>
-          !isSessionStarted && onCharacterSelect && onCharacterSelect(character)
-        }
+        onClick={() => onCharacterSelect && onCharacterSelect(character)}
         data-testid={`character-card-${character.name.replace(/\s+/g, "-").toLowerCase()}`}
       >
         <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
@@ -286,26 +284,40 @@ const PartyCharacterDisplay: React.FC<PartyCharacterDisplayProps> = ({
               <Typography variant="subtitle2" noWrap>
                 {character.name}
               </Typography>
-              
+
               {/* 性別・基本情報表示 */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  mb: 0.5,
+                }}
+              >
                 <Chip
                   icon={<genderInfo.icon sx={{ fontSize: 14 }} />}
                   label={genderInfo.label}
                   size="small"
                   color={genderInfo.chipColor}
                   variant="outlined"
-                  sx={{ 
-                    height: 20, 
-                    fontSize: '0.65rem',
-                    '& .MuiChip-label': { px: 0.5 },
-                    '& .MuiChip-icon': { mr: 0.5, ml: 0.5 }
+                  sx={{
+                    height: 20,
+                    fontSize: "0.65rem",
+                    "& .MuiChip-label": { px: 0.5 },
+                    "& .MuiChip-icon": { mr: 0.5, ml: 0.5 },
                   }}
                 />
               </Box>
 
               {/* 職業・種族・年齢表示 */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, mb: 0.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.25,
+                  mb: 0.5,
+                }}
+              >
                 {character.profession && (
                   <Typography variant="caption" color="text.secondary" noWrap>
                     職業: {character.profession}

@@ -1,4 +1,4 @@
-import type { TRPGCampaign } from '@trpg-ai-gm/types';
+import type { TRPGCampaign } from "@trpg-ai-gm/types";
 
 export const testCampaignData: TRPGCampaign = {
   id: "test-campaign-001",
@@ -12,61 +12,162 @@ export const testCampaignData: TRPGCampaign = {
       id: "player-1",
       name: "プレイヤー1",
       characterIds: ["char-1", "char-2", "char-3"],
-      isOnline: true
-    }
+      isOnline: true,
+    },
   ],
-  synopsis: "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
-  
+  synopsis:
+    "リバーベント街に、古代竜が守る秘宝の噂が流れ着いた。冒険者たちは、危険を冒してでもその真相を確かめるため、竜の谷へと旅立つ。",
+
   // QuestElement[] 形式のクエスト管理
   quests: [
     {
       id: "quest-forest-bandits",
       title: "森の盗賊団遭遇",
-      description: "翠の森道で盗賊団が冒険者を待ち伏せしている。戦闘か交渉かの選択が迫られる。",
+      description:
+        "翠の森道で盗賊団が冒険者を待ち伏せしている。戦闘か交渉かの選択が迫られる。",
       order: 1,
       status: "未開始",
       questType: "サブ",
       difficulty: 2,
       rewards: ["経験値50", "金貨30", "盗賊の情報"],
       sessionId: "session-day-1",
-      relatedPlaceIds: ["forest-path"]
+      relatedPlaceIds: ["forest-path"],
+      explorationActions: [
+        {
+          id: "action-scout-forest",
+          title: "森道の偵察",
+          description: "盗賊団の拠点を慎重に偵察する",
+          actionType: "investigate",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 10,
+            items: [],
+            information: ["盗賊団の人数と配置", "罠の位置"],
+            flagChanges: { forest_scouted: true },
+            nextActions: ["action-ambush-bandits"],
+          },
+          failureOutcomes: {
+            consequences: ["盗賊団に発見される", "戦闘が不利な状況で開始"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "milestone",
+        },
+        {
+          id: "action-negotiate-bandits",
+          title: "盗賊団との交渉",
+          description: "戦闘を避けて話し合いで解決を図る",
+          actionType: "interact",
+          difficulty: "hard",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 20,
+            items: [],
+            information: ["盗賊団が森にいる本当の理由"],
+            flagChanges: { bandits_negotiated: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["交渉決裂", "戦闘開始"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "milestone",
+        },
+      ],
     },
     {
       id: "quest-village-request",
       title: "村長からの依頼",
-      description: "ハーベスト村の村長が重要な依頼を持ちかけてくる。古い遺跡に関する情報も得られる。",
+      description:
+        "ハーベスト村の村長が重要な依頼を持ちかけてくる。古い遺跡に関する情報も得られる。",
       order: 2,
       status: "未開始",
       questType: "メイン",
       difficulty: 1,
       rewards: ["重要な情報", "村人の信頼", "古代の地図の断片"],
       sessionId: "session-day-2",
-      relatedPlaceIds: ["small-village"]
+      relatedPlaceIds: ["small-village"],
+      explorationActions: [
+        {
+          id: "action-village-gather-info",
+          title: "村人から情報収集",
+          description: "村の住民から古代遺跡に関する噂を集める",
+          actionType: "interact",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 5,
+            items: [],
+            information: ["遺跡への安全なルート", "村に伝わる古い伝承"],
+            flagChanges: { village_info_gathered: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["村人からの信頼を得られない"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "milestone",
+        },
+        {
+          id: "action-help-villagers",
+          title: "村人の手伝い",
+          description: "村の仕事を手伝って信頼を得る",
+          actionType: "collect",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 10,
+            items: ["ヒーリングポーション"],
+            information: [],
+            flagChanges: { villagers_helped: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["時間を無駄にした"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "milestone",
+        },
+      ],
     },
     {
       id: "quest-ancient-ruins",
       title: "古代遺跡の謎解き",
-      description: "忘却の遺跡で古代文明の謎を解く。魔法の罠と貴重な宝物が待っている。",
+      description:
+        "忘却の遺跡で古代文明の謎を解く。魔法の罠と貴重な宝物が待っている。",
       order: 3,
       status: "未開始",
       questType: "サブ",
       difficulty: 4,
       rewards: ["古代の巻物", "経験値150", "魔法のアミュレット"],
       sessionId: "session-day-3",
-      relatedPlaceIds: ["old-ruins"]
+      relatedPlaceIds: ["old-ruins"],
     },
     {
       id: "quest-final-dragon",
       title: "竜の谷への最終決戦",
-      description: "すべての手がかりを集めた冒険者たちが、ついに竜の谷で伝説の秘宝と対面する。",
+      description:
+        "すべての手がかりを集めた冒険者たちが、ついに竜の谷で伝説の秘宝と対面する。",
       order: 4,
       status: "未開始",
       questType: "メイン",
       difficulty: 5,
       rewards: ["竜の秘宝", "称号：竜退治の英雄", "経験値500", "金貨1000"],
       sessionId: "session-day-5",
-      relatedPlaceIds: ["dragon-valley"]
-    }
+      relatedPlaceIds: ["dragon-valley"],
+    },
   ],
 
   // TRPGCharacter[] 形式 - Stormbringer仕様準拠
@@ -90,13 +191,13 @@ export const testCampaignData: TRPGCampaign = {
         INT: 10,
         POW: 12,
         DEX: 11,
-        CHA: 13
+        CHA: 13,
       },
       derived: {
         HP: 40,
         MP: 12,
         SW: 14,
-        RES: 13
+        RES: 13,
       },
       weapons: [
         {
@@ -105,8 +206,8 @@ export const testCampaignData: TRPGCampaign = {
           damage: "1d8+1d4",
           hit: 85,
           parry: 80,
-          range: "接触"
-        }
+          range: "接触",
+        },
       ],
       armor: {
         head: 3,
@@ -114,37 +215,31 @@ export const testCampaignData: TRPGCampaign = {
         leftArm: 4,
         rightArm: 4,
         leftLeg: 3,
-        rightLeg: 3
+        rightLeg: 3,
       },
       skills: {
         AgilitySkills: [
           { name: "跳躍", value: 65 },
-          { name: "登攀", value: 70 }
+          { name: "登攀", value: 70 },
         ],
         CommunicationSkills: [
           { name: "説得", value: 60 },
-          { name: "威圧", value: 70 }
+          { name: "威圧", value: 70 },
         ],
-        KnowledgeSkills: [
-          { name: "戦術", value: 75 }
-        ],
-        ManipulationSkills: [
-          { name: "盾", value: 80 }
-        ],
+        KnowledgeSkills: [{ name: "戦術", value: 75 }],
+        ManipulationSkills: [{ name: "盾", value: 80 }],
         PerceptionSkills: [
           { name: "聞き耳", value: 65 },
-          { name: "目星", value: 70 }
+          { name: "目星", value: 70 },
         ],
-        StealthSkills: [
-          { name: "隠れる", value: 40 }
-        ],
+        StealthSkills: [{ name: "隠れる", value: 40 }],
         MagicSkills: [],
         WeaponSkills: [
           { name: "剣", value: 85 },
-          { name: "盾", value: 80 }
-        ]
+          { name: "盾", value: 80 },
+        ],
       },
-      imageUrl: "/images/human-warrior.jpg"
+      imageUrl: "/images/human-warrior.jpg",
     },
     {
       id: "char-2",
@@ -164,13 +259,13 @@ export const testCampaignData: TRPGCampaign = {
         INT: 18,
         POW: 16,
         DEX: 14,
-        CHA: 15
+        CHA: 15,
       },
       derived: {
         HP: 25,
         MP: 40,
         SW: 16,
-        RES: 16
+        RES: 16,
       },
       weapons: [
         {
@@ -179,8 +274,8 @@ export const testCampaignData: TRPGCampaign = {
           damage: "1d6",
           hit: 60,
           parry: 50,
-          range: "接触"
-        }
+          range: "接触",
+        },
       ],
       armor: {
         head: 0,
@@ -188,39 +283,29 @@ export const testCampaignData: TRPGCampaign = {
         leftArm: 1,
         rightArm: 1,
         leftLeg: 1,
-        rightLeg: 1
+        rightLeg: 1,
       },
       skills: {
-        AgilitySkills: [
-          { name: "跳躍", value: 45 }
-        ],
-        CommunicationSkills: [
-          { name: "説得", value: 80 }
-        ],
+        AgilitySkills: [{ name: "跳躍", value: 45 }],
+        CommunicationSkills: [{ name: "説得", value: 80 }],
         KnowledgeSkills: [
           { name: "古代語", value: 90 },
-          { name: "魔法学", value: 85 }
+          { name: "魔法学", value: 85 },
         ],
-        ManipulationSkills: [
-          { name: "呪文詠唱", value: 85 }
-        ],
+        ManipulationSkills: [{ name: "呪文詠唱", value: 85 }],
         PerceptionSkills: [
           { name: "魔法感知", value: 90 },
-          { name: "目星", value: 75 }
+          { name: "目星", value: 75 },
         ],
-        StealthSkills: [
-          { name: "隠れる", value: 65 }
-        ],
+        StealthSkills: [{ name: "隠れる", value: 65 }],
         MagicSkills: [
           { name: "火球術", value: 80 },
           { name: "治癒術", value: 70 },
-          { name: "防護魔法", value: 75 }
+          { name: "防護魔法", value: 75 },
         ],
-        WeaponSkills: [
-          { name: "杖", value: 60 }
-        ]
+        WeaponSkills: [{ name: "杖", value: 60 }],
       },
-      imageUrl: "/images/elf-wizard.jpg"
+      imageUrl: "/images/elf-wizard.jpg",
     },
     {
       id: "char-3",
@@ -241,13 +326,13 @@ export const testCampaignData: TRPGCampaign = {
         INT: 14,
         POW: 11,
         DEX: 18,
-        CHA: 13
+        CHA: 13,
       },
       derived: {
         HP: 30,
         MP: 11,
         SW: 18,
-        RES: 12
+        RES: 12,
       },
       weapons: [
         {
@@ -256,8 +341,8 @@ export const testCampaignData: TRPGCampaign = {
           damage: "1d6+2",
           hit: 90,
           parry: 70,
-          range: "接触"
-        }
+          range: "接触",
+        },
       ],
       armor: {
         head: 1,
@@ -265,42 +350,38 @@ export const testCampaignData: TRPGCampaign = {
         leftArm: 2,
         rightArm: 2,
         leftLeg: 2,
-        rightLeg: 2
+        rightLeg: 2,
       },
       skills: {
         AgilitySkills: [
           { name: "跳躍", value: 85 },
           { name: "登攀", value: 90 },
-          { name: "軽業", value: 95 }
+          { name: "軽業", value: 95 },
         ],
-        CommunicationSkills: [
-          { name: "話術", value: 70 }
-        ],
-        KnowledgeSkills: [
-          { name: "街の知識", value: 80 }
-        ],
+        CommunicationSkills: [{ name: "話術", value: 70 }],
+        KnowledgeSkills: [{ name: "街の知識", value: 80 }],
         ManipulationSkills: [
           { name: "鍵開け", value: 90 },
           { name: "罠解除", value: 85 },
-          { name: "スリ", value: 80 }
+          { name: "スリ", value: 80 },
         ],
         PerceptionSkills: [
           { name: "聞き耳", value: 85 },
           { name: "目星", value: 90 },
-          { name: "罠発見", value: 88 }
+          { name: "罠発見", value: 88 },
         ],
         StealthSkills: [
           { name: "隠れる", value: 95 },
-          { name: "忍び歩き", value: 90 }
+          { name: "忍び歩き", value: 90 },
         ],
         MagicSkills: [],
         WeaponSkills: [
           { name: "短剣", value: 85 },
-          { name: "投擲", value: 75 }
-        ]
+          { name: "投擲", value: 75 },
+        ],
       },
-      imageUrl: "/images/halfling-rogue.jpg"
-    }
+      imageUrl: "/images/halfling-rogue.jpg",
+    },
   ],
 
   // WorldBuilding 形式
@@ -310,9 +391,11 @@ export const testCampaignData: TRPGCampaign = {
       {
         id: "setting-001",
         name: "リバーベント街の世界",
-        description: "中世ファンタジー世界。魔法と剣の時代で、古代文明の遺跡が各地に残っている。",
-        history: "かつては古代竜が世界を支配していたが、現在は人間を中心とした多種族社会が築かれている。"
-      }
+        description:
+          "中世ファンタジー世界。魔法と剣の時代で、古代文明の遺跡が各地に残っている。",
+        history:
+          "かつては古代竜が世界を支配していたが、現在は人間を中心とした多種族社会が築かれている。",
+      },
     ],
     worldmaps: [],
     rules: [],
@@ -322,51 +405,151 @@ export const testCampaignData: TRPGCampaign = {
         name: "リバーベント街",
         type: "place",
         originalType: "place",
-        description: "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
+        description:
+          "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
         features: "金の竪琴亭、エルフの万屋、商人ギルド",
         importance: "主要拠点",
         relations: "翠の森道、ハーベスト村への中継地点",
         location: "中央平原",
         population: "約8000人",
-        culturalFeatures: "多種族が共存する商業都市"
-      }
+        culturalFeatures: "多種族が共存する商業都市",
+      },
     ],
     cultures: [],
     geographyEnvironment: [
       {
         id: "geo-central-plains",
         name: "中央平原",
-        type: "geography_environment", 
+        type: "geography_environment",
         originalType: "geography_environment",
         description: "肥沃な平原地帯。リバーベント街やハーベスト村がある。",
         features: "川、街道、農地",
         importance: "主要な居住地域",
-        relations: "翠の大森林、ドラゴンバック山脈に囲まれている"
-      }
+        relations: "翠の大森林、ドラゴンバック山脈に囲まれている",
+      },
     ],
     historyLegend: [
       {
         id: "legend-ancient-dragon",
         name: "古代竜の伝説",
         type: "history_legend",
-        originalType: "history_legend", 
+        originalType: "history_legend",
         description: "竜の谷に眠る古代竜ヴェルダリオンの伝説",
         features: "莫大な財宝、古代の秘宝",
         importance: "キャンペーンの中核となる伝説",
         period: "古代（約1000年前）",
         significantEvents: "古代竜の最後の戦い、秘宝の隠匿",
         consequences: "現在も冒険者たちが秘宝を求めて竜の谷を目指す",
-        relations: "竜の谷、古代文明の遺跡"
-      }
+        relations: "竜の谷、古代文明の遺跡",
+      },
     ],
     magicTechnology: [],
     stateDefinition: [],
-    freeFields: []
+    freeFields: [],
   },
 
-  timeline: [],
+  timeline: [
+    {
+      id: "event-forest-encounter",
+      title: "森での出会い",
+      description:
+        "翠の森道で謎の商人に出会う。重要な情報を持っているかもしれない。",
+      date: "2024-01-02T10:00:00.000Z",
+      dayNumber: 1,
+      relatedCharacters: [],
+      relatedPlaces: ["forest-path"],
+      order: 1,
+      eventType: "roleplay",
+      relatedQuestIds: ["quest-forest-bandits"],
+      explorationActions: [
+        {
+          id: "action-talk-merchant",
+          title: "商人と会話",
+          description: "謎の商人から情報を聞き出す",
+          actionType: "interact",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 5,
+            items: [],
+            information: ["盗賊団の最近の動き", "安全な抜け道"],
+            flagChanges: { merchant_talked: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["商人が去ってしまう"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "milestone",
+        },
+        {
+          id: "action-buy-supplies",
+          title: "商人から物資を購入",
+          description: "冒険に必要な道具や薬を購入する",
+          actionType: "collect",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 0,
+            items: ["ロープ", "たいまつ", "治療薬"],
+            information: [],
+            flagChanges: { supplies_bought: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["金銭を無駄にした"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "milestone",
+        },
+      ],
+    },
+    {
+      id: "event-village-festival",
+      title: "村の収穫祭",
+      description:
+        "ハーベスト村で収穫祭が行われている。村人との交流のチャンス。",
+      date: "2024-01-03T15:00:00.000Z",
+      dayNumber: 2,
+      relatedCharacters: [],
+      relatedPlaces: ["small-village"],
+      order: 2,
+      eventType: "social",
+      relatedQuestIds: ["quest-village-request"],
+      explorationActions: [
+        {
+          id: "action-join-festival",
+          title: "祭りに参加",
+          description: "村の祭りに参加して村人と親睦を深める",
+          actionType: "interact",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 10,
+            items: ["祭りの記念品"],
+            information: ["村の歴史", "近隣の地理情報"],
+            flagChanges: { festival_joined: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["村人からの印象が悪くなる"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 1,
+        },
+      ],
+    },
+  ],
   sessions: [],
-  
+
   // EnemyCharacter[] 形式
   enemies: [
     {
@@ -381,7 +564,7 @@ export const testCampaignData: TRPGCampaign = {
         dexterity: 16,
         constitution: 13,
         intelligence: 12,
-        wisdom: 11
+        wisdom: 11,
       },
       derivedStats: {
         hp: 45,
@@ -393,7 +576,7 @@ export const testCampaignData: TRPGCampaign = {
         accuracy: 75,
         evasion: 65,
         criticalRate: 10,
-        initiative: 16
+        initiative: 16,
       },
       skills: {
         basicAttack: "短剣による斬撃",
@@ -402,33 +585,81 @@ export const testCampaignData: TRPGCampaign = {
             name: "急所狙い",
             effect: "ダメージ+50%、クリティカル率+20%",
             cost: "3MP",
-            cooldown: 2
+            cooldown: 2,
           },
           {
             name: "煙玉逃走",
             effect: "戦闘から逃走、成功率80%",
             cost: "5MP",
-            cooldown: 5
-          }
+            cooldown: 5,
+          },
         ],
-        passives: ["隠密行動", "森林での優位性"]
+        passives: ["隠密行動", "森林での優位性"],
       },
       behavior: {
         aiPattern: "HP50%以下で煙玉逃走を使用",
-        targeting: "最も攻撃力の高いPCを優先的に狙う"
+        targeting: "最も攻撃力の高いPCを優先的に狙う",
       },
       drops: {
         exp: 50,
         gold: 20,
         items: ["盗賊の地図", "治療薬"],
-        rareDrops: ["盗賊団の印章"]
+        rareDrops: ["盗賊団の印章"],
       },
       status: {
         currentHp: 45,
         currentMp: 10,
         statusEffects: [],
-        location: "翠の森道"
-      }
+        location: "翠の森道",
+      },
+      explorationActions: [
+        {
+          id: "action-track-bandits",
+          title: "盗賊の痕跡を追跡",
+          description: "盗賊団の頭領が残した足跡や手がかりを追跡する",
+          actionType: "investigate",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 15,
+            items: [],
+            information: ["盗賊団の隠れ家の位置", "頭領の弱点"],
+            flagChanges: { bandit_tracked: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["手がかりを見失う", "罠にかかる可能性"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "milestone",
+        },
+        {
+          id: "action-study-bandit-tactics",
+          title: "盗賊の戦術を研究",
+          description: "戦闘前に盗賊団の戦い方を観察して対策を練る",
+          actionType: "investigate",
+          difficulty: "hard",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 20,
+            items: [],
+            information: ["盗賊団の戦術パターン"],
+            flagChanges: { bandit_tactics_known: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["戦闘で不利になる"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "milestone",
+        },
+      ],
     },
     {
       id: "ancient-guardian",
@@ -442,7 +673,7 @@ export const testCampaignData: TRPGCampaign = {
         dexterity: 8,
         constitution: 16,
         intelligence: 6,
-        wisdom: 12
+        wisdom: 12,
       },
       derivedStats: {
         hp: 80,
@@ -454,7 +685,7 @@ export const testCampaignData: TRPGCampaign = {
         accuracy: 60,
         evasion: 20,
         criticalRate: 5,
-        initiative: 8
+        initiative: 8,
       },
       skills: {
         basicAttack: "石の拳による強打",
@@ -463,34 +694,35 @@ export const testCampaignData: TRPGCampaign = {
             name: "魔法の盾",
             effect: "防御力+50%、3ターン持続",
             cost: "8MP",
-            cooldown: 4
+            cooldown: 4,
           },
           {
             name: "大地震動",
             effect: "全体攻撃、威力120%",
             cost: "12MP",
-            cooldown: 6
-          }
+            cooldown: 6,
+          },
         ],
-        passives: ["物理耐性", "魔法構築体"]
+        passives: ["物理耐性", "魔法構築体"],
       },
       behavior: {
-        aiPattern: "HP30%以下で魔法の盾を使用、複数の敵がいる場合は大地震動を優先",
-        targeting: "最も近い敵を優先的に攻撃"
+        aiPattern:
+          "HP30%以下で魔法の盾を使用、複数の敵がいる場合は大地震動を優先",
+        targeting: "最も近い敵を優先的に攻撃",
       },
       drops: {
         exp: 100,
         gold: 0,
         items: ["古代の結晶", "魔法の粉末"],
-        rareDrops: ["古代守護者の核"]
+        rareDrops: ["古代守護者の核"],
       },
       status: {
         currentHp: 80,
         currentMp: 30,
         statusEffects: [],
-        location: "忘却の遺跡"
-      }
-    }
+        location: "忘却の遺跡",
+      },
+    },
   ],
 
   // NPCCharacter[] 形式
@@ -513,13 +745,13 @@ export const testCampaignData: TRPGCampaign = {
         INT: 12,
         POW: 10,
         DEX: 11,
-        CHA: 16
+        CHA: 16,
       },
       derived: {
         HP: 32,
         MP: 10,
         SW: 12,
-        RES: 12
+        RES: 12,
       },
       weapons: [
         {
@@ -528,8 +760,8 @@ export const testCampaignData: TRPGCampaign = {
           damage: "1d6+1",
           hit: 65,
           parry: 55,
-          range: "接触"
-        }
+          range: "接触",
+        },
       ],
       armor: {
         head: 0,
@@ -537,30 +769,26 @@ export const testCampaignData: TRPGCampaign = {
         leftArm: 1,
         rightArm: 1,
         leftLeg: 1,
-        rightLeg: 1
+        rightLeg: 1,
       },
       skills: {
         AgilitySkills: [],
         CommunicationSkills: [
           { name: "話術", value: 85 },
-          { name: "説得", value: 70 }
+          { name: "説得", value: 70 },
         ],
         KnowledgeSkills: [
           { name: "街の知識", value: 90 },
-          { name: "冒険者の知識", value: 75 }
+          { name: "冒険者の知識", value: 75 },
         ],
-        ManipulationSkills: [
-          { name: "料理", value: 80 }
-        ],
+        ManipulationSkills: [{ name: "料理", value: 80 }],
         PerceptionSkills: [
           { name: "聞き耳", value: 75 },
-          { name: "人物観察", value: 80 }
+          { name: "人物観察", value: 80 },
         ],
         StealthSkills: [],
         MagicSkills: [],
-        WeaponSkills: [
-          { name: "棍棒", value: 65 }
-        ]
+        WeaponSkills: [{ name: "棍棒", value: 65 }],
       },
       location: "リバーベント街",
       occupation: "宿屋の主人",
@@ -571,9 +799,9 @@ export const testCampaignData: TRPGCampaign = {
       dialoguePatterns: [
         "おう、冒険者か！今日も賑やかだなぁ！",
         "最近、森の方で盗賊が出るって噂だ。気をつけな。",
-        "また来いよ！いつでも部屋は空けとくぜ！"
-      ]
-    }
+        "また来いよ！いつでも部屋は空けとくぜ！",
+      ],
+    },
   ],
 
   bases: [
@@ -582,7 +810,8 @@ export const testCampaignData: TRPGCampaign = {
       name: "リバーベント街",
       type: "都市",
       region: "中央平原",
-      description: "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
+      description:
+        "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
       rank: "中規模都市",
       importance: "主要拠点",
       facilities: {
@@ -590,7 +819,7 @@ export const testCampaignData: TRPGCampaign = {
           name: "金の竪琴亭",
           pricePerNight: 50,
           description: "評判の良い宿屋。情報収集の拠点としても有名。",
-          services: ["休息", "情報収集", "装備修理"]
+          services: ["休息", "情報収集", "装備修理"],
         },
         shops: [
           {
@@ -598,29 +827,29 @@ export const testCampaignData: TRPGCampaign = {
             type: "一般商店",
             items: ["日用品", "旅行用品", "薬草"],
             priceModifier: 1.0,
-            description: "何でも揃う便利な店"
-          }
-        ]
+            description: "何でも揃う便利な店",
+          },
+        ],
       },
       npcs: [],
       features: {
         fastTravel: true,
         playerBase: true,
         questHub: true,
-        defenseEvent: false
+        defenseEvent: false,
       },
       threats: {
         dangerLevel: "低",
         monsterAttackRate: 0.1,
         playerReputation: 50,
         currentEvents: ["商人祭り開催中"],
-        controllingFaction: "商人ギルド"
+        controllingFaction: "商人ギルド",
       },
       economy: {
         currency: "金貨",
         priceModifier: 1.0,
         localGoods: ["川魚", "絹織物", "工芸品"],
-        tradeGoods: ["香辛料", "魔法具", "武器"]
+        tradeGoods: ["香辛料", "魔法具", "武器"],
       },
       // TRPGセッション用: 拠点向け行動可能リスト
       availableActions: [
@@ -628,45 +857,45 @@ export const testCampaignData: TRPGCampaign = {
           id: "action-shop",
           name: "装備品を購入する",
           description: "街の商店で武器、防具、アイテムを購入できます",
-          category: "shopping"
+          category: "shopping",
         },
         {
           id: "action-inn",
           name: "宿屋で休息する",
           description: "金の竪琴亭でHPとMPを回復し、情報収集もできます",
-          category: "rest"
+          category: "rest",
         },
         {
           id: "action-talk-npc",
           name: "街の住民と会話する",
           description: "商人や冒険者と話して情報や噂を集められます",
-          category: "social"
+          category: "social",
         },
         {
           id: "action-guild",
           name: "冒険者ギルドを訪問する",
           description: "依頼の確認や新たなクエストを受注できます",
-          category: "quest"
+          category: "quest",
         },
         {
           id: "action-temple",
           name: "神殿で祈りを捧げる",
           description: "状態異常の治癒や祝福を受けることができます",
-          category: "rest"
+          category: "rest",
         },
         {
           id: "action-training",
           name: "訓練場で鍛錬する",
           description: "スキルの向上や新しい技能を習得できます",
-          category: "training"
-        }
+          category: "training",
+        },
       ],
       meta: {
         locationId: "town-center",
         unlocked: true,
-        lastUpdated: "2024-01-01T00:00:00.000Z"
+        lastUpdated: "2024-01-01T00:00:00.000Z",
       },
-      imageUrl: "/images/town-center.jpg"
+      imageUrl: "/images/town-center.jpg",
     },
     // フィールド・探索エリア
     {
@@ -674,7 +903,8 @@ export const testCampaignData: TRPGCampaign = {
       name: "翠の森道",
       type: "森",
       region: "リバーベント街郊外",
-      description: "街を出てすぐの森の小道。商人がよく通るが、時折盗賊や野生動物が出没する。",
+      description:
+        "街を出てすぐの森の小道。商人がよく通るが、時折盗賊や野生動物が出没する。",
       rank: "初級探索エリア",
       importance: "サブ拠点",
       facilities: {},
@@ -683,20 +913,20 @@ export const testCampaignData: TRPGCampaign = {
         fastTravel: false,
         playerBase: false,
         questHub: false,
-        defenseEvent: false
+        defenseEvent: false,
       },
       threats: {
         dangerLevel: "中",
         monsterAttackRate: 0.4,
         playerReputation: 0,
         currentEvents: ["盗賊団の噂"],
-        controllingFaction: "なし"
+        controllingFaction: "なし",
       },
       economy: {
         currency: "金貨",
         priceModifier: 1.0,
         localGoods: [],
-        tradeGoods: []
+        tradeGoods: [],
       },
       // TRPGセッション用: フィールド向け行動可能リスト
       availableActions: [
@@ -704,45 +934,45 @@ export const testCampaignData: TRPGCampaign = {
           id: "action-explore-forest",
           name: "森を探索する",
           description: "木々の間を注意深く進み、隠された道や宝物を探します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-hunt-monsters",
           name: "モンスターを狩る",
           description: "この地域に潜むゴブリンや狼などの敵を積極的に探します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-gather-herbs",
           name: "薬草を採取する",
           description: "森に自生する薬草や材料を集めます",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-track-bandits",
           name: "盗賊の痕跡を追う",
           description: "噂の盗賊団の手がかりを探します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-setup-camp",
           name: "野営の準備をする",
           description: "安全な場所を確保して一時的な休息を取ります",
-          category: "rest"
+          category: "rest",
         },
         {
           id: "action-retreat",
           name: "街に戻る",
           description: "リバーベント街に安全に戻ります",
-          category: "custom"
-        }
+          category: "custom",
+        },
       ],
       meta: {
         locationId: "forest-path",
         unlocked: true,
-        lastUpdated: "2024-01-01T00:00:00.000Z"
+        lastUpdated: "2024-01-01T00:00:00.000Z",
       },
-      imageUrl: "/images/forest-path.jpg"
+      imageUrl: "/images/forest-path.jpg",
     },
     // ダンジョン
     {
@@ -750,7 +980,8 @@ export const testCampaignData: TRPGCampaign = {
       name: "忘却の遺跡",
       type: "遺跡",
       region: "古代の地",
-      description: "古代文明の謎を秘めた石造りの遺跡。魔法の罠と貴重な宝物が眠っている。",
+      description:
+        "古代文明の謎を秘めた石造りの遺跡。魔法の罠と貴重な宝物が眠っている。",
       rank: "上級探索エリア",
       importance: "隠し拠点",
       facilities: {},
@@ -759,20 +990,20 @@ export const testCampaignData: TRPGCampaign = {
         fastTravel: false,
         playerBase: false,
         questHub: false,
-        defenseEvent: false
+        defenseEvent: false,
       },
       threats: {
         dangerLevel: "高",
         monsterAttackRate: 0.7,
         playerReputation: 0,
         currentEvents: ["古代の魔法が活性化"],
-        controllingFaction: "なし"
+        controllingFaction: "なし",
       },
       economy: {
         currency: "金貨",
         priceModifier: 1.0,
         localGoods: [],
-        tradeGoods: []
+        tradeGoods: [],
       },
       // TRPGセッション用: ダンジョン向け行動可能リスト
       availableActions: [
@@ -780,46 +1011,46 @@ export const testCampaignData: TRPGCampaign = {
           id: "action-investigate-ruins",
           name: "遺跡を詳しく調べる",
           description: "古代の文字や装置を解読し、秘密を解き明かします",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-disarm-traps",
           name: "罠を解除する",
           description: "古代の魔法的な罠を慎重に無力化します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-fight-guardians",
           name: "守護者と戦う",
           description: "遺跡を守る古代の守護者や魔物と戦闘します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-search-treasure",
           name: "宝物を探す",
           description: "隠された宝箱や貴重なアーティファクトを探します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-study-magic",
           name: "古代魔法を学ぶ",
           description: "遺跡に残された魔法の知識を習得します",
-          category: "exploration"
+          category: "exploration",
         },
         {
           id: "action-escape-ruins",
           name: "遺跡から脱出する",
           description: "危険を感じたら安全な場所へ退避します",
-          category: "custom"
-        }
+          category: "custom",
+        },
       ],
       meta: {
         locationId: "ancient-ruins",
         unlocked: false,
-        lastUpdated: "2024-01-01T00:00:00.000Z"
+        lastUpdated: "2024-01-01T00:00:00.000Z",
       },
-      imageUrl: "/images/ancient-ruins.jpg"
-    }
+      imageUrl: "/images/ancient-ruins.jpg",
+    },
   ],
 
   // Item[] 形式 - テスト用アイテムデータ
@@ -827,7 +1058,8 @@ export const testCampaignData: TRPGCampaign = {
     {
       id: "item-ancient-key",
       name: "古代の鍵",
-      description: "古代竜の宝物庫を開くための神秘的な鍵。光る文字が刻まれている。",
+      description:
+        "古代竜の宝物庫を開くための神秘的な鍵。光る文字が刻まれている。",
       type: "key_item",
       category: "general",
       rarity: "legendary",
@@ -843,19 +1075,19 @@ export const testCampaignData: TRPGCampaign = {
           id: "attr-ancient-power",
           name: "古代の力",
           value: true,
-          description: "竜の谷の封印を解く力を持つ"
-        }
+          description: "竜の谷の封印を解く力を持つ",
+        },
       ],
       requirements: {
         level: 1,
         stats: {},
         skills: [],
-        classes: []
+        classes: [],
       },
       tags: ["key_item", "quest", "dragon_valley"],
       questRelated: true,
       tradable: false,
-      destroyable: false
+      destroyable: false,
     },
     {
       id: "item-healing-potion",
@@ -875,20 +1107,20 @@ export const testCampaignData: TRPGCampaign = {
           id: "heal-effect",
           type: "heal",
           magnitude: 20,
-          description: "HP を 20 回復"
-        }
+          description: "HP を 20 回復",
+        },
       ],
       attributes: [],
       requirements: {
         level: 1,
         stats: {},
         skills: [],
-        classes: []
+        classes: [],
       },
       tags: ["healing", "consumable", "basic"],
       questRelated: false,
       tradable: true,
-      destroyable: true
+      destroyable: true,
     },
     {
       id: "item-dragon-scale",
@@ -909,20 +1141,20 @@ export const testCampaignData: TRPGCampaign = {
           id: "attr-dragon-essence",
           name: "竜の力",
           value: true,
-          description: "古代竜の魔力が宿っている"
-        }
+          description: "古代竜の魔力が宿っている",
+        },
       ],
       requirements: {
         level: 1,
         stats: {},
         skills: [],
-        classes: []
+        classes: [],
       },
       tags: ["dragon", "rare_material", "treasure"],
       questRelated: true,
       tradable: true,
-      destroyable: false
-    }
+      destroyable: false,
+    },
   ],
 
   // ItemLocation[] 形式
@@ -936,7 +1168,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "always",
       price: 50,
       currency: "金貨",
-      notes: "常時在庫あり。まとめ買い割引あり。"
+      notes: "常時在庫あり。まとめ買い割引あり。",
     },
     {
       id: "location-mana-potion-shop",
@@ -947,7 +1179,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "always",
       price: 40,
       currency: "金貨",
-      notes: "常時在庫あり。魔法使いに人気。"
+      notes: "常時在庫あり。魔法使いに人気。",
     },
     {
       id: "location-iron-sword-shop",
@@ -958,7 +1190,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "always",
       price: 150,
       currency: "金貨",
-      notes: "標準的な武器。初心者にオススメ。"
+      notes: "標準的な武器。初心者にオススメ。",
     },
     {
       id: "location-leather-armor-shop",
@@ -969,7 +1201,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "always",
       price: 100,
       currency: "金貨",
-      notes: "軽装備好みの冒険者に人気。"
+      notes: "軽装備好みの冒険者に人気。",
     },
     {
       id: "location-ancient-key-event",
@@ -982,10 +1214,10 @@ export const testCampaignData: TRPGCampaign = {
         {
           type: "quest_complete",
           value: "quest-forest-bandits",
-          description: "盗賊団を倒す必要あり"
-        }
+          description: "盗賊団を倒す必要あり",
+        },
       ],
-      notes: "盗賊団の頭領が隠し持っている。"
+      notes: "盗賊団の頭領が隠し持っている。",
     },
     {
       id: "location-dragon-scale-loot",
@@ -998,10 +1230,10 @@ export const testCampaignData: TRPGCampaign = {
         {
           type: "quest_complete",
           value: "quest-final-dragon",
-          description: "竜を倒す必要あり"
-        }
+          description: "竜を倒す必要あり",
+        },
       ],
-      notes: "竜を倒した際のドロップアイテム。"
+      notes: "竜を倒した際のドロップアイテム。",
     },
     {
       id: "location-silver-ring-shop",
@@ -1012,7 +1244,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "limited",
       price: 300,
       currency: "金貨",
-      notes: "在庫限定。売り切れることあり。"
+      notes: "在庫限定。売り切れることあり。",
     },
     {
       id: "location-magic-scroll-shop",
@@ -1023,7 +1255,7 @@ export const testCampaignData: TRPGCampaign = {
       availability: "always",
       price: 120,
       currency: "金貨",
-      notes: "魔法使いの必需品。他の属性もあり。"
+      notes: "魔法使いの必需品。他の属性もあり。",
     },
     {
       id: "location-mythril-sword-reward",
@@ -1036,10 +1268,10 @@ export const testCampaignData: TRPGCampaign = {
         {
           type: "quest_complete",
           value: "quest-ancient-ruins",
-          description: "遺跡の謎を解く必要あり"
-        }
+          description: "遺跡の謎を解く必要あり",
+        },
       ],
-      notes: "古代の宝物庫に眠る伝説の武器。"
+      notes: "古代の宝物庫に眠る伝説の武器。",
     },
     {
       id: "location-village-pass-quest",
@@ -1052,11 +1284,11 @@ export const testCampaignData: TRPGCampaign = {
         {
           type: "quest_complete",
           value: "quest-village-request",
-          description: "村長の依頼を受ける必要あり"
-        }
+          description: "村長の依頼を受ける必要あり",
+        },
       ],
-      notes: "村長から直接受け取る。"
-    }
+      notes: "村長から直接受け取る。",
+    },
   ],
 
   // 開始場所をリバーベント街に設定
@@ -1064,10 +1296,11 @@ export const testCampaignData: TRPGCampaign = {
     id: "town-center",
     name: "リバーベント街",
     type: "base",
-    description: "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
+    description:
+      "交易で栄える川沿いの大きな街。多くの商人や冒険者が集まる場所。",
     imageUrl: "/images/town-center.jpg",
     setAt: new Date("2024-01-01T00:00:00.000Z"),
-    isActive: true
+    isActive: true,
   },
 
   // キャンペーンクリア条件
@@ -1079,7 +1312,8 @@ export const testCampaignData: TRPGCampaign = {
       type: "story_milestone",
       storyMilestone: "village_elder_trust",
       priority: "secondary",
-      successDescription: "村人たちに温かく迎えられ、冒険者として認められました"
+      successDescription:
+        "村人たちに温かく迎えられ、冒険者として認められました",
     },
     {
       id: "clear-collect-key",
@@ -1090,11 +1324,11 @@ export const testCampaignData: TRPGCampaign = {
         {
           itemId: "item-ancient-key",
           itemName: "古代の鍵",
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       priority: "primary",
-      successDescription: "古代の鍵が輝き、竜の谷への道が開かれました"
+      successDescription: "古代の鍵が輝き、竜の谷への道が開かれました",
     },
     {
       id: "clear-defeat-dragon",
@@ -1103,8 +1337,9 @@ export const testCampaignData: TRPGCampaign = {
       type: "quest_completion",
       requiredQuests: ["quest-final-dragon"],
       priority: "primary",
-      successDescription: "竜を討伐し、竜の谷の秘宝を手に入れました！英雄として語り継がれるでしょう"
-    }
+      successDescription:
+        "竜を討伐し、竜の谷の秘宝を手に入れました！英雄として語り継がれるでしょう",
+    },
   ],
 
   // パーティ共通の所持金（初期値）
@@ -1115,11 +1350,11 @@ export const testCampaignData: TRPGCampaign = {
 
   // キャンペーンフラグ（初期状態）
   campaignFlags: {
-    "tutorial_completed": false,
-    "first_combat": false,
-    "village_visited": false,
-    "bandit_leader_defeated": false,
-    "ancient_ruins_unlocked": false
+    tutorial_completed: false,
+    first_combat: false,
+    village_visited: false,
+    bandit_leader_defeated: false,
+    ancient_ruins_unlocked: false,
   },
 
   // マイルストーン管理
@@ -1134,33 +1369,31 @@ export const testCampaignData: TRPGCampaign = {
       requirements: [
         {
           type: "enemies",
-          enemyRequirements: [
-            { enemyId: "bandit-leader", count: 1 }
-          ],
-          description: "盗賊団の頭領を討伐"
+          enemyRequirements: [{ enemyId: "bandit-leader", count: 1 }],
+          description: "盗賊団の頭領を討伐",
         },
         {
           type: "quests",
           questIds: ["quest-forest-bandits"],
-          description: "森の盗賊団遭遇クエストを完了"
-        }
+          description: "森の盗賊団遭遇クエストを完了",
+        },
       ],
       status: "active",
       gmGuidance: {
         onTimeHints: [
           "街の人々から感謝の言葉をかけられる",
           "森道を通る商人が安全に取引できるようになった",
-          "村長から報酬が支払われる"
+          "村長から報酬が支払われる",
         ],
         delayedHints: [
           "被害が拡大し、商人たちが困っている",
           "別の冒険者パーティが危険にさらされている",
-          "盗賊団がより大胆になってきている"
-        ]
+          "盗賊団がより大胆になってきている",
+        ],
       },
       priority: "important",
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
     },
     {
       id: "milestone-village-connection",
@@ -1174,29 +1407,29 @@ export const testCampaignData: TRPGCampaign = {
           type: "quests",
           questIds: ["quest-village-request"],
           requiredCount: 1,
-          description: "村長からの依頼を完了"
+          description: "村長からの依頼を完了",
         },
         {
           type: "events",
-          eventIds: [], // タイムラインイベントに基づいて設定
-          description: "村人との交流イベントを2回以上実施"
-        }
+          eventIds: ["event-village-festival"], // タイムラインイベントに基づいて設定
+          description: "村人との交流イベントを2回以上実施",
+        },
       ],
       status: "pending",
       gmGuidance: {
         onTimeHints: [
           "村人たちがパーティを信頼し始める",
           "古代の地図の断片を入手できる",
-          "村の秘密について教えてもらえる"
+          "村の秘密について教えてもらえる",
         ],
         delayedHints: [
           "村人たちが他の冒険者を頼るようになっている",
-          "重要な情報を逃すかもしれない"
-        ]
+          "重要な情報を逃すかもしれない",
+        ],
       },
       priority: "important",
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2024-01-01T00:00:00.000Z")
+      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
     },
     {
       id: "milestone-ancient-ruins",
@@ -1209,42 +1442,306 @@ export const testCampaignData: TRPGCampaign = {
         {
           type: "quests",
           questIds: ["quest-ancient-ruins"],
-          description: "古代遺跡の謎解きクエストを完了"
+          description: "古代遺跡の謎解きクエストを完了",
         },
         {
           type: "enemies",
-          enemyRequirements: [
-            { enemyId: "ancient-guardian", count: 1 }
-          ],
-          description: "古代の守護者を倒す"
+          enemyRequirements: [{ enemyId: "ancient-guardian", count: 1 }],
+          description: "古代の守護者を倒す",
         },
         {
           type: "items",
-          itemRequirements: [
-            { itemId: "ancient-crystal", quantity: 1 }
-          ],
-          description: "古代のクリスタルを取得"
-        }
+          itemRequirements: [{ itemId: "ancient-crystal", quantity: 1 }],
+          description: "古代のクリスタルを取得",
+        },
       ],
       status: "pending",
       gmGuidance: {
         onTimeHints: [
           "古代文明の謎が解明される",
           "強力な魔法のアイテムを入手",
-          "キャンペーンのクライマックスへ繋がる"
+          "キャンペーンのクライマックスへ繋がる",
         ],
         delayedHints: [],
-        failureMessage: "遺跡の魔法的な封印が活性化し、永久に封じられてしまった。この地方の平和は失われ、キャンペーンは失敗に終わる。"
+        failureMessage:
+          "遺跡の魔法的な封印が活性化し、永久に封じられてしまった。この地方の平和は失われ、キャンペーンは失敗に終わる。",
       },
       priority: "critical",
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2024-01-01T00:00:00.000Z")
-    }
+      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+    },
+  ],
+
+  // ランダムイベントプール（Phase 1実装）
+  randomEventPools: [
+    {
+      id: "main-exploration-pool",
+      name: "メイン探索イベントプール",
+      description: "竜の谷キャンペーンで使用されるランダムイベント群",
+
+      // 有益なサブイベント（経験値・アイテム等）
+      beneficialEvents: [
+        {
+          id: "action-find-herbs",
+          title: "薬草の採取",
+          description:
+            "森で珍しい薬草を発見。適切に処理すれば貴重な回復薬を作ることができる",
+          actionType: "collect",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 8,
+            items: ["高品質薬草", "ヒーリングポーション"],
+            information: ["この地域の薬草の知識"],
+            flagChanges: { herb_knowledge: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["時間を無駄にした"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 3,
+          category: "beneficial",
+        },
+        {
+          id: "action-treasure-cache",
+          title: "隠し宝箱の発見",
+          description:
+            "行商人が隠したと思われる小さな宝箱を発見。中身を確認してみる価値がありそうだ",
+          actionType: "search",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 12,
+            items: ["銀貨50枚", "小さな宝石"],
+            information: ["商人ルートの知識"],
+            flagChanges: { treasure_hunter: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["罠にかかって小ダメージ"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "beneficial",
+        },
+        {
+          id: "action-traveling-merchant",
+          title: "行商人との遭遇",
+          description: "旅の行商人と出会う。珍しい商品を持っているかもしれない",
+          actionType: "interact",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 5,
+            items: ["珍しいアイテム"],
+            information: ["他の街の情報", "商品価格情報"],
+            flagChanges: { merchant_contact: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["商人が警戒して去っていく"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "beneficial",
+        },
+      ],
+
+      // ハズレ・トラブル系イベント（時間消費・リスク）
+      hazardEvents: [
+        {
+          id: "action-wild-animal-encounter",
+          title: "野生動物との遭遇",
+          description: "森で野生の狼の群れと遭遇。戦うか、逃げるか判断が必要",
+          actionType: "combat",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 15,
+            items: ["狼の毛皮"],
+            information: ["野生動物の行動パターン"],
+            flagChanges: { animal_encounter: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["負傷してHP減少", "装備が破損"],
+            retryable: false,
+            penaltyDays: 1,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "hazard",
+        },
+        {
+          id: "action-weather-delay",
+          title: "悪天候による足止め",
+          description:
+            "突然の嵐により身動きが取れない。避難所を探すか、強行突破するか",
+          actionType: "rest",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 3,
+            items: [],
+            information: ["この地域の天候パターン"],
+            flagChanges: { weather_experienced: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["風邪をひいて体調不良", "装備が濡れて性能低下"],
+            retryable: false,
+            penaltyDays: 1,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "hazard",
+        },
+        {
+          id: "action-false-lead",
+          title: "偽の情報を追跡",
+          description:
+            "有力そうな手がかりを発見したが、実際は古い情報だった可能性がある",
+          actionType: "investigate",
+          difficulty: "hard",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 8,
+            items: [],
+            information: ["情報の真偽を見抜く経験"],
+            flagChanges: { false_lead_avoided: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["時間と体力を大幅に消費", "モチベーション低下"],
+            retryable: false,
+            penaltyDays: 2,
+          },
+          isVisible: true,
+          priority: 1,
+          category: "hazard",
+        },
+      ],
+
+      // 世界観・キャラクター系イベント（ストーリー深化）
+      flavorEvents: [
+        {
+          id: "action-ancient-monument",
+          title: "古代の記念碑を調査",
+          description:
+            "道端で古い石碑を発見。解読すれば興味深い歴史が分かるかもしれない",
+          actionType: "investigate",
+          difficulty: "normal",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 6,
+            items: [],
+            information: ["古代文明の歴史", "地域の伝説"],
+            flagChanges: { monument_knowledge: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["解読に失敗して時間を浪費"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 2,
+          category: "flavor",
+        },
+        {
+          id: "action-local-folklore",
+          title: "地域住民との雑談",
+          description:
+            "地元の老人が昔話を聞かせてくれる。何か有用な情報があるかもしれない",
+          actionType: "interact",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 4,
+            items: [],
+            information: ["地域の民話", "隠れた名所の情報"],
+            flagChanges: { folklore_learned: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["退屈な話で時間が過ぎる"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 3,
+          category: "flavor",
+        },
+        {
+          id: "action-scenic-viewpoint",
+          title: "景色の良い展望地を発見",
+          description:
+            "高台から美しい景色を眺められる場所を発見。ゆっくり休憩するのも良いだろう",
+          actionType: "rest",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 3,
+            items: [],
+            information: ["地形の概要", "遠くの地域の様子"],
+            flagChanges: { scenic_memory: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["特に変化なし"],
+            retryable: false,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 4,
+          category: "flavor",
+        },
+        {
+          id: "action-character-reflection",
+          title: "キャラクター同士の会話",
+          description: "パーティメンバーと冒険について語り合う時間を持つ",
+          actionType: "rest",
+          difficulty: "easy",
+          prerequisites: {},
+          successOutcomes: {
+            experience: 2,
+            items: [],
+            information: ["仲間の価値観", "パーティの絆"],
+            flagChanges: { party_bonding: true },
+            nextActions: [],
+          },
+          failureOutcomes: {
+            consequences: ["意見の相違で少し気まずくなる"],
+            retryable: true,
+            penaltyDays: 0,
+          },
+          isVisible: true,
+          priority: 4,
+          category: "flavor",
+        },
+      ],
+
+      // ランダム選択設定
+      selectionRules: {
+        beneficialWeight: 30,
+        hazardWeight: 20,
+        flavorWeight: 50,
+        maxEventsPerDay: 3,
+        minEventsPerDay: 1,
+      },
+    },
   ],
 
   rules: [],
   handouts: [],
-  feedback: []
+  feedback: [],
 };
 
 export default testCampaignData;

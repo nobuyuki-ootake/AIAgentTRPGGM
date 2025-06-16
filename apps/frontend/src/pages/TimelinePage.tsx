@@ -30,7 +30,7 @@ import {
   DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
-import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { currentCampaignState, developerModeState } from "../store/atoms";
 import { useTimeline } from "../hooks/useTimeline";
 import TimelineEventDialog from "../components/timeline/TimelineEventDialog";
@@ -156,7 +156,9 @@ const TimelinePage: React.FC = () => {
 
   // マイルストーンダイアログの状態管理
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
-  const [editingMilestone, setEditingMilestone] = useState<CampaignMilestone | undefined>();
+  const [editingMilestone, setEditingMilestone] = useState<
+    CampaignMilestone | undefined
+  >();
 
   // Event result handler state
   const [eventResultDialogOpen, setEventResultDialogOpen] = useState(false);
@@ -535,7 +537,8 @@ const TimelinePage: React.FC = () => {
   const handleSaveMilestone = (milestone: CampaignMilestone) => {
     if (!currentCampaign) return;
 
-    const existingIndex = currentCampaign.milestones?.findIndex(m => m.id === milestone.id) ?? -1;
+    const existingIndex =
+      currentCampaign.milestones?.findIndex((m) => m.id === milestone.id) ?? -1;
     const updatedMilestones = currentCampaign.milestones || [];
 
     if (existingIndex >= 0) {
@@ -546,10 +549,37 @@ const TimelinePage: React.FC = () => {
       updatedMilestones.push(milestone);
     }
 
-    setCurrentCampaign({
+    const updatedCampaign = {
       ...currentCampaign,
       milestones: updatedMilestones,
-    });
+    };
+
+    // Recoil状態を更新
+    setCurrentCampaign(updatedCampaign);
+
+    // ローカルストレージにも保存
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { TRPGLocalStorageManager } = require("../utils/trpgLocalStorage");
+      const saveResult = TRPGLocalStorageManager.saveCampaign(updatedCampaign);
+      if (saveResult) {
+        console.log(
+          "📁 マイルストーンを含むキャンペーンデータをlocalStorageに保存しました",
+        );
+        console.log(
+          "📁 保存されたマイルストーン数:",
+          updatedCampaign.milestones.length,
+        );
+      } else {
+        console.error("❌ マイルストーンの保存に失敗しました");
+      }
+    } catch (error) {
+      console.error("❌ マイルストーン保存時のlocalStorage保存エラー:", error);
+    }
+
+    // 保存成功をユーザーに通知
+    setSnackbarMessage(`マイルストーン「${milestone.title}」を保存しました`);
+    setSnackbarOpen(true);
   };
 
   // クリア条件を保存

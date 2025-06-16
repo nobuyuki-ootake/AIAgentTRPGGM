@@ -21,10 +21,12 @@ import {
   CheckCircle,
   Place,
   LocationOn,
+  Forum as InteractionIcon,
 } from "@mui/icons-material";
 import { DungeonIcon, BaseIcon, QuestScrollIcon } from "../icons/TRPGIcons";
 import EnemySelectionPanel from "./EnemySelectionPanel";
 import MilestoneExplorationPanel from "./MilestoneExplorationPanel";
+import { useMilestoneExploration } from "../../hooks/useMilestoneExploration";
 import {
   EnemyCharacter,
   TRPGCharacter,
@@ -105,6 +107,7 @@ interface MainContentPanelProps {
   onExecuteAction: (action: ActionChoice) => void;
   onExecuteMilestoneAction?: (actionId: string) => void;
   onAdvanceDay: () => void;
+
   onFacilityInteract: (facility: any) => void;
   onAttackEnemies?: (selectedEnemies: string[]) => void;
   onLocationChange?: (locationName: string) => void;
@@ -127,7 +130,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
   onExecuteAction,
   onExecuteMilestoneAction,
   onAdvanceDay,
-  onFacilityInteract,
+  onFacilityInteract: _onFacilityInteract,
   onAttackEnemies,
   onLocationChange,
 }) => {
@@ -136,6 +139,9 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
   const [selectedEnemies, setSelectedEnemies] = useState<string[]>([]);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+
+  // マイルストーン探索フックから交流アクションを取得
+  const { interactionActionChoices } = useMilestoneExploration();
 
   // 現在地にいるNPCをフィルタリング
   const currentLocationNPCs = npcs.filter(
@@ -225,6 +231,11 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
           <Tab
             label="探索"
             icon={<DungeonIcon />}
+            disabled={!isSessionStarted}
+          />
+          <Tab
+            label="交流"
+            icon={<InteractionIcon />}
             disabled={!isSessionStarted}
           />
           <Tab
@@ -376,30 +387,36 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
                 )}
 
                 <Grid container spacing={1} data-testid="available-actions">
-                  {availableActions.map((action) => (
-                    <Grid size={{ xs: 12 }} key={action.id}>
-                      <Tooltip
-                        title={action.description || action.label}
-                        placement="right"
-                      >
-                        <Button
-                          variant="outlined"
-                          fullWidth
-                          startIcon={action.icon}
-                          onClick={() => handleActionClick(action)}
-                          disabled={actionCount >= maxActionsPerDay}
-                          sx={{ p: 1, textAlign: "left" }}
-                          data-testid="action-button"
+                  {availableActions
+                    .filter(
+                      (action) =>
+                        // 探索タブでは移動と攻撃のみ表示
+                        action.type === "move" || action.type === "attack",
+                    )
+                    .map((action) => (
+                      <Grid size={{ xs: 12 }} key={action.id}>
+                        <Tooltip
+                          title={action.description || action.label}
+                          placement="right"
                         >
-                          <Box>
-                            <Typography variant="body2" fontWeight="bold">
-                              {action.label}
-                            </Typography>
-                          </Box>
-                        </Button>
-                      </Tooltip>
-                    </Grid>
-                  ))}
+                          <Button
+                            variant="outlined"
+                            fullWidth
+                            startIcon={action.icon}
+                            onClick={() => handleActionClick(action)}
+                            disabled={actionCount >= maxActionsPerDay}
+                            sx={{ p: 1, textAlign: "left" }}
+                            data-testid="action-button"
+                          >
+                            <Box>
+                              <Typography variant="body2" fontWeight="bold">
+                                {action.label}
+                              </Typography>
+                            </Box>
+                          </Button>
+                        </Tooltip>
+                      </Grid>
+                    ))}
                 </Grid>
 
                 {actionCount >= maxActionsPerDay && (
@@ -420,6 +437,133 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
+          {/* 交流タブ */}
+          <Box
+            sx={{
+              height: "100%",
+              overflow: "auto",
+              scrollbarWidth: "thin",
+              "&::-webkit-scrollbar": {
+                width: "8px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "rgba(0,0,0,0.2)",
+                borderRadius: "4px",
+              },
+              p: 2,
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              💬 交流・対話
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              NPCやパーティーメンバーとの会話や交流を行います
+            </Typography>
+
+            {/* マイルストーンベースの交流アクション */}
+            {interactionActionChoices.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="subtitle1"
+                  gutterBottom
+                  sx={{ fontWeight: "bold" }}
+                >
+                  🎯 特別な交流機会
+                </Typography>
+                <Grid
+                  container
+                  spacing={1}
+                  data-testid="milestone-interaction-actions"
+                >
+                  {interactionActionChoices.map((action) => (
+                    <Grid size={{ xs: 12 }} key={action.id}>
+                      <Tooltip
+                        title={action.description || action.label}
+                        placement="right"
+                      >
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          startIcon={<InteractionIcon />}
+                          onClick={() =>
+                            onExecuteMilestoneAction &&
+                            onExecuteMilestoneAction(action.id)
+                          }
+                          disabled={actionCount >= maxActionsPerDay}
+                          sx={{
+                            p: 1.5,
+                            textAlign: "left",
+                            backgroundColor: "primary.light",
+                            "&:hover": {
+                              backgroundColor: "primary.main",
+                            },
+                          }}
+                          data-testid="milestone-interaction-button"
+                        >
+                          <Box>
+                            <Typography variant="body2" fontWeight="bold">
+                              {action.label}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {action.explorationAction?.difficulty &&
+                                `難易度: ${action.explorationAction.difficulty}`}
+                            </Typography>
+                          </Box>
+                        </Button>
+                      </Tooltip>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
+            {/* 通常のNPC会話アクション */}
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ fontWeight: "bold" }}
+            >
+              👥 NPC対話
+            </Typography>
+            <Grid container spacing={1} data-testid="interaction-actions">
+              {availableActions
+                .filter(
+                  (action) =>
+                    // 交流タブではNPC会話とキャラクター交流のみ表示
+                    action.type === "talk" || action.type === "interact",
+                )
+                .map((action) => (
+                  <Grid size={{ xs: 12 }} key={action.id}>
+                    <Tooltip
+                      title={action.description || action.label}
+                      placement="right"
+                    >
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        startIcon={action.icon}
+                        onClick={() => handleActionClick(action)}
+                        disabled={actionCount >= maxActionsPerDay}
+                        sx={{ p: 1, textAlign: "left" }}
+                        data-testid="interaction-button"
+                      >
+                        <Box>
+                          <Typography variant="body2" fontWeight="bold">
+                            {action.label}
+                          </Typography>
+                        </Box>
+                      </Button>
+                    </Tooltip>
+                  </Grid>
+                ))}
+            </Grid>
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
           {/* 拠点/場所タブ */}
           <Box
             sx={{
@@ -644,7 +788,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
           </Box>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           {/* ステータスタブ */}
           <Box
             sx={{
@@ -840,7 +984,7 @@ const MainContentPanel: React.FC<MainContentPanelProps> = ({
           </Box>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={3}>
+        <TabPanel value={tabValue} index={4}>
           {/* クエストタブ */}
           <Box
             sx={{

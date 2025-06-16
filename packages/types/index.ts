@@ -40,6 +40,7 @@ export interface TRPGCampaign {
   partyInventory?: PartyInventoryItem[]; // パーティ共通のインベントリ
   campaignFlags?: Record<string, any>; // キャンペーンフラグ（ストーリー進行、条件判定用）
   milestones?: CampaignMilestone[]; // マイルストーン管理
+  randomEventPools?: RandomEventPool[]; // ランダムイベントプール管理
 }
 
 // プレイヤーの型定義
@@ -66,7 +67,7 @@ export interface QuestElement {
   sessionId?: string; // 関連するセッションID
   relatedCharacterIds?: string[]; // 関連キャラクター
   relatedPlaceIds?: string[]; // 関連場所
-  
+
   // EnhancedQuest機能の統合
   objectives?: QuestObjective[]; // クエスト目標
   detailedRewards?: {
@@ -88,7 +89,7 @@ export interface QuestElement {
   priority?: "low" | "medium" | "high";
   giver?: string; // クエスト提供者
   notes?: string; // GM用メモ
-  
+
   // 探索行動システム連携
   explorationActions?: ExplorationAction[]; // このクエストに関連する探索行動
   unlockConditions?: {
@@ -369,10 +370,10 @@ export interface EnemyCharacter {
     maxEncounterSize?: number; // 一度に遭遇する最大数
     spawnsInGroups?: boolean; // 群れで出現するか
   };
-  
+
   // 探索行動システム連携
   explorationActions?: ExplorationAction[]; // このエネミーに関連する探索行動（痕跡探し等）
-  
+
   // その他
   imageUrl?: string;
   campaignId?: string;
@@ -452,18 +453,18 @@ export interface UnifiedLocationElement extends TRPGPlaceElement {
   // PlaceElementからの追加属性
   population?: string; // 人口情報
   culturalFeatures?: string; // 文化的特徴
-  
+
   // AI生成・重要度情報
   importance?: "低" | "中" | "高" | "最重要"; // 重要度
   originalType?: string; // 元の型情報（migration用）
-  
+
   // 基本的な施設・サービス情報
   facilities?: string[]; // 基本的な施設リスト
   availableServices?: string[]; // 提供サービス
-  
+
   // 関係性情報
   relations?: string; // 他の場所との関係
-  
+
   // メタ情報
   aiGenerated?: boolean; // AI生成フラグ
   lastUpdated?: string; // 最終更新日時
@@ -797,49 +798,53 @@ export interface UnifiedEvent {
   id: string;
   title: string;
   description: string;
-  
+
   // 時間情報（両システム対応）
   sessionDay?: number; // TRPGセッション内の日数
   sessionTime?: string; // TRPGセッション内の時刻
   date?: string; // 小説用ISO date string
   dayNumber?: number; // 小説用日数（1日目、2日目など）
-  
+
   // 基本情報
   relatedCharacters: string[];
   relatedPlaces: string[];
   order: number;
-  
+
   // イベントタイプ（統合）
   eventType:
-    | "combat" | "battle"     // 戦闘
-    | "roleplay" | "dialogue" // 会話・ロールプレイ
-    | "exploration" | "journey" // 探索・移動
-    | "puzzle" | "mystery"    // 謎解き
-    | "social"                // 社交
-    | "discovery"            // 発見
-    | "rest"                 // 休息
-    | "turning_point"        // 転換点（小説用）
-    | "info"                 // 情報（小説用）
-    | "setup"                // 準備（小説用）
-    | "celebration"          // 祝祭（小説用）
-    | "other";               // その他
-  
+    | "combat"
+    | "battle" // 戦闘
+    | "roleplay"
+    | "dialogue" // 会話・ロールプレイ
+    | "exploration"
+    | "journey" // 探索・移動
+    | "puzzle"
+    | "mystery" // 謎解き
+    | "social" // 社交
+    | "discovery" // 発見
+    | "rest" // 休息
+    | "turning_point" // 転換点（小説用）
+    | "info" // 情報（小説用）
+    | "setup" // 準備（小説用）
+    | "celebration" // 祝祭（小説用）
+    | "other"; // その他
+
   // 結果・状態
   outcome?: "success" | "failure" | "partial" | "ongoing";
   postEventCharacterStatuses?: {
     [characterId: string]: CharacterStatus[];
   };
-  
+
   // 関連要素
   relatedQuestIds?: string[]; // 関連するクエストのID配列
   placeId?: string; // 主要な場所ID
-  
+
   // 報酬・結果
   experienceAwarded?: number;
   lootGained?: Equipment[]; // TRPG用戦利品
   results?: EventResult[]; // イベントの結果（アイテム取得、フラグ設定など）
   conditions?: EventCondition[]; // イベントの発生条件
-  
+
   // 探索行動システム連携
   explorationActions?: ExplorationAction[]; // このイベントに関連する探索行動
 }
@@ -853,36 +858,56 @@ export type TimelineEvent = UnifiedEvent;
 // イベントタイプ変換ヘルパー関数
 export const convertEventType = {
   // 小説 → TRPG イベントタイプ変換
-  novelToTRPG: (novelType: string): UnifiedEvent['eventType'] => {
+  novelToTRPG: (novelType: string): UnifiedEvent["eventType"] => {
     switch (novelType) {
-      case 'battle': return 'combat';
-      case 'dialogue': return 'roleplay';
-      case 'journey': return 'exploration';
-      case 'mystery': return 'puzzle';
-      case 'discovery': return 'discovery';
-      case 'rest': return 'rest';
-      case 'turning_point': return 'social';
-      case 'info': return 'social';
-      case 'setup': return 'social';
-      case 'celebration': return 'social';
-      case 'other': return 'other';
-      default: return 'social';
+      case "battle":
+        return "combat";
+      case "dialogue":
+        return "roleplay";
+      case "journey":
+        return "exploration";
+      case "mystery":
+        return "puzzle";
+      case "discovery":
+        return "discovery";
+      case "rest":
+        return "rest";
+      case "turning_point":
+        return "social";
+      case "info":
+        return "social";
+      case "setup":
+        return "social";
+      case "celebration":
+        return "social";
+      case "other":
+        return "other";
+      default:
+        return "social";
     }
   },
-  
+
   // TRPG → 小説 イベントタイプ変換
-  trpgToNovel: (trpgType: string): UnifiedEvent['eventType'] => {
+  trpgToNovel: (trpgType: string): UnifiedEvent["eventType"] => {
     switch (trpgType) {
-      case 'combat': return 'battle';
-      case 'roleplay': return 'dialogue';
-      case 'exploration': return 'journey';
-      case 'puzzle': return 'mystery';
-      case 'social': return 'info';
-      case 'discovery': return 'discovery';
-      case 'rest': return 'rest';
-      default: return 'other';
+      case "combat":
+        return "battle";
+      case "roleplay":
+        return "dialogue";
+      case "exploration":
+        return "journey";
+      case "puzzle":
+        return "mystery";
+      case "social":
+        return "info";
+      case "discovery":
+        return "discovery";
+      case "rest":
+        return "rest";
+      default:
+        return "other";
     }
-  }
+  },
 };
 
 // レガシーTimelineEventをUnifiedEventに変換
@@ -901,7 +926,7 @@ export const convertTimelineToUnified = (timeline: any): UnifiedEvent => {
     relatedPlaces: timeline.relatedPlaces || [],
     order: timeline.order || 0,
     // イベントタイプ変換
-    eventType: timeline.eventType || 'other',
+    eventType: timeline.eventType || "other",
     // 結果・状態
     outcome: timeline.outcome,
     postEventCharacterStatuses: timeline.postEventCharacterStatuses,
@@ -932,7 +957,7 @@ export const convertSessionToUnified = (session: any): UnifiedEvent => {
     relatedPlaces: session.relatedPlaces || [],
     order: session.order || 0,
     // イベントタイプ
-    eventType: session.eventType || 'other',
+    eventType: session.eventType || "other",
     // 結果・状態
     outcome: session.outcome,
     postEventCharacterStatuses: session.postEventCharacterStatuses,
@@ -2156,7 +2181,12 @@ export interface GMClearConditionInfo {
   id: string;
   clearConditionId: string; // 既存のClearCondition IDへの参照
   gmPriority: "critical" | "high" | "medium" | "low"; // GM評価の優先度
-  progressStatus: "not_started" | "hinted" | "in_progress" | "near_completion" | "completed"; // GM把握の進行状況
+  progressStatus:
+    | "not_started"
+    | "hinted"
+    | "in_progress"
+    | "near_completion"
+    | "completed"; // GM把握の進行状況
   playerAwareness: "unaware" | "partially_aware" | "fully_aware"; // プレイヤーの認知度
   gmHints?: string[]; // GMからプレイヤーへのヒント案
   secretRequirements?: string[]; // プレイヤーに隠している要求事項
@@ -2191,14 +2221,26 @@ export interface GMEnemyTacticsInfo {
 export interface GMSecretInfo {
   id: string;
   title: string; // 情報のタイトル
-  category: "plot_twist" | "npc_secret" | "world_lore" | "puzzle_solution" | "hidden_connection" | "future_event" | "other"; // カテゴリ
+  category:
+    | "plot_twist"
+    | "npc_secret"
+    | "world_lore"
+    | "puzzle_solution"
+    | "hidden_connection"
+    | "future_event"
+    | "other"; // カテゴリ
   content: string; // 秘密情報の内容
   importance: "critical" | "high" | "medium" | "low"; // 重要度
-  revealTiming?: "early_game" | "mid_game" | "late_game" | "climax" | "flexible"; // 明かすタイミング
+  revealTiming?:
+    | "early_game"
+    | "mid_game"
+    | "late_game"
+    | "climax"
+    | "flexible"; // 明かすタイミング
   revealConditions?: string[]; // 公開条件
   playerClues?: string[]; // プレイヤーが気づけるヒント
   relatedCharacters?: string[]; // 関連キャラクター
-  relatedLocations?: string[]; // 関連場所  
+  relatedLocations?: string[]; // 関連場所
   relatedQuests?: string[]; // 関連クエスト
   consequences?: string[]; // この情報が明かされた場合の影響
   gmReminders?: string[]; // GMへのリマインダー
@@ -2227,20 +2269,20 @@ export interface GMSessionNotes {
 export interface GMCheatSheet {
   id: string;
   campaignId: string;
-  
+
   // 既存データへのGM追加情報
   keyItemsInfo: GMKeyItemInfo[]; // 既存アイテムへのGM情報
   clearConditionsInfo: GMClearConditionInfo[]; // 既存クリア条件へのGM情報
   enemyTacticsInfo: GMEnemyTacticsInfo[]; // 既存エネミーへのGM情報
-  
+
   // GM専用情報
   secretInfo: GMSecretInfo[]; // 完全にGM専用の秘密情報
   sessionNotes: GMSessionNotes[]; // セッション進行メモ
-  
+
   // クイックリファレンス
   quickReference?: string; // クイックリファレンス
   currentSessionReminders?: string[]; // 今回セッション用リマインダー
-  
+
   updatedAt: Date;
 }
 
@@ -2252,21 +2294,28 @@ export interface GMCheatSheet {
 export interface TRPGActionResult {
   // プレイヤー向けナラティブテキスト
   narrative: string;
-  
+
   // ゲーム状態への影響（EventResultの配列として表現）
   gameEffects: EventResult[];
-  
+
   // 新しく利用可能になった行動選択肢
   newOpportunities?: {
     actionName: string;
     description: string;
-    category: "exploration" | "social" | "shopping" | "training" | "rest" | "quest" | "custom";
+    category:
+      | "exploration"
+      | "social"
+      | "shopping"
+      | "training"
+      | "rest"
+      | "quest"
+      | "custom";
     requirements?: string[];
   }[];
-  
+
   // 次回セッションへの影響
   futureConsequences?: string[];
-  
+
   // GM用メタ情報
   gmNotes?: {
     importantFlags?: string[];
@@ -2283,7 +2332,7 @@ export interface TRPGActionRequest {
   location: string;
   dayNumber: number;
   timeOfDay: TimeOfDay;
-  
+
   // コンテキスト情報
   partyMembers: {
     id: string;
@@ -2295,13 +2344,13 @@ export interface TRPGActionRequest {
     level: number;
     gold?: number;
   }[];
-  
+
   // 現在の状況
   availableFacilities?: string[];
   activeQuests?: string[];
   campaignFlags?: Record<string, any>;
   partyInventory?: { itemId: string; itemName: string; quantity: number }[];
-  
+
   // 追加の行動コンテキスト
   previousActions?: string[];
   locationDescription?: string;
@@ -2322,18 +2371,26 @@ export interface PartyInventoryItem {
 // =============================================================================
 
 // 探索行動の種類
-export type ExplorationActionType = 
-  | "investigate"    // 調査・探索
-  | "search"         // 捜索・発見
-  | "interact"       // 交流・会話
-  | "combat"         // 戦闘・討伐
-  | "collect"        // 収集・取得
-  | "travel"         // 移動・探検
-  | "rest"           // 休息・準備
-  | "other";         // その他
+export type ExplorationActionType =
+  | "investigate" // 調査・探索
+  | "search" // 捜索・発見
+  | "interact" // 交流・会話
+  | "combat" // 戦闘・討伐
+  | "collect" // 収集・取得
+  | "travel" // 移動・探検
+  | "rest" // 休息・準備
+  | "other"; // その他
 
 // 探索行動の難易度
 export type ExplorationDifficulty = "easy" | "normal" | "hard" | "extreme";
+
+// 探索行動の分類（ランダムイベントシステム用）
+export type ExplorationActionCategory =
+  | "milestone" // マイルストーン達成必須（固定表示）
+  | "beneficial" // 有益なサブイベント（経験値・アイテム等）
+  | "hazard" // ハズレ・トラブル系イベント（時間消費・リスク）
+  | "flavor" // 世界観・キャラクター系イベント（ストーリー深化）
+  | "random"; // その他のランダムイベント
 
 // 探索行動の基本定義
 export interface ExplorationAction {
@@ -2342,40 +2399,43 @@ export interface ExplorationAction {
   description: string;
   actionType: ExplorationActionType;
   difficulty: ExplorationDifficulty;
-  
+
   // 実行条件
   prerequisites?: {
-    requiredItems?: string[];       // 必要アイテム
-    requiredSkills?: string[];      // 必要スキル
-    requiredLocation?: string;      // 必要場所
-    requiredPartySize?: number;     // 必要パーティサイズ
-    timeRequired?: number;          // 所要時間（分）
+    requiredItems?: string[]; // 必要アイテム
+    requiredSkills?: string[]; // 必要スキル
+    requiredLocation?: string; // 必要場所
+    requiredPartySize?: number; // 必要パーティサイズ
+    timeRequired?: number; // 所要時間（分）
   };
-  
+
   // 成功時の結果
   successOutcomes?: {
-    experience?: number;            // 獲得経験値
-    items?: string[];              // 獲得アイテム
-    information?: string[];        // 獲得情報
+    experience?: number; // 獲得経験値
+    items?: string[]; // 獲得アイテム
+    information?: string[]; // 獲得情報
     flagChanges?: Record<string, any>; // フラグ変更
-    nextActions?: string[];        // 解放される次の行動
+    nextActions?: string[]; // 解放される次の行動
   };
-  
+
   // 失敗時の結果
   failureOutcomes?: {
-    consequences?: string[];       // 失敗の結果
-    retryable?: boolean;          // 再挑戦可能か
-    penaltyDays?: number;         // ペナルティ日数
+    consequences?: string[]; // 失敗の結果
+    retryable?: boolean; // 再挑戦可能か
+    penaltyDays?: number; // ペナルティ日数
   };
-  
+
   // 関連要素
-  relatedQuestId?: string;        // 関連クエスト
-  relatedEventId?: string;        // 関連イベント
-  relatedEnemyId?: string;        // 関連エネミー
-  
+  relatedQuestId?: string; // 関連クエスト
+  relatedEventId?: string; // 関連イベント
+  relatedEnemyId?: string; // 関連エネミー
+
   // 表示制御
-  isVisible?: boolean;            // 探索タブに表示するか
-  priority?: number;              // 表示優先度
+  isVisible?: boolean; // 探索タブに表示するか
+  priority?: number; // 表示優先度
+
+  // ランダムイベントシステム用分類
+  category?: ExplorationActionCategory; // イベントの分類
 }
 
 // 探索行動グループ（マイルストーン別）
@@ -2383,8 +2443,40 @@ export interface ExplorationActionGroup {
   milestoneId: string;
   milestoneTitle: string;
   actions: ExplorationAction[];
-  estimatedDays: number;          // 推定完了日数
+  estimatedDays: number; // 推定完了日数
   priority: "low" | "medium" | "high" | "critical";
+}
+
+// ランダムイベントプール管理
+export interface RandomEventPool {
+  id: string;
+  name: string; // プール名（例：「リバーベント街周辺」）
+  description?: string;
+
+  // 分類別イベントプール
+  beneficialEvents: ExplorationAction[]; // 有益なサブイベント
+  hazardEvents: ExplorationAction[]; // ハズレ・トラブル系
+  flavorEvents: ExplorationAction[]; // 世界観・キャラクター系
+
+  // ランダム選択設定
+  selectionRules?: {
+    beneficialWeight: number; // 有益イベントの重み
+    hazardWeight: number; // ハズレイベントの重み
+    flavorWeight: number; // フレーバーイベントの重み
+    maxEventsPerDay: number; // 1日の最大ランダムイベント数
+    minEventsPerDay: number; // 1日の最小ランダムイベント数
+  };
+
+  // 適用条件
+  applicableLocations?: string[]; // 適用される場所ID
+  applicableDayRange?: {
+    // 適用される日数範囲
+    start: number;
+    end: number;
+  };
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // =============================================================================
@@ -2394,28 +2486,28 @@ export interface ExplorationActionGroup {
 // マイルストーン達成条件の型定義
 export interface MilestoneRequirement {
   type: "events" | "quests" | "items" | "enemies";
-  
+
   // イベント達成条件
-  eventIds?: string[];           // 必要なイベントID配列
-  
-  // クエスト達成条件  
-  questIds?: string[];           // 必要なクエストID配列
-  
+  eventIds?: string[]; // 必要なイベントID配列
+
+  // クエスト達成条件
+  questIds?: string[]; // 必要なクエストID配列
+
   // アイテム取得条件
   itemRequirements?: {
     itemId: string;
     quantity: number;
   }[];
-  
+
   // エネミー討伐条件
   enemyRequirements?: {
     enemyId: string;
-    count: number;              // 討伐必要数
+    count: number; // 討伐必要数
   }[];
-  
+
   // 達成に必要な数（部分達成の場合）
-  requiredCount?: number;        // 指定した場合、この数だけ達成すれば条件クリア
-  description: string;           // 条件の説明
+  requiredCount?: number; // 指定した場合、この数だけ達成すれば条件クリア
+  description: string; // 条件の説明
 }
 
 // キャンペーンマイルストーン
@@ -2423,31 +2515,31 @@ export interface CampaignMilestone {
   id: string;
   title: string;
   description: string;
-  
+
   // 期限設定
-  targetDay: number;             // 目標達成日
-  deadline: boolean;             // デッドライン設定（true=必須期限, false=推奨期限）
-  
+  targetDay: number; // 目標達成日
+  deadline: boolean; // デッドライン設定（true=必須期限, false=推奨期限）
+
   // 達成条件（複数の条件を組み合わせ可能）
   requirements: MilestoneRequirement[];
-  
+
   // 全条件達成が必要か、部分達成でも可とするか
-  completionMode: "all" | "partial";  // all=全条件達成, partial=requirements内のrequiredCount使用
-  
+  completionMode: "all" | "partial"; // all=全条件達成, partial=requirements内のrequiredCount使用
+
   // 達成状態
   status: "pending" | "active" | "completed" | "failed" | "overdue";
-  achievedDay?: number;          // 実際の達成日
-  
+  achievedDay?: number; // 実際の達成日
+
   // GM向けガイダンス
   gmGuidance: {
-    onTimeHints: string[];       // 期限内達成時のGMアナウンス案
-    delayedHints: string[];      // 遅延時のGMアナウンス案（deadline=false時）
-    failureMessage?: string;     // ゲームオーバー時メッセージ（deadline=true時）
+    onTimeHints: string[]; // 期限内達成時のGMアナウンス案
+    delayedHints: string[]; // 遅延時のGMアナウンス案（deadline=false時）
+    failureMessage?: string; // ゲームオーバー時メッセージ（deadline=true時）
   };
-  
+
   // 優先度
   priority: "critical" | "important" | "optional";
-  
+
   // メタ情報
   createdAt: Date;
   updatedAt: Date;
@@ -2460,11 +2552,11 @@ export interface MilestoneProgress {
     [requirementIndex: number]: {
       type: MilestoneRequirement["type"];
       completed: boolean;
-      progress: number;          // 0-100の進捗率
-      details: string;           // 詳細状況
+      progress: number; // 0-100の進捗率
+      details: string; // 詳細状況
     };
   };
-  overallProgress: number;       // 全体進捗率
+  overallProgress: number; // 全体進捗率
   estimatedCompletionDay?: number; // 完了予想日
 }
 
@@ -2473,7 +2565,7 @@ export interface MilestoneCheckResult {
   milestoneId: string;
   wasCompleted: boolean;
   wasOverdue: boolean;
-  shouldGameOver: boolean;       // deadline=trueかつ遅延の場合true
+  shouldGameOver: boolean; // deadline=trueかつ遅延の場合true
   gmAction?: {
     type: "announce" | "gameover" | "continue";
     message: string;
@@ -2495,13 +2587,13 @@ export interface PlaceManagementElement extends UnifiedLocationElement {
     isPlayerDiscovered: boolean; // プレイヤーが発見済みか
     isActiveLocation: boolean; // 現在アクティブな場所か
   };
-  
+
   // 場所管理カテゴリ
   placeCategory: PlaceManagementCategory;
-  
+
   // 関連する拠点情報（BaseLocationとの連携）
   relatedBaseId?: string;
-  
+
   // 場所固有の探索情報
   explorationInfo?: {
     explorationDifficulty: "easy" | "medium" | "hard" | "extreme";
@@ -2513,7 +2605,7 @@ export interface PlaceManagementElement extends UnifiedLocationElement {
 }
 
 // 場所管理カテゴリ（TRPGに特化）
-export type PlaceManagementCategory = 
+export type PlaceManagementCategory =
   | "settlement" // 集落・街
   | "dungeon" // ダンジョン
   | "wilderness" // 野外・自然環境
@@ -2528,7 +2620,14 @@ export interface PlaceManagementAction {
   id: string;
   name: string;
   description: string;
-  category: "exploration" | "interaction" | "rest" | "shopping" | "quest" | "travel" | "special";
+  category:
+    | "exploration"
+    | "interaction"
+    | "rest"
+    | "shopping"
+    | "quest"
+    | "travel"
+    | "special";
   requirements?: {
     minLevel?: number;
     requiredItems?: string[];
@@ -2552,29 +2651,40 @@ export interface PlaceManagementContextType {
   places: PlaceManagementElement[];
   currentPlace?: PlaceManagementElement;
   selectedPlaceId?: string;
-  
+
   // 場所操作
   addPlace: (place: Omit<PlaceManagementElement, "id">) => Promise<string>; // 新しい場所のIDを返す
-  updatePlace: (placeId: string, updates: Partial<PlaceManagementElement>) => Promise<boolean>;
+  updatePlace: (
+    placeId: string,
+    updates: Partial<PlaceManagementElement>,
+  ) => Promise<boolean>;
   deletePlace: (placeId: string) => Promise<boolean>;
-  
+
   // 場所発見・アクセス管理
   discoverPlace: (placeId: string) => Promise<boolean>;
   visitPlace: (placeId: string) => Promise<boolean>;
   getCurrentAccessiblePlaces: () => PlaceManagementElement[];
-  
+
   // アクション管理
   getAvailableActions: (placeId: string) => PlaceManagementAction[];
-  executeAction: (placeId: string, actionId: string) => Promise<TRPGActionResult>;
-  
+  executeAction: (
+    placeId: string,
+    actionId: string,
+  ) => Promise<TRPGActionResult>;
+
   // フィルタリング・検索
-  filterPlacesByCategory: (category: PlaceManagementCategory) => PlaceManagementElement[];
+  filterPlacesByCategory: (
+    category: PlaceManagementCategory,
+  ) => PlaceManagementElement[];
   searchPlaces: (query: string) => PlaceManagementElement[];
-  
+
   // AI生成支援
-  generatePlaceByAI: (prompt: string, category: PlaceManagementCategory) => Promise<PlaceManagementElement>;
+  generatePlaceByAI: (
+    prompt: string,
+    category: PlaceManagementCategory,
+  ) => Promise<PlaceManagementElement>;
   enhancePlaceWithAI: (placeId: string, prompt: string) => Promise<boolean>;
-  
+
   // 状態管理
   isLoading: boolean;
   error?: string;
@@ -2589,17 +2699,17 @@ export interface PlaceManagementSettings {
   showHiddenPlaces: boolean;
   groupByCategory: boolean;
   sortBy: "name" | "visitCount" | "lastVisited" | "createdAt";
-  
+
   // 探索設定
   autoDiscovery: boolean; // 近くの場所を自動発見
   discoveryRadius: number; // 発見範囲（km）
   requireExplorationActions: boolean; // 探索アクションを必須にするか
-  
+
   // AI設定
   enableAIGeneration: boolean;
   aiGenerationModel: string;
   autoEnhancement: boolean; // AI自動改善機能
-  
+
   // セッション連携
   trackVisitHistory: boolean;
   enableLocationEvents: boolean; // 場所でのイベント発生
